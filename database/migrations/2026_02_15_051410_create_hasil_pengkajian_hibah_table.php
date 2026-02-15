@@ -16,6 +16,7 @@ return new class extends Migration
             $table->foreignId('id_pengkajian_hibah')->constrained('pengkajian_hibah')->cascadeOnDelete();
             $table->unsignedBigInteger('id_unit')->nullable();
             $table->string('rekomendasi');
+            $table->text('keterangan')->nullable();
             $table->softDeletesTz();
             $table->timestampsTz();
 

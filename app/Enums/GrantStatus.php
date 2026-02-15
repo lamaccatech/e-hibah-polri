@@ -88,4 +88,12 @@ enum GrantStatus: string
     {
         return $this->isEditableBySatker();
     }
+
+    public function canStartPoldaReview(): bool
+    {
+        return in_array($this, [
+            self::PlanningSubmittedToPolda,
+            self::PlanningRevisionResubmitted,
+        ]);
+    }
 }

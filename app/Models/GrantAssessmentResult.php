@@ -20,6 +20,7 @@ class GrantAssessmentResult extends Model
      */
     protected $fillable = [
         'rekomendasi',
+        'keterangan',
     ];
 
     /**
