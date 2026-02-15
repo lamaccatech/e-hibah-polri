@@ -1,3 +1,104 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## Project Overview
+
+e-Hibah Polri — Grant management system (sistem hibah) for the Indonesian National Police. Manages the full lifecycle of grant proposals (usulan) and agreements (perjanjian) across three organizational levels: Satuan Kerja (work units), Satuan Induk/Polda (parent units), and Mabes (headquarters). Rewrite from Laravel 11 + Inertia.js + React to Laravel 12 + Livewire 4 + Flux UI Free.
+
+## Development Commands
+
+```bash
+# Start Sail containers
+vendor/bin/sail up -d
+
+# Stop Sail containers
+vendor/bin/sail stop
+
+# Run all tests
+vendor/bin/sail artisan test --compact
+
+# Run a single test file
+vendor/bin/sail bin pest tests/Feature/SomeTest.php
+
+# Run a single test by name
+vendor/bin/sail bin pest --filter="test_name"
+
+# Lint code with Pint
+vendor/bin/sail bin pint --dirty
+
+# Frontend build
+vendor/bin/sail npm run build
+vendor/bin/sail npm run dev
+```
+
+## Documentation
+
+- **`docs/CODING_GUIDELINE.md`** — Comprehensive coding standards (MUST be followed)
+- **`docs/TECHNICAL_ARCHITECTURE.md`** — System architecture and patterns
+- **`docs/SPEC_DRIVEN_DEVELOPMENT.md`** — Development methodology
+- **`docs/CODE_REVIEW_CHECKLIST.md`** — Code review standards
+
+## Database Migrations (Development Phase)
+
+**IMPORTANT:** We are still in the development phase. When database schema changes are needed, modify the existing migration file directly instead of creating a new migration. This rule will be removed when we reach production.
+
+## Development Principles
+
+This project follows these core principles in order of priority:
+
+### 1. YAGNI (You Aren't Gonna Need It)
+- **Don't build features for uncertain future requirements**
+- Only implement what's needed NOW, not what "might be needed later"
+- Future requirements often never materialize or come in different forms
+
+### 2. KISS (Keep It Simple, Stupid)
+- **Favor simple solutions over clever ones**
+- Simple code is easier to understand, maintain, and debug
+- Complexity should be justified by actual requirements
+
+### 3. DRY (Don't Repeat Yourself)
+- **Extract repeated logic into reusable components**
+- BUT: Don't abstract too early (wait for 3+ repetitions)
+- Duplication is better than premature abstraction
+
+### Application to Architecture
+
+When making design decisions:
+
+1. **Start simple** — Use the most straightforward approach
+2. **Validate necessity** — Is this complexity solving a real problem?
+3. **Plan migration paths** — Document how to evolve simple designs when needed
+4. **Refactor when needed** — Not before
+
+### Code Review Checklist
+
+Before committing code, ask:
+- [ ] Is this the simplest solution that works?
+- [ ] Am I building for actual requirements or imagined future needs?
+- [ ] Can I remove any abstraction without losing functionality?
+- [ ] Is this code easy to understand in 6 months?
+
+## Key Conventions
+
+- **CRITICAL:** Always refer to `docs/CODING_GUIDELINE.md` before making any code changes.
+- **Foreign Key Mass Assignment:** Never include foreign keys like `user_id` or `id_*` in model `$fillable` arrays for ownership relationships. Always use relationship methods. See `docs/CODING_GUIDELINE.md` for details.
+- **Naming Convention:** Default to camelCase for PHP properties, variables, and methods. Use snake_case only for names that directly map to database columns.
+- **Language:** Use English for all code (class names, methods, variables, comments, test names, commit messages). Indonesian is only used for database column names (business domain tables), user-facing UI text, and validation messages.
+- **Timestamps:** Always use `timestampsTz()` / `timestampTz()` / `softDeletesTz()` — never the non-Tz variants.
+
+## Deletion Policy
+
+**BEFORE implementing ANY delete functionality, ALWAYS check the Deletion Policy section in `docs/CODING_GUIDELINE.md`.**
+
+Quick reference:
+- **NEVER DELETE:** Audit trail tables (logs, history) — Use `nullOnDelete`
+- **RESTRICT DELETE:** Master/reference data — Use `restrictOnDelete`
+- **SOFT DELETE:** Business data — Use `SoftDeletes` trait + `softDeletesTz()`
+- **NEVER** use `cascadeOnDelete` on audit tables or master data
+
+===
+
 <laravel-boost-guidelines>
 === foundation rules ===
 
