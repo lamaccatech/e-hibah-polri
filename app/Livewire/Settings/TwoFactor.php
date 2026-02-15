@@ -76,7 +76,7 @@ class TwoFactor extends Component
             $this->qrCodeSvg = $user?->twoFactorQrCodeSvg();
             $this->manualSetupKey = decrypt($user->two_factor_secret);
         } catch (Exception) {
-            $this->addError('setupData', 'Failed to fetch setup data.');
+            $this->addError('setupData', __('page.two-factor.error-fetch-setup'));
 
             $this->reset('qrCodeSvg', 'manualSetupKey');
         }
@@ -159,24 +159,24 @@ class TwoFactor extends Component
     {
         if ($this->twoFactorEnabled) {
             return [
-                'title' => __('Two-Factor Authentication Enabled'),
-                'description' => __('Two-factor authentication is now enabled. Scan the QR code or enter the setup key in your authenticator app.'),
-                'buttonText' => __('Close'),
+                'title' => __('page.two-factor.modal-enabled-title'),
+                'description' => __('page.two-factor.modal-enabled-description'),
+                'buttonText' => __('common.close'),
             ];
         }
 
         if ($this->showVerificationStep) {
             return [
-                'title' => __('Verify Authentication Code'),
-                'description' => __('Enter the 6-digit code from your authenticator app.'),
-                'buttonText' => __('Continue'),
+                'title' => __('page.two-factor.modal-verify-title'),
+                'description' => __('page.two-factor.modal-verify-description'),
+                'buttonText' => __('common.continue'),
             ];
         }
 
         return [
-            'title' => __('Enable Two-Factor Authentication'),
-            'description' => __('To finish enabling two-factor authentication, scan the QR code or enter the setup key in your authenticator app.'),
-            'buttonText' => __('Continue'),
+            'title' => __('page.two-factor.modal-setup-title'),
+            'description' => __('page.two-factor.modal-setup-description'),
+            'buttonText' => __('common.continue'),
         ];
     }
 }

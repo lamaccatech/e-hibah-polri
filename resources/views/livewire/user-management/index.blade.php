@@ -1,9 +1,9 @@
 <div>
     <div class="flex items-center justify-between mb-6">
-        <flux:heading size="xl">{{ __('User Management') }}</flux:heading>
+        <flux:heading size="xl">{{ __('page.user-management.title') }}</flux:heading>
 
         <flux:button variant="primary" icon="plus" :href="route('user.create')" wire:navigate>
-            {{ __('Tambah User') }}
+            {{ __('page.user-management.create-button') }}
         </flux:button>
     </div>
 
@@ -15,11 +15,11 @@
 
     <flux:table>
         <flux:table.columns>
-            <flux:table.column>{{ __('Email') }}</flux:table.column>
-            <flux:table.column>{{ __('Nama Unit') }}</flux:table.column>
-            <flux:table.column>{{ __('Kode') }}</flux:table.column>
-            <flux:table.column>{{ __('Level') }}</flux:table.column>
-            <flux:table.column align="end">{{ __('Aksi') }}</flux:table.column>
+            <flux:table.column>{{ __('common.email') }}</flux:table.column>
+            <flux:table.column>{{ __('page.user-management.column-unit-name') }}</flux:table.column>
+            <flux:table.column>{{ __('page.user-management.column-code') }}</flux:table.column>
+            <flux:table.column>{{ __('page.user-management.column-level') }}</flux:table.column>
+            <flux:table.column align="end">{{ __('page.user-management.column-action') }}</flux:table.column>
         </flux:table.columns>
 
         <flux:table.rows>
@@ -41,7 +41,7 @@
             @empty
                 <flux:table.row>
                     <flux:table.cell colspan="5" class="text-center">
-                        {{ __('Belum ada user.') }}
+                        {{ __('page.user-management.empty-state') }}
                     </flux:table.cell>
                 </flux:table.row>
             @endforelse
@@ -51,9 +51,9 @@
     <flux:modal wire:model.self="showDeleteModal" class="min-w-[22rem]">
         <div class="space-y-6">
             <div>
-                <flux:heading size="lg">{{ __('Hapus User') }}</flux:heading>
+                <flux:heading size="lg">{{ __('page.user-management.delete-modal-title') }}</flux:heading>
                 <flux:text class="mt-2">
-                    {{ __('Hapus user dan unit ini? Tindakan ini tidak dapat dibatalkan.') }}
+                    {{ __('page.user-management.delete-modal-description') }}
                 </flux:text>
             </div>
 
@@ -61,11 +61,11 @@
                 <flux:spacer />
 
                 <flux:modal.close>
-                    <flux:button variant="ghost">{{ __('Batal') }}</flux:button>
+                    <flux:button variant="ghost">{{ __('common.cancel') }}</flux:button>
                 </flux:modal.close>
 
                 <flux:button variant="danger" wire:click="delete">
-                    {{ __('Hapus') }}
+                    {{ __('common.delete') }}
                 </flux:button>
             </div>
         </div>

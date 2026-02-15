@@ -23,7 +23,7 @@ class Index extends Component
         $unit = $user->unit;
 
         if ($unit && $unit->grants()->exists()) {
-            $this->addError('delete', 'User tidak dapat dihapus karena memiliki hibah aktif');
+            $this->addError('delete', __('page.user-management.error-has-grants'));
             $this->showDeleteModal = false;
             $this->userToDelete = null;
 
@@ -31,7 +31,7 @@ class Index extends Component
         }
 
         if ($unit && $unit->children()->exists()) {
-            $this->addError('delete', 'User tidak dapat dihapus karena memiliki unit bawahan');
+            $this->addError('delete', __('page.user-management.error-has-subordinates'));
             $this->showDeleteModal = false;
             $this->userToDelete = null;
 

@@ -10,7 +10,7 @@ describe('Authentication - Happy Path', function () {
     it('renders the login page for guests', function () {
         $this->get('/login')
             ->assertSuccessful()
-            ->assertSee('Log in');
+            ->assertSee(__('page.login.submit-button'));
     });
 
     it('authenticates a user with valid email and password', function () {

@@ -25,15 +25,15 @@
         >
             <div x-show="!showRecoveryInput">
                 <x-auth-header
-                    :title="__('Authentication Code')"
-                    :description="__('Enter the authentication code provided by your authenticator application.')"
+                    :title="__('page.two-factor-challenge.title-code')"
+                    :description="__('page.two-factor-challenge.description-code')"
                 />
             </div>
 
             <div x-show="showRecoveryInput">
                 <x-auth-header
-                    :title="__('Recovery Code')"
-                    :description="__('Please confirm access to your account by entering one of your emergency recovery codes.')"
+                    :title="__('page.two-factor-challenge.title-recovery')"
+                    :description="__('page.two-factor-challenge.description-recovery')"
                 />
             </div>
 
@@ -47,7 +47,7 @@
                                 x-model="code"
                                 length="6"
                                 name="code"
-                                label="OTP Code"
+                                :label="__('page.two-factor-challenge.label-otp')"
                                 label:sr-only
                                 class="mx-auto"
                              />
@@ -78,15 +78,15 @@
                         type="submit"
                         class="w-full"
                     >
-                        {{ __('Continue') }}
+                        {{ __('common.continue') }}
                     </flux:button>
                 </div>
 
                 <div class="mt-5 space-x-0.5 text-sm leading-5 text-center">
-                    <span class="opacity-50">{{ __('or you can') }}</span>
+                    <span class="opacity-50">{{ __('page.two-factor-challenge.toggle-prefix') }}</span>
                     <div class="inline font-medium underline cursor-pointer opacity-80">
-                        <span x-show="!showRecoveryInput" @click="toggleInput()">{{ __('login using a recovery code') }}</span>
-                        <span x-show="showRecoveryInput" @click="toggleInput()">{{ __('login using an authentication code') }}</span>
+                        <span x-show="!showRecoveryInput" @click="toggleInput()">{{ __('page.two-factor-challenge.toggle-to-recovery') }}</span>
+                        <span x-show="showRecoveryInput" @click="toggleInput()">{{ __('page.two-factor-challenge.toggle-to-code') }}</span>
                     </div>
                 </div>
             </form>
