@@ -2,7 +2,7 @@
 
 ## Overview
 
-The planning journey covers the full lifecycle of a grant proposal (usulan), from Satker initializing the proposal through multi-level review to Mabes issuing an official planning number. This journey applies to Planned grants (`GrantType::Planned`), which must complete Planning before moving to Agreement.
+The planning journey covers the full lifecycle of a grant proposal (usulan), from Satker initializing the proposal through multi-level review to Mabes issuing an official planning number. This journey applies to Direct grants with proposals (`GrantType::Direct` + `ada_usulan = true`), which must complete Planning before moving to Agreement. Note: `GrantType::Planned` (TERENCANA/HDR) is a separate category — not this flow.
 
 ## Actors
 

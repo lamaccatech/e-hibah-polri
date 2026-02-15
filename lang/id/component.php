@@ -14,8 +14,8 @@ return [
     ],
 
     'grant-planning-steps' => [
-        'step-1' => 'Inisialisasi',
-        'step-2' => 'Data Pemberi Hibah',
+        'step-1' => 'Nama Kegiatan',
+        'step-2' => 'Calon Pemberi Hibah',
         'step-3' => 'Naskah Usulan',
         'step-4' => 'Dokumen Kajian',
     ],

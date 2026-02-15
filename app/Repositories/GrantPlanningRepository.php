@@ -62,16 +62,23 @@ class GrantPlanningRepository
         return $unit->grants()->findOrFail($grantId);
     }
 
+    public function updateGrantName(Grant $grant, string $activityName): void
+    {
+        $grant->update(['nama_hibah' => $activityName]);
+    }
+
     public function createGrant(OrgUnit $unit, string $activityName): Grant
     {
         $grant = $unit->grants()->create([
             'nama_hibah' => $activityName,
-            'jenis_hibah' => GrantType::Planned->value,
+            'jenis_hibah' => GrantType::Direct->value,
             'tahapan' => GrantStage::Planning->value,
+            'ada_usulan' => true,
         ]);
 
         $grant->statusHistory()->create([
             'status_sesudah' => GrantStatus::PlanningInitialized->value,
+            'keterangan' => "{$unit->nama_unit} memulai pembuatan naskah usulan hibah dalam rangka kegiatan {$activityName}",
         ]);
 
         return $grant;
@@ -84,7 +91,7 @@ class GrantPlanningRepository
     }
 
     /**
-     * @param  array{nama: string, asal: string, alamat: string, negara: string, kategori: string}  $data
+     * @param  array{nama: string, asal: string, alamat: string, negara: string, kategori: ?string, nomor_telepon: ?string, ...}  $data
      */
     public function createDonor(array $data): Donor
     {
@@ -95,20 +102,24 @@ class GrantPlanningRepository
     {
         $grant->update(['id_pemberi_hibah' => $donorId]);
 
+        $donor = Donor::find($donorId);
+
         $grant->statusHistory()->create([
             'status_sebelum' => $this->getLatestStatus($grant)?->value,
             'status_sesudah' => GrantStatus::FillingDonorCandidate->value,
+            'keterangan' => "{$grant->orgUnit->nama_unit} mengisi data calon pemberi hibah {$donor?->nama} untuk kegiatan {$grant->nama_hibah}",
         ]);
     }
 
     /**
-     * @param  array<string, array<int, string>>  $chapters  Keyed by ProposalChapter value
-     * @param  array<int, array{uraian: string, volume: string, satuan: string, harga_satuan: string}>  $budgetItems
+     * @param  array<string, array<int, string|array{subjudul: string, isi: string}>>  $chapters  Keyed by ProposalChapter value
+     * @param  array<int, array{uraian: string, nilai: string}>  $budgetItems
      * @param  array<int, array{uraian_kegiatan: string, tanggal_mulai: string, tanggal_selesai: string}>  $schedules
+     * @param  array<int, array{title: string, paragraphs: array<int, string>}>  $customChapters
      */
-    public function saveProposalDocument(Grant $grant, array $chapters, array $budgetItems, array $schedules, string $currency): void
+    public function saveProposalDocument(Grant $grant, array $chapters, array $budgetItems, array $schedules, string $currency, array $customChapters = []): void
     {
-        DB::transaction(function () use ($grant, $chapters, $budgetItems, $schedules, $currency): void {
+        DB::transaction(function () use ($grant, $chapters, $budgetItems, $schedules, $currency, $customChapters): void {
             // Delete existing proposal data for re-save
             $grant->information()
                 ->where('tahapan', GrantStage::Planning)
@@ -124,6 +135,35 @@ class GrantPlanningRepository
                 ]);
 
                 foreach ($paragraphs as $index => $content) {
+                    // Support both plain strings and structured {subjudul, isi} arrays
+                    $subjudul = '';
+                    $isi = $content;
+
+                    if (is_array($content)) {
+                        $subjudul = $content['subjudul'] ?? '';
+                        $isi = $content['isi'] ?? '';
+                    }
+
+                    if (trim($isi) === '') {
+                        continue;
+                    }
+
+                    $info->contents()->create([
+                        'subjudul' => $subjudul,
+                        'isi' => $this->sanitizeHtml($isi),
+                        'nomor_urut' => $index + 1,
+                    ]);
+                }
+            }
+
+            // Create custom chapters
+            foreach ($customChapters as $custom) {
+                $info = $grant->information()->create([
+                    'judul' => $custom['title'],
+                    'tahapan' => GrantStage::Planning->value,
+                ]);
+
+                foreach ($custom['paragraphs'] as $index => $content) {
                     if (trim($content) === '') {
                         continue;
                     }
@@ -138,15 +178,14 @@ class GrantPlanningRepository
 
             // Create budget items and calculate total value
             $totalValue = '0';
-            foreach ($budgetItems as $item) {
+            foreach ($budgetItems as $index => $item) {
                 $grant->budgetPlans()->create([
+                    'nomor_urut' => $index + 1,
                     'uraian' => $item['uraian'],
-                    'volume' => $item['volume'],
-                    'satuan' => $item['satuan'],
-                    'harga_satuan' => $item['harga_satuan'],
+                    'nilai' => $item['nilai'],
                 ]);
 
-                $totalValue = bcadd($totalValue, bcmul($item['volume'], $item['harga_satuan'], 2), 2);
+                $totalValue = bcadd($totalValue, $item['nilai'], 2);
             }
 
             // Create schedules
@@ -167,6 +206,7 @@ class GrantPlanningRepository
             $grant->statusHistory()->create([
                 'status_sebelum' => $this->getLatestStatus($grant)?->value,
                 'status_sesudah' => GrantStatus::CreatingProposalDocument->value,
+                'keterangan' => "{$grant->orgUnit->nama_unit} membuat naskah usulan hibah untuk kegiatan {$grant->nama_hibah}",
             ]);
         });
     }
@@ -198,6 +238,7 @@ class GrantPlanningRepository
             $statusHistory = $grant->statusHistory()->create([
                 'status_sebelum' => $this->getLatestStatus($grant)?->value,
                 'status_sesudah' => GrantStatus::CreatingPlanningAssessment->value,
+                'keterangan' => "{$grant->orgUnit->nama_unit} membuat dokumen kajian usulan hibah untuk kegiatan {$grant->nama_hibah}",
             ]);
 
             // Create assessments with contents
@@ -209,13 +250,22 @@ class GrantPlanningRepository
                 ]);
 
                 foreach ($aspect['paragraphs'] as $index => $content) {
-                    if (trim($content) === '') {
+                    // Support both plain strings and structured {subjudul, isi} arrays
+                    $subjudul = '';
+                    $isi = $content;
+
+                    if (is_array($content)) {
+                        $subjudul = $content['subjudul'] ?? '';
+                        $isi = $content['isi'] ?? '';
+                    }
+
+                    if (trim($isi) === '') {
                         continue;
                     }
 
                     $assessment->contents()->create([
-                        'subjudul' => '',
-                        'isi' => $this->sanitizeHtml($content),
+                        'subjudul' => $subjudul,
+                        'isi' => $this->sanitizeHtml($isi),
                         'nomor_urut' => $index + 1,
                     ]);
                 }
@@ -228,6 +278,7 @@ class GrantPlanningRepository
         $grant->statusHistory()->create([
             'status_sebelum' => $this->getLatestStatus($grant)?->value,
             'status_sesudah' => GrantStatus::PlanningSubmittedToPolda->value,
+            'keterangan' => "{$grant->orgUnit->nama_unit} mengajukan usulan hibah untuk kegiatan {$grant->nama_hibah}",
         ]);
     }
 

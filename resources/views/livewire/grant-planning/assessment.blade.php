@@ -3,19 +3,20 @@
 
     <form wire:submit="save" class="space-y-8 max-w-3xl">
         {{-- Mandatory Aspects --}}
-        <div class="space-y-6">
-            <flux:heading size="lg">{{ __('page.grant-planning-assessment.section-mandatory') }}</flux:heading>
-
+        <div class="space-y-8">
             @foreach ($aspectCases as $aspect)
-                <div class="space-y-3 p-4 border rounded-lg border-zinc-200 dark:border-zinc-700">
-                    <flux:heading size="sm">{{ $aspect->label() }}</flux:heading>
+                <div class="space-y-3 pb-6 border-b border-zinc-200 dark:border-zinc-700">
+                    <flux:heading size="xl" class="font-bold">{{ $aspect->label() }}</flux:heading>
 
                     @foreach ($aspect->prompts() as $promptIndex => $prompt)
-                        <flux:editor
-                            wire:model="mandatoryAspects.{{ $aspect->value }}.{{ $promptIndex }}"
-                            :label="$prompt"
-                            toolbar="heading | bold italic underline strike | bullet ordered blockquote | link"
-                        />
+                        <div>
+                            <flux:editor
+                                wire:model="mandatoryAspects.{{ $aspect->value }}.{{ $promptIndex }}"
+                                :label="$prompt"
+                                toolbar="heading | bold italic underline strike | bullet ordered blockquote | link"
+                            />
+                            <flux:error name="mandatoryAspects.{{ $aspect->value }}.{{ $promptIndex }}" />
+                        </div>
                     @endforeach
                 </div>
             @endforeach
@@ -43,6 +44,7 @@
                                 wire:model="customAspects.{{ $aspectIndex }}.paragraphs.{{ $paragraphIndex }}"
                                 toolbar="heading | bold italic underline strike | bullet ordered blockquote | link"
                             />
+                            <flux:error name="customAspects.{{ $aspectIndex }}.paragraphs.{{ $paragraphIndex }}" />
                             @if (count($customAspect['paragraphs']) > 1)
                                 <div class="flex justify-end">
                                     <flux:button variant="ghost" size="sm" icon="trash" wire:click="removeCustomParagraph({{ $aspectIndex }}, {{ $paragraphIndex }})" />

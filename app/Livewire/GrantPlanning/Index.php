@@ -22,8 +22,12 @@ class Index extends Component
 
     public function render(GrantPlanningRepository $repository)
     {
+        $grants = $repository->allForUnit(auth()->user()->unit);
+        $submittableIds = $grants->filter(fn ($grant) => $repository->canSubmit($grant))->pluck('id')->all();
+
         return view('livewire.grant-planning.index', [
-            'grants' => $repository->allForUnit(auth()->user()->unit),
+            'grants' => $grants,
+            'submittableIds' => $submittableIds,
         ]);
     }
 }

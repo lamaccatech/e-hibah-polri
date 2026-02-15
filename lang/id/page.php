@@ -201,10 +201,18 @@ return [
 
     // Dashboard
     'dashboard' => [
-        'planned-grant-title' => 'Hibah Terencana',
-        'planned-grant-description' => 'Buat dan kelola usulan hibah yang direncanakan melalui proses pengajuan ke Polda.',
-        'direct-grant-title' => 'Hibah Langsung',
-        'direct-grant-description' => 'Kelola perjanjian hibah langsung yang diterima tanpa proses perencanaan.',
+        'title-grant-type' => 'Pilih Jenis Hibah',
+        'direct-grant-title' => 'Hibah Langsung (HL)',
+        'direct-grant-description' => 'Hibah yang diterima secara langsung, baik melalui proses usulan maupun langsung perjanjian.',
+        'planned-grant-title' => 'Hibah Yang Direncanakan (HDR)',
+        'planned-grant-description' => 'Hibah yang direncanakan melalui proses perencanaan jangka panjang.',
+        'planned-grant-badge' => 'Segera Hadir',
+        'title-direct-options' => 'Hibah Langsung (HL)',
+        'proposal-title' => 'Input Usulan',
+        'proposal-description' => 'Buat dan kelola naskah usulan hibah melalui proses pengajuan ke Polda.',
+        'agreement-title' => 'Input Perjanjian',
+        'agreement-description' => 'Kelola perjanjian hibah langsung yang diterima tanpa proses usulan.',
+        'agreement-badge' => 'Segera Hadir',
     ],
 
     // Grant Planning — Index
@@ -228,23 +236,32 @@ return [
 
     // Grant Planning — Initialize (Step 1)
     'grant-planning-create' => [
-        'title' => 'Buat Usulan Hibah',
-        'label-activity-name' => 'Nama Kegiatan',
+        'title' => 'Naskah Usulan Hibah',
+        'label-activity-name' => 'Nama kegiatan yang akan dibiayai oleh hibah',
         'placeholder-activity-name' => 'Masukkan nama kegiatan...',
     ],
 
     // Grant Planning — Donor Info (Step 2)
     'grant-planning-donor' => [
-        'title' => 'Data Calon Pemberi Hibah',
-        'mode-existing' => 'Pilih dari daftar',
-        'mode-new' => 'Tambah baru',
-        'label-donor' => 'Calon Pemberi Hibah',
-        'placeholder-donor' => 'Pilih calon pemberi hibah...',
-        'label-name' => 'Nama',
-        'label-origin' => 'Asal',
-        'label-address' => 'Alamat',
+        'title' => 'Formulir Calon Pemberi Hibah',
+        'label-name' => 'Nama Pemberi',
+        'placeholder-name' => 'Ketik nama pemberi hibah...',
+        'label-origin' => 'Asal Pemberi Hibah',
+        'label-address' => 'Alamat Pemberi Hibah',
         'label-country' => 'Negara',
+        'placeholder-country' => 'Pilih negara...',
+        'label-province' => 'Provinsi',
+        'placeholder-province' => 'Pilih provinsi...',
+        'label-regency' => 'Kabupaten/Kota',
+        'placeholder-regency' => 'Pilih kabupaten/kota...',
+        'label-district' => 'Kecamatan',
+        'placeholder-district' => 'Pilih kecamatan...',
+        'label-village' => 'Kelurahan/Desa',
+        'placeholder-village' => 'Pilih kelurahan/desa...',
         'label-category' => 'Kategori',
+        'placeholder-category' => 'Pilih kategori...',
+        'label-phone' => 'Nomor Telp/Faks',
+        'label-email' => 'Email Pemberi Hibah',
     ],
 
     // Grant Planning — Proposal Document (Step 3)
@@ -252,17 +269,21 @@ return [
         'title' => 'Naskah Usulan Hibah',
         'section-chapters' => 'Bab-bab Naskah',
         'section-budget' => 'Rencana Anggaran Biaya',
-        'section-schedule' => 'Jadwal Pelaksanaan Kegiatan',
+        'section-schedule' => 'Timeline Kegiatan',
+        'placeholder-purpose' => 'Pilih tujuan...',
+        'add-objective' => 'Tambah Tujuan',
         'label-currency' => 'Mata Uang',
         'add-budget-item' => 'Tambah Item Anggaran',
         'add-schedule' => 'Tambah Jadwal',
         'label-description' => 'Uraian',
-        'label-volume' => 'Volume',
-        'label-unit' => 'Satuan',
-        'label-unit-price' => 'Harga Satuan',
+        'label-value' => 'Nilai',
         'label-activity' => 'Uraian Kegiatan',
         'label-start-date' => 'Tanggal Mulai',
         'label-end-date' => 'Tanggal Selesai',
+        'section-custom-chapters' => 'Bab Tambahan',
+        'add-custom-chapter' => 'Tambah Bab',
+        'add-paragraph' => 'Tambah Paragraf',
+        'label-chapter-title' => 'Judul Bab',
     ],
 
     // Grant Planning — Assessment (Step 4)

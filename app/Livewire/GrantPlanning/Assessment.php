@@ -49,6 +49,22 @@ class Assessment extends Component
         return $rules;
     }
 
+    protected function validationAttributes(): array
+    {
+        $attributes = [
+            'customAspects.*.title' => __('page.grant-planning-assessment.label-aspect-title'),
+            'customAspects.*.paragraphs.*' => __('page.grant-planning-assessment.add-paragraph'),
+        ];
+
+        foreach (AssessmentAspect::cases() as $aspect) {
+            foreach ($aspect->prompts() as $i => $prompt) {
+                $attributes["mandatoryAspects.{$aspect->value}.{$i}"] = $aspect->label();
+            }
+        }
+
+        return $attributes;
+    }
+
     public function addCustomAspect(): void
     {
         $this->customAspects[] = [
@@ -80,12 +96,17 @@ class Assessment extends Component
 
         $aspects = [];
 
-        // Mandatory aspects
+        // Mandatory aspects — store prompt text as subjudul
         foreach (AssessmentAspect::cases() as $aspect) {
+            $prompts = $aspect->prompts();
             $aspects[] = [
                 'judul' => $aspect->label(),
                 'aspek' => $aspect->value,
-                'paragraphs' => $this->mandatoryAspects[$aspect->value],
+                'paragraphs' => array_map(
+                    fn ($content, $i) => ['subjudul' => $prompts[$i] ?? '', 'isi' => $content],
+                    $this->mandatoryAspects[$aspect->value],
+                    array_keys($this->mandatoryAspects[$aspect->value]),
+                ),
             ];
         }
 
@@ -94,7 +115,10 @@ class Assessment extends Component
             $aspects[] = [
                 'judul' => $custom['title'],
                 'aspek' => null,
-                'paragraphs' => $custom['paragraphs'],
+                'paragraphs' => array_map(
+                    fn ($content) => ['subjudul' => '', 'isi' => $content],
+                    $custom['paragraphs'],
+                ),
             ];
         }
 

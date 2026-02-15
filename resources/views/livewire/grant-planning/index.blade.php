@@ -1,10 +1,6 @@
 <div>
-    <div class="flex items-center justify-between mb-6">
+    <div class="mb-6">
         <flux:heading size="xl">{{ __('page.grant-planning.title') }}</flux:heading>
-
-        <flux:button variant="primary" icon="plus" :href="route('grant-planning.create')" wire:navigate>
-            {{ __('page.grant-planning.create-button') }}
-        </flux:button>
     </div>
 
     @error('submit')
@@ -41,10 +37,12 @@
                     </flux:table.cell>
                     <flux:table.cell align="end">
                         <div class="flex justify-end gap-2">
-                            <flux:button variant="ghost" size="sm" icon="pencil-square" :href="route('grant-planning.donor', $grant)" wire:navigate />
-                            <flux:button variant="primary" size="sm" wire:click="submit({{ $grant->id }})">
-                                {{ __('page.grant-planning.submit-button') }}
-                            </flux:button>
+                            <flux:button variant="ghost" size="sm" icon="pencil-square" :href="route('grant-planning.edit', $grant)" wire:navigate />
+                            @if (in_array($grant->id, $submittableIds))
+                                <flux:button variant="primary" size="sm" wire:click="submit({{ $grant->id }})">
+                                    {{ __('page.grant-planning.submit-button') }}
+                                </flux:button>
+                            @endif
                         </div>
                     </flux:table.cell>
                 </flux:table.row>

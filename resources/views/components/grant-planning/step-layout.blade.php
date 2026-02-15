@@ -7,7 +7,7 @@
     <div class="me-10 w-full pb-4 md:sticky md:top-4 md:w-[220px]">
         <flux:navlist aria-label="{{ __('page.grant-planning.title') }}">
             <flux:navlist.item
-                :href="$grant ? '#' : route('grant-planning.create')"
+                :href="$grant ? route('grant-planning.edit', $grant) : route('grant-planning.create')"
                 :current="$currentStep === 1"
                 :icon="$currentStep > 1 ? 'check-circle' : 'pencil-square'"
                 wire:navigate

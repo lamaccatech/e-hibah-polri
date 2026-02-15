@@ -1,4 +1,4 @@
-<x-grant-planning.step-layout :currentStep="1">
+<x-grant-planning.step-layout :grant="$grant" :currentStep="1">
     <flux:heading size="xl" class="mb-6">{{ __('page.grant-planning-create.title') }}</flux:heading>
 
     <form wire:submit="save" class="space-y-6 max-w-lg">
@@ -7,6 +7,8 @@
             :label="__('page.grant-planning-create.label-activity-name')"
             :placeholder="__('page.grant-planning-create.placeholder-activity-name')"
             type="text"
+            class:input="uppercase"
+            x-on:input="$event.target.value = $event.target.value.toUpperCase()"
             required
         />
 

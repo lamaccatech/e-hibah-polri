@@ -14,37 +14,40 @@ Each organizational level sees a role-specific dashboard after login. The dashbo
 
 ## Routes
 
-| Method | Path                          | Name                          | Description                         | Auth |
-|--------|-------------------------------|-------------------------------|-------------------------------------|------|
-| GET    | /dashboard                    | dashboard                     | Role-specific dashboard             | Yes  |
-| GET    | /hibah-langsung/pilih-tahapan | hibah.lansung.pilih-tahapan   | Direct grant stage selection        | Yes  |
-| GET    | /hibah-terencana              | hibah.terencana               | Planned grant info page             | Yes  |
-| GET    | /hibah-langsung/usulan/create | hibah.lansung.usulan.create   | New proposal form (activity name)   | Yes  |
+| Method | Path       | Name      | Description             | Auth |
+|--------|------------|-----------|-------------------------|------|
+| GET    | /dashboard | dashboard | Role-specific dashboard | Yes  |
 
 ## Satker Dashboard
 
-Satker sees options to create new grants and manage existing ones.
+Satker sees a two-step drill-down to select grant type and stage, implemented as a single page with Alpine.js state.
 
-### Displayed Elements
-- Two grant type options: Direct Grant (Hibah Langsung) and Planned Grant (Hibah Terencana)
-- When selecting Direct Grant → stage selection page (Proposal or Agreement)
-- When selecting Planned Grant → planned grant information page
-- When selecting "Input Proposal" → proposal creation form (activity name entry)
+### Step 1: Grant Type Selection
+
+Two cards side by side:
+- **Hibah Langsung (HL)** — clickable, drills down to Step 2
+- **Hibah Yang Direncanakan (HDR)** — disabled with "Segera Hadir" badge
+
+### Step 2: Direct Grant Sub-Options
+
+Shown after selecting HL, with a back button to return to Step 1:
+- **Input Usulan** — links to `grant-planning.create` (new proposal form)
+- **Input Perjanjian** — disabled with "Segera Hadir" badge
 
 ## Polda Dashboard
 
 Polda sees grants pending review and aggregate statistics.
 
 ### Displayed Elements
-- Pending grants that need Polda review (`data` prop)
-- Statistical overview (`stats` prop)
+- Pending grants that need Polda review
+- Statistical overview
 
 ## Mabes Dashboard
 
 Mabes sees incoming proposals and statistics for system oversight.
 
 ### Displayed Elements
-- Incoming proposals awaiting Mabes review (`usulan_masuk` prop)
+- Incoming proposals awaiting Mabes review
 - Statistical overview
 
 ---
@@ -52,12 +55,14 @@ Mabes sees incoming proposals and statistics for system oversight.
 ## Test Scenarios
 
 ### Happy Path
-1. Satker sees dashboard with 2 grant type options after login
-2. Satker selects Direct Grant → sees stage selection page (Proposal / Agreement)
-3. Satker selects Planned Grant → sees planned grant information page
-4. Satker selects "Input Proposal" → sees activity name entry form
-5. Polda sees dashboard with pending grants and statistics after login
-6. Mabes sees dashboard with incoming proposals and statistics after login
+1. Satker sees dashboard with 2 grant type options (HL and HDR) after login
+2. HDR card is disabled with "Segera Hadir" badge
+3. Satker clicks HL → sees sub-options (Input Usulan / Input Perjanjian)
+4. Back button returns to grant type selection
+5. Satker clicks "Input Usulan" → navigates to grant planning create form
+6. "Input Perjanjian" card is disabled with "Segera Hadir" badge
+7. Polda sees dashboard with pending grants and statistics after login
+8. Mabes sees dashboard with incoming proposals and statistics after login
 
 ### Access Control
 1. Each role sees only their role-specific dashboard component

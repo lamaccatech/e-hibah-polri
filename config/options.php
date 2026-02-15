@@ -9,6 +9,11 @@ return [
         'Bantuan lainnya sesuai dengan ketentuan dan peraturan yang berlaku',
     ],
 
+    'donor_origins' => [
+        'DALAM NEGERI',
+        'LUAR NEGERI',
+    ],
+
     'countries' => [
         'AFGHANISTAN',
         'ALBANIA',

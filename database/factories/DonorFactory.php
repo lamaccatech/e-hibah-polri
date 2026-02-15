@@ -18,10 +18,10 @@ class DonorFactory extends Factory
     {
         return [
             'nama' => fake()->company(),
-            'asal' => fake()->country(),
+            'asal' => fake()->randomElement(['DALAM NEGERI', 'LUAR NEGERI']),
             'alamat' => fake()->address(),
             'negara' => fake()->country(),
-            'kategori' => fake()->word(),
+            'nomor_telepon' => fake()->phoneNumber(),
         ];
     }
 }

@@ -7,6 +7,7 @@
 use App\Enums\AssessmentAspect;
 use App\Enums\GrantStage;
 use App\Enums\GrantStatus;
+use App\Enums\GrantType;
 use App\Enums\ProposalChapter;
 use App\Livewire\GrantPlanning\Assessment;
 use App\Livewire\GrantPlanning\DonorInfo;
@@ -17,6 +18,7 @@ use App\Models\Donor;
 use App\Models\Grant;
 use App\Models\OrgUnit;
 use App\Models\User;
+use Illuminate\Support\Facades\Http;
 use Livewire\Livewire;
 
 function createSatkerUserForGrantTest(?int $parentUserId = null): User
@@ -70,10 +72,9 @@ function createFullGrant(User $user): Grant
 
     // Add budget plan
     $grant->budgetPlans()->create([
+        'nomor_urut' => 1,
         'uraian' => 'Test item',
-        'volume' => 1,
-        'satuan' => 'unit',
-        'harga_satuan' => 100000,
+        'nilai' => 100000,
     ]);
 
     // Add schedule
@@ -125,10 +126,12 @@ describe('Grant Planning — Step 1 — Initialize', function () {
             ->call('save')
             ->assertHasNoErrors();
 
-        $grant = Grant::where('nama_hibah', 'Pengadaan Peralatan IT')->first();
+        $grant = Grant::where('nama_hibah', 'PENGADAAN PERALATAN IT')->first();
         expect($grant)->not->toBeNull();
         expect($grant->id_satuan_kerja)->toBe($satker->id);
         expect($grant->tahapan)->toBe(GrantStage::Planning);
+        expect($grant->jenis_hibah)->toBe(GrantType::Direct);
+        expect($grant->ada_usulan)->toBeTrue();
     });
 
     it('creates status history with PlanningInitialized', function () {
@@ -140,7 +143,7 @@ describe('Grant Planning — Step 1 — Initialize', function () {
             ->set('activityName', 'Test Grant')
             ->call('save');
 
-        $grant = Grant::where('nama_hibah', 'Test Grant')->first();
+        $grant = Grant::where('nama_hibah', 'TEST GRANT')->first();
         expect($grant->statusHistory()->latest('id')->first()->status_sesudah)
             ->toBe(GrantStatus::PlanningInitialized);
     });
@@ -155,7 +158,7 @@ describe('Grant Planning — Step 1 — Initialize', function () {
             ->call('save')
             ->assertRedirect();
 
-        $grant = Grant::where('nama_hibah', 'Test Grant')->first();
+        $grant = Grant::where('nama_hibah', 'TEST GRANT')->first();
         expect($grant)->not->toBeNull();
     });
 
@@ -183,18 +186,18 @@ describe('Grant Planning — Step 2 — Donor Info', function () {
         $this->actingAs($satker);
 
         Livewire::test(DonorInfo::class, ['grant' => $grant])
-            ->set('donorMode', 'new')
             ->set('name', 'PT Donor Baru')
-            ->set('origin', 'Indonesia')
+            ->set('origin', 'LUAR NEGERI')
+            ->set('phone', '081234567890')
             ->set('address', 'Jl. Test No. 1')
-            ->set('country', 'Indonesia')
+            ->set('country', 'JAPAN')
             ->set('category', 'Swasta')
             ->call('save')
             ->assertHasNoErrors();
 
         $grant->refresh();
         expect($grant->id_pemberi_hibah)->not->toBeNull();
-        expect($grant->donor->nama)->toBe('PT Donor Baru');
+        expect($grant->donor->nama)->toBe('PT DONOR BARU');
     });
 
     it('allows Satker to select an existing donor', function () {
@@ -205,8 +208,7 @@ describe('Grant Planning — Step 2 — Donor Info', function () {
         $this->actingAs($satker);
 
         Livewire::test(DonorInfo::class, ['grant' => $grant])
-            ->set('donorMode', 'existing')
-            ->set('selectedDonorId', $donor->id)
+            ->call('selectDonor', $donor->id)
             ->call('save')
             ->assertHasNoErrors();
 
@@ -222,7 +224,7 @@ describe('Grant Planning — Step 2 — Donor Info', function () {
         $this->actingAs($satker);
 
         Livewire::test(DonorInfo::class, ['grant' => $grant])
-            ->set('selectedDonorId', $donor->id)
+            ->call('selectDonor', $donor->id)
             ->call('save');
 
         expect($grant->statusHistory()->latest('id')->first()->status_sesudah)
@@ -237,9 +239,100 @@ describe('Grant Planning — Step 2 — Donor Info', function () {
         $this->actingAs($satker);
 
         Livewire::test(DonorInfo::class, ['grant' => $grant])
-            ->set('selectedDonorId', $donor->id)
+            ->call('selectDonor', $donor->id)
             ->call('save')
             ->assertRedirect(route('grant-planning.proposal-document', $grant));
+    });
+
+    it('allows creating donor without category', function () {
+        $satker = createSatkerUserForGrantTest();
+        $grant = createGrantForUnit($satker);
+
+        $this->actingAs($satker);
+
+        Livewire::test(DonorInfo::class, ['grant' => $grant])
+            ->set('name', 'PT Tanpa Kategori')
+            ->set('origin', 'LUAR NEGERI')
+            ->set('phone', '081234567890')
+            ->set('address', 'Jl. Test No. 1')
+            ->set('country', 'JAPAN')
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $grant->refresh();
+        expect($grant->donor->nama)->toBe('PT TANPA KATEGORI');
+        expect($grant->donor->kategori)->toBeNull();
+    });
+
+    it('stores phone as nomor_telepon', function () {
+        $satker = createSatkerUserForGrantTest();
+        $grant = createGrantForUnit($satker);
+
+        $this->actingAs($satker);
+
+        Livewire::test(DonorInfo::class, ['grant' => $grant])
+            ->set('name', 'PT Telepon Test')
+            ->set('origin', 'LUAR NEGERI')
+            ->set('phone', '021-5551234')
+            ->set('address', 'Jl. Test No. 1')
+            ->set('country', 'JAPAN')
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $grant->refresh();
+        expect($grant->donor->nomor_telepon)->toBe('021-5551234');
+    });
+
+    it('stores region codes for domestic donor', function () {
+        $satker = createSatkerUserForGrantTest();
+        $grant = createGrantForUnit($satker);
+
+        $this->actingAs($satker);
+
+        Http::fake([
+            '*/provinsi.json' => Http::response([['id' => '11', 'name' => 'ACEH']]),
+            '*/kabupaten-kota/11.json' => Http::response([['id' => '1101', 'name' => 'KAB. ACEH SELATAN']]),
+            '*/kecamatan/1101.json' => Http::response([['id' => '110101', 'name' => 'BAKONGAN']]),
+            '*/desa-kelurahan/110101.json' => Http::response([['id' => '1101012001', 'name' => 'KEUDE BAKONGAN']]),
+        ]);
+
+        Livewire::test(DonorInfo::class, ['grant' => $grant])
+            ->set('name', 'PT Donor Domestik')
+            ->set('origin', 'DALAM NEGERI')
+            ->set('phone', '021-1234567')
+            ->set('address', 'Jl. Merdeka No. 1')
+            ->set('provinceId', '11')
+            ->set('regencyId', '1101')
+            ->set('districtId', '110101')
+            ->set('villageId', '1101012001')
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $grant->refresh();
+        $donor = $grant->donor;
+        expect($donor->negara)->toBe('INDONESIA');
+        expect($donor->kode_provinsi)->toBe('11');
+        expect($donor->nama_provinsi)->toBe('ACEH');
+        expect($donor->kode_kabupaten_kota)->toBe('1101');
+        expect($donor->nama_kabupaten_kota)->toBe('KAB. ACEH SELATAN');
+        expect($donor->kode_kecamatan)->toBe('110101');
+        expect($donor->nama_kecamatan)->toBe('BAKONGAN');
+        expect($donor->kode_desa_kelurahan)->toBe('1101012001');
+        expect($donor->nama_desa_kelurahan)->toBe('KEUDE BAKONGAN');
+    });
+
+    it('validates required donor fields', function () {
+        $satker = createSatkerUserForGrantTest();
+        $grant = createGrantForUnit($satker);
+
+        $this->actingAs($satker);
+
+        Livewire::test(DonorInfo::class, ['grant' => $grant])
+            ->set('name', '')
+            ->set('origin', '')
+            ->set('address', '')
+            ->call('save')
+            ->assertHasErrors(['name', 'origin', 'address']);
     });
 
     it('prevents accessing another unit grant', function () {
@@ -258,6 +351,10 @@ describe('Grant Planning — Step 2 — Donor Info', function () {
 // ============================================================
 
 describe('Grant Planning — Step 3 — Proposal Document', function () {
+    beforeEach(function () {
+        $this->seed(\Database\Seeders\AutocompleteSeeder::class);
+    });
+
     it('allows Satker to save chapters with budget items and schedules', function () {
         $satker = createSatkerUserForGrantTest();
         $grant = createGrantForUnit($satker);
@@ -267,7 +364,7 @@ describe('Grant Planning — Step 3 — Proposal Document', function () {
 
         $chapters = [];
         foreach (ProposalChapter::cases() as $chapter) {
-            if (in_array($chapter, [ProposalChapter::ReceptionBasis, ProposalChapter::SupervisionMechanism])) {
+            if (in_array($chapter, [ProposalChapter::ReceptionBasis, ProposalChapter::SupervisionMechanism, ProposalChapter::Purpose, ProposalChapter::Objective, ProposalChapter::BudgetPlan])) {
                 continue;
             }
             $prompts = $chapter->prompts();
@@ -277,11 +374,10 @@ describe('Grant Planning — Step 3 — Proposal Document', function () {
 
         Livewire::test(ProposalDocument::class, ['grant' => $grant])
             ->set('chapters', $chapters)
+            ->set('objectives', [['purpose' => 'Mendukung tugas dan fungsi Polri', 'detail' => 'Detail tujuan yang cukup panjang untuk validasi.']])
             ->set('budgetItems', [[
                 'uraian' => 'Laptop',
-                'volume' => '5',
-                'satuan' => 'unit',
-                'harga_satuan' => '15000000',
+                'nilai' => '75000000',
             ]])
             ->set('schedules', [[
                 'uraian_kegiatan' => 'Pengadaan',
@@ -293,7 +389,7 @@ describe('Grant Planning — Step 3 — Proposal Document', function () {
             ->assertHasNoErrors();
 
         $grant->refresh();
-        expect($grant->information()->where('tahapan', GrantStage::Planning)->count())->toBe(10);
+        expect($grant->information()->where('tahapan', GrantStage::Planning)->count())->toBe(9);
         expect($grant->budgetPlans()->count())->toBe(1);
         expect($grant->activitySchedules()->count())->toBe(1);
     });
@@ -307,7 +403,7 @@ describe('Grant Planning — Step 3 — Proposal Document', function () {
 
         $chapters = [];
         foreach (ProposalChapter::cases() as $chapter) {
-            if (in_array($chapter, [ProposalChapter::ReceptionBasis, ProposalChapter::SupervisionMechanism])) {
+            if (in_array($chapter, [ProposalChapter::ReceptionBasis, ProposalChapter::SupervisionMechanism, ProposalChapter::Purpose, ProposalChapter::Objective, ProposalChapter::BudgetPlan])) {
                 continue;
             }
             $prompts = $chapter->prompts();
@@ -317,9 +413,10 @@ describe('Grant Planning — Step 3 — Proposal Document', function () {
 
         Livewire::test(ProposalDocument::class, ['grant' => $grant])
             ->set('chapters', $chapters)
+            ->set('objectives', [['purpose' => 'Mendukung tugas dan fungsi Polri', 'detail' => 'Detail tujuan yang cukup panjang untuk validasi.']])
             ->set('budgetItems', [
-                ['uraian' => 'Item A', 'volume' => '2', 'satuan' => 'unit', 'harga_satuan' => '1000000'],
-                ['uraian' => 'Item B', 'volume' => '3', 'satuan' => 'paket', 'harga_satuan' => '500000'],
+                ['uraian' => 'Item A', 'nilai' => '2000000'],
+                ['uraian' => 'Item B', 'nilai' => '1500000'],
             ])
             ->set('schedules', [[
                 'uraian_kegiatan' => 'Test',
@@ -330,7 +427,7 @@ describe('Grant Planning — Step 3 — Proposal Document', function () {
             ->call('save');
 
         $grant->refresh();
-        // 2 * 1000000 + 3 * 500000 = 3500000
+        // 2000000 + 1500000 = 3500000
         expect($grant->nilai_hibah)->toBe('3500000.00');
     });
 
@@ -343,7 +440,7 @@ describe('Grant Planning — Step 3 — Proposal Document', function () {
 
         $chapters = [];
         foreach (ProposalChapter::cases() as $chapter) {
-            if (in_array($chapter, [ProposalChapter::ReceptionBasis, ProposalChapter::SupervisionMechanism])) {
+            if (in_array($chapter, [ProposalChapter::ReceptionBasis, ProposalChapter::SupervisionMechanism, ProposalChapter::Purpose, ProposalChapter::Objective, ProposalChapter::BudgetPlan])) {
                 continue;
             }
             $prompts = $chapter->prompts();
@@ -353,8 +450,9 @@ describe('Grant Planning — Step 3 — Proposal Document', function () {
 
         Livewire::test(ProposalDocument::class, ['grant' => $grant])
             ->set('chapters', $chapters)
+            ->set('objectives', [['purpose' => 'Mendukung tugas dan fungsi Polri', 'detail' => 'Detail tujuan yang cukup panjang untuk validasi.']])
             ->set('budgetItems', [[
-                'uraian' => 'Test', 'volume' => '1', 'satuan' => 'unit', 'harga_satuan' => '100000',
+                'uraian' => 'Test', 'nilai' => '100000',
             ]])
             ->set('schedules', [[
                 'uraian_kegiatan' => 'Test',
@@ -375,14 +473,14 @@ describe('Grant Planning — Step 3 — Proposal Document', function () {
 
         // Create initial data
         $grant->budgetPlans()->create([
-            'uraian' => 'Old item', 'volume' => 1, 'satuan' => 'unit', 'harga_satuan' => 50000,
+            'nomor_urut' => 1, 'uraian' => 'Old item', 'nilai' => 50000,
         ]);
 
         $this->actingAs($satker);
 
         $chapters = [];
         foreach (ProposalChapter::cases() as $chapter) {
-            if (in_array($chapter, [ProposalChapter::ReceptionBasis, ProposalChapter::SupervisionMechanism])) {
+            if (in_array($chapter, [ProposalChapter::ReceptionBasis, ProposalChapter::SupervisionMechanism, ProposalChapter::Purpose, ProposalChapter::Objective, ProposalChapter::BudgetPlan])) {
                 continue;
             }
             $prompts = $chapter->prompts();
@@ -392,8 +490,9 @@ describe('Grant Planning — Step 3 — Proposal Document', function () {
 
         Livewire::test(ProposalDocument::class, ['grant' => $grant])
             ->set('chapters', $chapters)
+            ->set('objectives', [['purpose' => 'Mendukung tugas dan fungsi Polri', 'detail' => 'Detail tujuan yang cukup panjang untuk validasi.']])
             ->set('budgetItems', [[
-                'uraian' => 'New item', 'volume' => '2', 'satuan' => 'paket', 'harga_satuan' => '200000',
+                'uraian' => 'New item', 'nilai' => '400000',
             ]])
             ->set('schedules', [[
                 'uraian_kegiatan' => 'New activity',
@@ -418,6 +517,125 @@ describe('Grant Planning — Step 3 — Proposal Document', function () {
             ->set('budgetItems', [])
             ->call('save')
             ->assertHasErrors();
+    });
+
+    it('saves custom chapters', function () {
+        $satker = createSatkerUserForGrantTest();
+        $grant = createGrantForUnit($satker);
+        $grant->update(['id_pemberi_hibah' => Donor::factory()->create()->id]);
+
+        $this->actingAs($satker);
+
+        $chapters = [];
+        foreach (ProposalChapter::cases() as $chapter) {
+            if (in_array($chapter, [ProposalChapter::ReceptionBasis, ProposalChapter::SupervisionMechanism, ProposalChapter::Purpose, ProposalChapter::Objective, ProposalChapter::BudgetPlan])) {
+                continue;
+            }
+            $prompts = $chapter->prompts();
+            $count = max(count($prompts), 1);
+            $chapters[$chapter->value] = array_fill(0, $count, 'Test content for '.$chapter->value.' that is long enough.');
+        }
+
+        Livewire::test(ProposalDocument::class, ['grant' => $grant])
+            ->set('chapters', $chapters)
+            ->set('objectives', [['purpose' => 'Mendukung tugas dan fungsi Polri', 'detail' => 'Detail tujuan yang cukup panjang untuk validasi.']])
+            ->set('budgetItems', [[
+                'uraian' => 'Laptop',
+                'nilai' => '75000000',
+            ]])
+            ->set('schedules', [[
+                'uraian_kegiatan' => 'Pengadaan',
+                'tanggal_mulai' => '2026-04-01',
+                'tanggal_selesai' => '2026-06-30',
+            ]])
+            ->set('currency', 'IDR')
+            ->set('customChapters', [[
+                'title' => 'Bab Khusus',
+                'paragraphs' => ['Isi paragraf bab khusus yang cukup panjang.'],
+            ]])
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $grant->refresh();
+        // 9 regular chapters + 1 custom chapter = 10
+        expect($grant->information()->where('tahapan', GrantStage::Planning)->count())->toBe(10);
+        expect($grant->information()->where('judul', 'Bab Khusus')->exists())->toBeTrue();
+    });
+
+    it('redirects to assessment page after save', function () {
+        $satker = createSatkerUserForGrantTest();
+        $grant = createGrantForUnit($satker);
+        $grant->update(['id_pemberi_hibah' => Donor::factory()->create()->id]);
+
+        $this->actingAs($satker);
+
+        $chapters = [];
+        foreach (ProposalChapter::cases() as $chapter) {
+            if (in_array($chapter, [ProposalChapter::ReceptionBasis, ProposalChapter::SupervisionMechanism, ProposalChapter::Purpose, ProposalChapter::Objective, ProposalChapter::BudgetPlan])) {
+                continue;
+            }
+            $prompts = $chapter->prompts();
+            $count = max(count($prompts), 1);
+            $chapters[$chapter->value] = array_fill(0, $count, 'Sufficient content to pass validation check.');
+        }
+
+        Livewire::test(ProposalDocument::class, ['grant' => $grant])
+            ->set('chapters', $chapters)
+            ->set('objectives', [['purpose' => 'Mendukung tugas dan fungsi Polri', 'detail' => 'Detail tujuan yang cukup panjang untuk validasi.']])
+            ->set('budgetItems', [['uraian' => 'Test', 'nilai' => '100000']])
+            ->set('schedules', [['uraian_kegiatan' => 'Test', 'tanggal_mulai' => '2026-04-01', 'tanggal_selesai' => '2026-06-30']])
+            ->set('currency', 'IDR')
+            ->call('save')
+            ->assertRedirect(route('grant-planning.assessment', $grant));
+    });
+
+    it('stores prompt text as subjudul in chapter contents', function () {
+        $satker = createSatkerUserForGrantTest();
+        $grant = createGrantForUnit($satker);
+        $grant->update(['id_pemberi_hibah' => Donor::factory()->create()->id]);
+
+        $this->actingAs($satker);
+
+        $chapters = [];
+        foreach (ProposalChapter::cases() as $chapter) {
+            if (in_array($chapter, [ProposalChapter::ReceptionBasis, ProposalChapter::SupervisionMechanism, ProposalChapter::Purpose, ProposalChapter::Objective, ProposalChapter::BudgetPlan])) {
+                continue;
+            }
+            $prompts = $chapter->prompts();
+            $count = max(count($prompts), 1);
+            $chapters[$chapter->value] = array_fill(0, $count, 'Sufficient content to pass validation check.');
+        }
+
+        Livewire::test(ProposalDocument::class, ['grant' => $grant])
+            ->set('chapters', $chapters)
+            ->set('objectives', [['purpose' => 'Mendukung tugas dan fungsi Polri', 'detail' => 'Detail tujuan yang cukup panjang untuk validasi.']])
+            ->set('budgetItems', [['uraian' => 'Test', 'nilai' => '100000']])
+            ->set('schedules', [['uraian_kegiatan' => 'Test', 'tanggal_mulai' => '2026-04-01', 'tanggal_selesai' => '2026-06-30']])
+            ->set('currency', 'IDR')
+            ->call('save');
+
+        $grant->refresh();
+
+        // Check a chapter with prompts has subjudul stored
+        $generalInfo = $grant->information()
+            ->where('judul', ProposalChapter::General->value)
+            ->where('tahapan', GrantStage::Planning)
+            ->first();
+
+        $firstContent = $generalInfo->contents->sortBy('nomor_urut')->first();
+        expect($firstContent->subjudul)->toBe(ProposalChapter::General->prompts()[0]);
+    });
+
+    it('validates currency against autocomplete values', function () {
+        $satker = createSatkerUserForGrantTest();
+        $grant = createGrantForUnit($satker);
+
+        $this->actingAs($satker);
+
+        Livewire::test(ProposalDocument::class, ['grant' => $grant])
+            ->set('currency', 'INVALID_CURRENCY')
+            ->call('save')
+            ->assertHasErrors(['currency']);
     });
 });
 
@@ -450,9 +668,15 @@ describe('Grant Planning — Step 4 — Assessment', function () {
             ->latest('id')->first()
             ->assessments()
             ->where('tahapan', GrantStage::Planning)
+            ->with('contents')
             ->get();
 
         expect($assessments)->toHaveCount(4);
+
+        // Verify prompt text stored as subjudul
+        $technicalAssessment = $assessments->firstWhere('aspek', AssessmentAspect::Technical);
+        $firstContent = $technicalAssessment->contents->sortBy('nomor_urut')->first();
+        expect($firstContent->subjudul)->toBe(AssessmentAspect::Technical->prompts()[0]);
     });
 
     it('allows Satker to add optional custom aspects', function () {
@@ -510,6 +734,43 @@ describe('Grant Planning — Step 4 — Assessment', function () {
 
         expect($grant->statusHistory()->latest('id')->first()->status_sesudah)
             ->toBe(GrantStatus::CreatingPlanningAssessment);
+    });
+
+    it('redirects to index after save', function () {
+        $satker = createSatkerUserForGrantTest();
+        $grant = createGrantForUnit($satker);
+        $grant->statusHistory()->create([
+            'status_sesudah' => GrantStatus::PlanningInitialized->value,
+        ]);
+
+        $this->actingAs($satker);
+
+        $mandatoryAspects = [];
+        foreach (AssessmentAspect::cases() as $aspect) {
+            $mandatoryAspects[$aspect->value] = array_fill(0, count($aspect->prompts()), 'Assessment paragraph with enough content.');
+        }
+
+        Livewire::test(Assessment::class, ['grant' => $grant])
+            ->set('mandatoryAspects', $mandatoryAspects)
+            ->call('save')
+            ->assertRedirect(route('grant-planning.index'));
+    });
+
+    it('validates required assessment fields', function () {
+        $satker = createSatkerUserForGrantTest();
+        $grant = createGrantForUnit($satker);
+        $grant->statusHistory()->create([
+            'status_sesudah' => GrantStatus::PlanningInitialized->value,
+        ]);
+
+        $this->actingAs($satker);
+
+        Livewire::test(Assessment::class, ['grant' => $grant])
+            ->set('mandatoryAspects', [
+                AssessmentAspect::Technical->value => [''],
+            ])
+            ->call('save')
+            ->assertHasErrors();
     });
 
     it('replaces existing assessments on re-save', function () {
@@ -582,6 +843,26 @@ describe('Grant Planning — Step 5 — Submit to Polda', function () {
         Livewire::test(Index::class)
             ->call('submit', $grant->id)
             ->assertHasErrors('submit');
+    });
+
+    it('hides submit button for incomplete grants', function () {
+        $satker = createSatkerUserForGrantTest();
+        $incompleteGrant = createGrantForUnit($satker);
+
+        $this->actingAs($satker);
+
+        Livewire::test(Index::class)
+            ->assertDontSeeText(__('page.grant-planning.submit-button'));
+    });
+
+    it('shows submit button for completed grants', function () {
+        $satker = createSatkerUserForGrantTest();
+        $completeGrant = createFullGrant($satker);
+
+        $this->actingAs($satker);
+
+        Livewire::test(Index::class)
+            ->assertSeeText(__('page.grant-planning.submit-button'));
     });
 });
 

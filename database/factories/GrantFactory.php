@@ -36,10 +36,15 @@ class GrantFactory extends Factory
         ]);
     }
 
+    /**
+     * Grant with proposal (goes through planning/USULAN stage).
+     * Uses LANGSUNG type + ada_usulan=true.
+     */
     public function planned(): static
     {
         return $this->state(fn () => [
-            'jenis_hibah' => GrantType::Planned->value,
+            'jenis_hibah' => GrantType::Direct->value,
+            'ada_usulan' => true,
         ]);
     }
 }

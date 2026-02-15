@@ -18,10 +18,9 @@ class GrantBudgetPlan extends Model
      * @var list<string>
      */
     protected $fillable = [
+        'nomor_urut',
         'uraian',
-        'volume',
-        'satuan',
-        'harga_satuan',
+        'nilai',
     ];
 
     /**
@@ -30,8 +29,7 @@ class GrantBudgetPlan extends Model
     protected function casts(): array
     {
         return [
-            'volume' => 'decimal:2',
-            'harga_satuan' => 'decimal:2',
+            'nilai' => 'decimal:2',
         ];
     }
 
