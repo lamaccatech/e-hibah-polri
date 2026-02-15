@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\UnitLevel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -24,6 +25,13 @@ class OrgUnit extends Model
         'nama_unit',
         'level_unit',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'level_unit' => UnitLevel::class,
+        ];
+    }
 
     public function user(): BelongsTo
     {

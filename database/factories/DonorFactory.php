@@ -17,7 +17,11 @@ class DonorFactory extends Factory
     public function definition(): array
     {
         return [
-            //
+            'nama' => fake()->company(),
+            'asal' => fake()->country(),
+            'alamat' => fake()->address(),
+            'negara' => fake()->country(),
+            'kategori' => fake()->word(),
         ];
     }
 }
