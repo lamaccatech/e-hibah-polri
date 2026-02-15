@@ -17,8 +17,9 @@ Users log in with email and password to access the application. There is no self
 
 | Method | Path       | Name          | Description             | Auth |
 |--------|------------|---------------|-------------------------|------|
+| GET    | /          | home          | Redirect to /login      | No   |
 | GET    | /login     | login         | Show login form         | No   |
-| POST   | /login     | login.store   | Process login attempt   | No   |
+| POST   | /login     | —             | Process login attempt   | No   |
 | POST   | /logout    | logout        | Log out current user    | Yes  |
 | GET    | /dashboard | dashboard     | Authenticated home page | Yes  |
 
@@ -51,11 +52,11 @@ Users log in with email and password to access the application. There is no self
 ### Validation
 1. Login fails with empty email
 2. Login fails with empty password
-3. Login fails with invalid email format
-4. Login fails with wrong password
-5. Login fails with non-existent email
+3. Login fails with wrong password
+4. Login fails with non-existent email
 
 ### Edge Cases
 1. Guest accessing /dashboard is redirected to /login
 2. Authenticated user accessing /login is redirected to dashboard
-3. Login is rate-limited after 5 failed attempts
+3. Root path (/) redirects to /login
+4. Login is rate-limited after 5 failed attempts

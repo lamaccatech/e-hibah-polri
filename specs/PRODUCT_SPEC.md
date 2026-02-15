@@ -69,12 +69,21 @@ Before submitting for review, Satker completes a multi-step form. The steps diff
 
 #### Proposal Document Chapters (Planning)
 
-1. Objectives
-2. Benefits
-3. Implementation plan
-4. Budget
-5. Reporting & evaluation
-6. Closing
+1. General (Umum) — background and context
+2. Purpose (Maksud)
+3. Objective (Tujuan)
+4. Target (Sasaran Kegiatan)
+5. Benefit (Manfaat Kegiatan)
+6. Implementation Plan (Rencana Pelaksanaan Kegiatan)
+7. Budget Plan (Rencana Kebutuhan Anggaran Kegiatan)
+8. Reporting Plan (Rencana Pelaporan)
+9. Evaluation Plan (Rencana Evaluasi)
+10. Closing (Penutup)
+
+Agreement stage adds two additional chapters:
+
+11. Reception Basis (Dasar Penerimaan Hibah)
+12. Supervision Mechanism (Mekanisme Pengawasan Hibah)
 
 ### Agreement Stage Steps
 
@@ -245,13 +254,16 @@ After Mabes verifies, an official number is issued automatically. Then:
 | GrantAssessmentResult        | hasil_pengkajian_hibah              | Per-aspect result by reviewer        |
 | GrantInformation             | informasi_hibah                     | Proposal/agreement info sections     |
 | GrantInformationContent      | isi_informasi_hibah                 | Section content                      |
-| GrantDocument                | dokumen_hibah                       | Document attachments                 |
+| GrantDocument                | dokumen_hibah                       | Auto-generated documents (PDF)       |
 | GrantNumbering               | penomoran_hibah                     | Official numbering record            |
 | GrantWithdrawalPlan          | rencana_penarikan_hibah             | Withdrawal schedule                  |
 | GrantLocationAndAllocation   | lokasi_dan_alokasi_hibah            | Location and fund allocation         |
 | GrantBudgetPlan              | rencana_anggaran_biaya_hibah        | Budget breakdown (RAB)               |
 | ActivitySchedule             | jadwal_pelaksanaan_kegiatan         | Activity timeline                    |
 | GrantFinanceMinistrySubmission| informasi_hibah_untuk_sehati       | Data for Ministry of Finance         |
+| File                         | files                               | Polymorphic file storage (uploads)   |
+| ActivityLog                  | activity_logs                       | User action audit log                |
+| ChangeHistory                | change_histories                    | Model change tracking                |
 
 ---
 

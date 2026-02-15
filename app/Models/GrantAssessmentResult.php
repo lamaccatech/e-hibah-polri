@@ -19,7 +19,6 @@ class GrantAssessmentResult extends Model
      * @var list<string>
      */
     protected $fillable = [
-        'id_unit',
         'rekomendasi',
     ];
 

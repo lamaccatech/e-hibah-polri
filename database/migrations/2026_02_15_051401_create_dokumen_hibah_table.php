@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string('jenis_dokumen');
             $table->string('nomor')->nullable();
             $table->string('tanggal')->nullable();
-            $table->text('data')->nullable();
+            $table->jsonb('data')->nullable();
             $table->softDeletesTz();
             $table->timestampsTz();
 

@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('riwayat_perubahan_status_hibah', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('id_hibah')->constrained('hibah')->cascadeOnDelete();
+            $table->foreignId('id_hibah')->nullable()->constrained('hibah')->nullOnDelete();
             $table->string('status_sebelum')->nullable();
             $table->string('status_sesudah');
             $table->text('keterangan')->nullable();
