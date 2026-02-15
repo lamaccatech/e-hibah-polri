@@ -4,9 +4,9 @@ namespace App\Enums;
 
 enum FileType: string
 {
-    case Document = 'document';
-    case Signature = 'signature';
-    case DraftAgreement = 'draft_agreement';
-    case Agreement = 'agreement';
-    case SupportingDocument = 'supporting_document';
+    case Attachment = 'LAMPIRAN';
+    case DraftAgreement = 'DRAFT_PERJANJIAN';
+    case Agreement = 'NASKAH_PERJANJIAN';
+    case DonorLetter = 'SURAT_PEMBERI_HIBAH';
+    case Signature = 'TANDA_TANGAN';
 }

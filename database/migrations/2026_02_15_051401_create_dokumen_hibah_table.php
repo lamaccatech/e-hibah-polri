@@ -14,9 +14,10 @@ return new class extends Migration
         Schema::create('dokumen_hibah', function (Blueprint $table) {
             $table->id();
             $table->foreignId('id_hibah')->constrained('hibah')->cascadeOnDelete();
-            $table->string('nama_dokumen');
-            $table->string('tahapan');
-            $table->string('jenis_berkas');
+            $table->string('jenis_dokumen');
+            $table->string('nomor')->nullable();
+            $table->string('tanggal')->nullable();
+            $table->text('data')->nullable();
             $table->softDeletesTz();
             $table->timestampsTz();
 

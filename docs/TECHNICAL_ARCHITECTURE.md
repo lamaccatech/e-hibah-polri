@@ -293,16 +293,16 @@ class YourModel extends Model implements HasFiles
 // Attach
 $file = $model->attachFile(
     uploadedFile: $request->file('document'),
-    fileType: FileType::Document,
+    fileType: FileType::Attachment,
     disk: 's3',
     makePublic: false,
     description: 'Optional description'
 );
 
 // Retrieve
-$files = $model->getFilesByType(FileType::Document);
-$file = $model->getFirstFileByType(FileType::Document);
-$hasFile = $model->hasFileOfType(FileType::Document);
+$files = $model->getFilesByType(FileType::Attachment);
+$file = $model->getFirstFileByType(FileType::Attachment);
+$hasFile = $model->hasFileOfType(FileType::Attachment);
 
 // Access URLs
 $publicUrl = $file->url;

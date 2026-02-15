@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Concerns\HasFiles as HasFilesTrait;
 use App\Contracts\HasFiles;
+use App\Enums\GrantGeneratedDocumentType;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -20,10 +21,22 @@ class GrantDocument extends Model implements HasFiles
      * @var list<string>
      */
     protected $fillable = [
-        'nama_dokumen',
-        'tahapan',
-        'jenis_berkas',
+        'jenis_dokumen',
+        'nomor',
+        'tanggal',
+        'data',
     ];
+
+    /**
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'jenis_dokumen' => GrantGeneratedDocumentType::class,
+            'data' => 'array',
+        ];
+    }
 
     public function grant(): BelongsTo
     {
