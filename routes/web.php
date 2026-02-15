@@ -10,3 +10,4 @@ Route::view('dashboard', 'dashboard')
 
 require __DIR__.'/settings.php';
 require __DIR__.'/user-management.php';
+require __DIR__.'/chief-management.php';

@@ -161,4 +161,42 @@ return [
         'label-unit-code' => 'Kode Unit',
     ],
 
+    // Chief Management
+    'chief-management' => [
+        'title' => 'Manajemen Kepala Satker',
+        'create-button' => 'Tambah Kepala',
+        'column-name' => 'Nama Lengkap',
+        'column-position' => 'Jabatan',
+        'column-rank' => 'Pangkat',
+        'column-nrp' => 'NRP',
+        'column-status' => 'Status',
+        'column-action' => 'Aksi',
+        'badge-active' => 'Menjabat',
+        'badge-inactive' => 'Tidak Menjabat',
+        'empty-state' => 'Belum ada kepala satker.',
+    ],
+
+    // Chief Create
+    'chief-create' => [
+        'title' => 'Tambah Kepala Satker',
+        'label-name' => 'Nama Lengkap',
+        'label-position' => 'Jabatan',
+        'label-rank' => 'Pangkat',
+        'label-nrp' => 'NRP',
+        'label-signature' => 'Tanda Tangan',
+        'signature-preview' => 'Pratinjau tanda tangan',
+    ],
+
+    // Chief Edit
+    'chief-edit' => [
+        'title' => 'Edit Kepala Satker',
+        'label-name' => 'Nama Lengkap',
+        'label-position' => 'Jabatan',
+        'label-rank' => 'Pangkat',
+        'label-nrp' => 'NRP',
+        'label-signature' => 'Tanda Tangan Baru',
+        'current-signature' => 'Tanda tangan saat ini',
+        'signature-preview' => 'Pratinjau tanda tangan baru',
+    ],
+
 ];
