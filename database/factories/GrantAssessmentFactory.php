@@ -2,6 +2,8 @@
 
 namespace Database\Factories;
 
+use App\Enums\AssessmentAspect;
+use App\Enums\GrantStage;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -17,7 +19,9 @@ class GrantAssessmentFactory extends Factory
     public function definition(): array
     {
         return [
-            //
+            'judul' => fake()->sentence(3),
+            'aspek' => AssessmentAspect::Technical->value,
+            'tahapan' => GrantStage::Planning->value,
         ];
     }
 }

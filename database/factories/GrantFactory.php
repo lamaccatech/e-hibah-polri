@@ -28,4 +28,18 @@ class GrantFactory extends Factory
             'bentuk_hibah' => GrantForm::Money->value,
         ];
     }
+
+    public function withoutDonor(): static
+    {
+        return $this->state(fn () => [
+            'id_pemberi_hibah' => null,
+        ]);
+    }
+
+    public function planned(): static
+    {
+        return $this->state(fn () => [
+            'jenis_hibah' => GrantType::Planned->value,
+        ]);
+    }
 }

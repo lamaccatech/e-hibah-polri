@@ -17,7 +17,10 @@ class GrantBudgetPlanFactory extends Factory
     public function definition(): array
     {
         return [
-            //
+            'uraian' => fake()->sentence(3),
+            'volume' => fake()->randomFloat(2, 1, 100),
+            'satuan' => fake()->randomElement(['unit', 'paket', 'bulan', 'orang']),
+            'harga_satuan' => fake()->randomFloat(2, 100000, 10000000),
         ];
     }
 }

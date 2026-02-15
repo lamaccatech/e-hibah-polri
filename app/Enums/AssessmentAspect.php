@@ -9,6 +9,16 @@ enum AssessmentAspect: string
     case Political = 'POLITIS';
     case Strategic = 'STRATEGIS';
 
+    public function label(): string
+    {
+        return match ($this) {
+            self::Technical => 'Teknis',
+            self::Economic => 'Ekonomis',
+            self::Political => 'Politis',
+            self::Strategic => 'Strategis',
+        };
+    }
+
     /**
      * @return string[]
      */

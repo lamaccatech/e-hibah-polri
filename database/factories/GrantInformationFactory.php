@@ -2,6 +2,8 @@
 
 namespace Database\Factories;
 
+use App\Enums\GrantStage;
+use App\Enums\ProposalChapter;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -17,7 +19,8 @@ class GrantInformationFactory extends Factory
     public function definition(): array
     {
         return [
-            //
+            'judul' => ProposalChapter::General->value,
+            'tahapan' => GrantStage::Planning->value,
         ];
     }
 }

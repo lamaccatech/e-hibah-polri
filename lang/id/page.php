@@ -199,4 +199,80 @@ return [
         'signature-preview' => 'Pratinjau tanda tangan baru',
     ],
 
+    // Dashboard
+    'dashboard' => [
+        'planned-grant-title' => 'Hibah Terencana',
+        'planned-grant-description' => 'Buat dan kelola usulan hibah yang direncanakan melalui proses pengajuan ke Polda.',
+        'direct-grant-title' => 'Hibah Langsung',
+        'direct-grant-description' => 'Kelola perjanjian hibah langsung yang diterima tanpa proses perencanaan.',
+    ],
+
+    // Grant Planning — Index
+    'grant-planning' => [
+        'title' => 'Usulan Hibah',
+        'create-button' => 'Buat Usulan',
+        'column-name' => 'Nama Kegiatan',
+        'column-donor' => 'Calon Pemberi Hibah',
+        'column-status' => 'Status',
+        'column-value' => 'Nilai',
+        'column-action' => 'Aksi',
+        'empty-state' => 'Belum ada usulan hibah.',
+        'submit-button' => 'Ajukan ke Polda',
+        'submit-incomplete' => 'Lengkapi semua langkah sebelum mengajukan.',
+        'badge-initialized' => 'Inisialisasi',
+        'badge-filling-donor' => 'Data Pemberi Hibah',
+        'badge-creating-proposal' => 'Naskah Usulan',
+        'badge-creating-assessment' => 'Dokumen Kajian',
+        'badge-submitted' => 'Diajukan',
+    ],
+
+    // Grant Planning — Initialize (Step 1)
+    'grant-planning-create' => [
+        'title' => 'Buat Usulan Hibah',
+        'label-activity-name' => 'Nama Kegiatan',
+        'placeholder-activity-name' => 'Masukkan nama kegiatan...',
+    ],
+
+    // Grant Planning — Donor Info (Step 2)
+    'grant-planning-donor' => [
+        'title' => 'Data Calon Pemberi Hibah',
+        'mode-existing' => 'Pilih dari daftar',
+        'mode-new' => 'Tambah baru',
+        'label-donor' => 'Calon Pemberi Hibah',
+        'placeholder-donor' => 'Pilih calon pemberi hibah...',
+        'label-name' => 'Nama',
+        'label-origin' => 'Asal',
+        'label-address' => 'Alamat',
+        'label-country' => 'Negara',
+        'label-category' => 'Kategori',
+    ],
+
+    // Grant Planning — Proposal Document (Step 3)
+    'grant-planning-proposal' => [
+        'title' => 'Naskah Usulan Hibah',
+        'section-chapters' => 'Bab-bab Naskah',
+        'section-budget' => 'Rencana Anggaran Biaya',
+        'section-schedule' => 'Jadwal Pelaksanaan Kegiatan',
+        'label-currency' => 'Mata Uang',
+        'add-budget-item' => 'Tambah Item Anggaran',
+        'add-schedule' => 'Tambah Jadwal',
+        'label-description' => 'Uraian',
+        'label-volume' => 'Volume',
+        'label-unit' => 'Satuan',
+        'label-unit-price' => 'Harga Satuan',
+        'label-activity' => 'Uraian Kegiatan',
+        'label-start-date' => 'Tanggal Mulai',
+        'label-end-date' => 'Tanggal Selesai',
+    ],
+
+    // Grant Planning — Assessment (Step 4)
+    'grant-planning-assessment' => [
+        'title' => 'Dokumen Kajian Usulan Hibah',
+        'section-mandatory' => 'Aspek Wajib',
+        'section-custom' => 'Aspek Tambahan',
+        'add-custom-aspect' => 'Tambah Aspek',
+        'add-paragraph' => 'Tambah Paragraf',
+        'label-aspect-title' => 'Judul Aspek',
+    ],
+
 ];

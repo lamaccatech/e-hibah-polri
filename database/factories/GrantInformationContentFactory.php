@@ -17,7 +17,9 @@ class GrantInformationContentFactory extends Factory
     public function definition(): array
     {
         return [
-            //
+            'subjudul' => '',
+            'isi' => fake()->paragraph(),
+            'nomor_urut' => fake()->numberBetween(1, 10),
         ];
     }
 }

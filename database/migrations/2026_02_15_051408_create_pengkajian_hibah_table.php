@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('id_riwayat_perubahan_status_hibah')->constrained('riwayat_perubahan_status_hibah')->cascadeOnDelete();
             $table->string('judul');
-            $table->string('aspek');
+            $table->string('aspek')->nullable();
             $table->string('tahapan');
             $table->softDeletesTz();
             $table->timestampsTz();

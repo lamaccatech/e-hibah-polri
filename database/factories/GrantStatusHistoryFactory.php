@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\GrantStatus;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -17,7 +18,7 @@ class GrantStatusHistoryFactory extends Factory
     public function definition(): array
     {
         return [
-            //
+            'status_sesudah' => GrantStatus::PlanningInitialized->value,
         ];
     }
 }

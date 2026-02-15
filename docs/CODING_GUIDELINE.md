@@ -651,16 +651,26 @@ $appName = env('APP_NAME');
 
 ### Named Routes
 
-Always use named routes for URL generation:
+**NEVER use raw URL paths directly.** Always use named routes via `route()` for URL generation — in PHP code, Blade views, tests, and redirects. This ensures URLs stay consistent when paths change.
 
 ```php
 // Good
 return redirect()->route('dashboard');
 route('users.show', $user);
+$this->actingAs($user)->get(route('grant-planning.index'));
 
-// Avoid
+// NEVER do this
 return redirect('/dashboard');
 url('/users/' . $user->id);
+$this->actingAs($user)->get('/grant-planning');
+```
+
+```blade
+{{-- Good --}}
+<a href="{{ route('grant-planning.index') }}">
+
+{{-- NEVER do this --}}
+<a href="/grant-planning">
 ```
 
 ### Form Requests

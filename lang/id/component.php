@@ -6,6 +6,20 @@ return [
         'heading' => 'Platform',
     ],
 
+    'navbar' => [
+        'nav-dashboard' => 'Dasbor',
+        'nav-grant-planning' => 'Usulan Hibah',
+        'nav-chief-management' => 'Kepala Satker',
+        'nav-user-management' => 'Manajemen User',
+    ],
+
+    'grant-planning-steps' => [
+        'step-1' => 'Inisialisasi',
+        'step-2' => 'Data Pemberi Hibah',
+        'step-3' => 'Naskah Usulan',
+        'step-4' => 'Dokumen Kajian',
+    ],
+
     'settings-nav' => [
         'profile' => 'Profil',
         'password' => 'Password',
