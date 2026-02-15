@@ -24,6 +24,12 @@
                     </flux:navbar.item>
                 @endif
 
+                @if (auth()->user()->unit?->level_unit === \App\Enums\UnitLevel::SatuanInduk)
+                    <flux:navbar.item icon="document-text" :href="route('grant-review.index')" :current="request()->routeIs('grant-review.*')" wire:navigate>
+                        {{ __('component.navbar.nav-grant-review') }}
+                    </flux:navbar.item>
+                @endif
+
                 @if (auth()->user()->unit?->level_unit === \App\Enums\UnitLevel::Mabes)
                     <flux:navbar.item icon="users" :href="route('user.index')" :current="request()->routeIs('user.*')" wire:navigate>
                         {{ __('component.navbar.nav-user-management') }}
@@ -32,6 +38,8 @@
             </flux:navbar>
 
             <flux:spacer />
+
+            <livewire:notification-bell />
 
             <flux:dropdown position="top" align="end">
                 <flux:profile
@@ -93,6 +101,12 @@
                     </flux:sidebar.item>
                     <flux:sidebar.item icon="user-circle" :href="route('chief.index')" :current="request()->routeIs('chief.*')" wire:navigate>
                         {{ __('component.navbar.nav-chief-management') }}
+                    </flux:sidebar.item>
+                @endif
+
+                @if (auth()->user()->unit?->level_unit === \App\Enums\UnitLevel::SatuanInduk)
+                    <flux:sidebar.item icon="document-text" :href="route('grant-review.index')" :current="request()->routeIs('grant-review.*')" wire:navigate>
+                        {{ __('component.navbar.nav-grant-review') }}
                     </flux:sidebar.item>
                 @endif
 

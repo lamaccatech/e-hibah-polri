@@ -232,6 +232,10 @@ return [
         'badge-creating-proposal' => 'Naskah Usulan',
         'badge-creating-assessment' => 'Dokumen Kajian',
         'badge-submitted' => 'Diajukan',
+        'badge-revising' => 'Revisi',
+        'badge-revision-resubmitted' => 'Revisi Diajukan',
+        'submit-confirm-title' => 'Ajukan Usulan Hibah',
+        'submit-confirm-description' => 'Yakin ingin mengajukan usulan hibah ini ke Polda?',
     ],
 
     // Grant Planning — Initialize (Step 1)
@@ -294,6 +298,22 @@ return [
         'add-custom-aspect' => 'Tambah Aspek',
         'add-paragraph' => 'Tambah Paragraf',
         'label-aspect-title' => 'Judul Aspek',
+    ],
+
+    // Grant Review — Polda
+    'grant-review' => [
+        'title' => 'Usulan Hibah Masuk',
+        'column-unit' => 'Satuan Kerja',
+        'column-name' => 'Nama Kegiatan',
+        'column-donor' => 'Calon Pemberi Hibah',
+        'column-value' => 'Nilai',
+        'column-status' => 'Status',
+        'empty-state' => 'Belum ada usulan hibah masuk.',
+        'badge-submitted' => 'Diajukan',
+        'badge-reviewing' => 'Sedang Dikaji',
+        'badge-verified' => 'Disetujui',
+        'badge-rejected' => 'Ditolak',
+        'badge-revision-requested' => 'Perlu Revisi',
     ],
 
 ];

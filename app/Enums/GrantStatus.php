@@ -54,4 +54,38 @@ enum GrantStatus: string
     // Post-approval
     case UploadingSignedAgreement = 'SATUAN_KERJA_MENGUPLOAD_NASKAH_PERJANJIAN_HIBAH';
     case SubmittingToFinanceMinistry = 'SATUAN_KERJA_MENGISI_DATA_SEHATI_KEMENKEU';
+
+    public function label(): string
+    {
+        return match ($this) {
+            self::PlanningInitialized => __('page.grant-planning.badge-initialized'),
+            self::FillingDonorCandidate => __('page.grant-planning.badge-filling-donor'),
+            self::CreatingProposalDocument => __('page.grant-planning.badge-creating-proposal'),
+            self::CreatingPlanningAssessment => __('page.grant-planning.badge-creating-assessment'),
+            self::PlanningSubmittedToPolda => __('page.grant-planning.badge-submitted'),
+            self::RevisingPlanning => __('page.grant-planning.badge-revising'),
+            self::PlanningRevisionResubmitted => __('page.grant-planning.badge-revision-resubmitted'),
+            self::PoldaReviewingPlanning => __('page.grant-review.badge-reviewing'),
+            self::PoldaVerifiedPlanning => __('page.grant-review.badge-verified'),
+            self::PoldaRejectedPlanning => __('page.grant-review.badge-rejected'),
+            self::PoldaRequestedPlanningRevision => __('page.grant-review.badge-revision-requested'),
+            default => $this->value,
+        };
+    }
+
+    public function isEditableBySatker(): bool
+    {
+        return in_array($this, [
+            self::PlanningInitialized,
+            self::FillingDonorCandidate,
+            self::CreatingProposalDocument,
+            self::CreatingPlanningAssessment,
+            self::RevisingPlanning,
+        ]);
+    }
+
+    public function canSubmitForPlanning(): bool
+    {
+        return $this->isEditableBySatker();
+    }
 }

@@ -8,6 +8,7 @@ use App\Enums\GrantType;
 use App\Models\Donor;
 use App\Models\Grant;
 use App\Models\OrgUnit;
+use App\Notifications\PlanningSubmittedNotification;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 use Symfony\Component\HtmlSanitizer\HtmlSanitizer;
@@ -52,7 +53,7 @@ class GrantPlanningRepository
     {
         return $unit->grants()
             ->where('tahapan', GrantStage::Planning)
-            ->with('donor')
+            ->with(['donor', 'statusHistory'])
             ->orderByDesc('created_at')
             ->get();
     }
@@ -280,10 +281,22 @@ class GrantPlanningRepository
             'status_sesudah' => GrantStatus::PlanningSubmittedToPolda->value,
             'keterangan' => "{$grant->orgUnit->nama_unit} mengajukan usulan hibah untuk kegiatan {$grant->nama_hibah}",
         ]);
+
+        $poldaUser = $grant->orgUnit->parent?->user;
+
+        if ($poldaUser) {
+            $poldaUser->notify(new PlanningSubmittedNotification($grant));
+        }
     }
 
     public function canSubmit(Grant $grant): bool
     {
+        $latestStatus = $this->getLatestStatus($grant);
+
+        if ($latestStatus === null || ! $latestStatus->canSubmitForPlanning()) {
+            return false;
+        }
+
         $hasDonor = $grant->id_pemberi_hibah !== null;
 
         $hasChapters = $grant->information()
@@ -295,6 +308,13 @@ class GrantPlanningRepository
             ->exists();
 
         return $hasDonor && $hasChapters && $hasAssessment;
+    }
+
+    public function isEditable(Grant $grant): bool
+    {
+        $latestStatus = $this->getLatestStatus($grant);
+
+        return $latestStatus !== null && $latestStatus->isEditableBySatker();
     }
 
     public function getLatestStatus(Grant $grant): ?GrantStatus

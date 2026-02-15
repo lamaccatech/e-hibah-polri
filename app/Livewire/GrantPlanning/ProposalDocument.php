@@ -35,6 +35,7 @@ class ProposalDocument extends Component
     {
         $userUnit = auth()->user()->unit;
         abort_unless($grant->id_satuan_kerja === $userUnit->id_user, 403);
+        abort_unless(app(GrantPlanningRepository::class)->isEditable($grant), 403);
 
         $this->grant = $grant;
         $this->initializeChapters();

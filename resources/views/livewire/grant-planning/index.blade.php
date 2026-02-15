@@ -32,14 +32,16 @@
                     </flux:table.cell>
                     <flux:table.cell>
                         <flux:badge size="sm">
-                            {{ $grant->statusHistory->last()?->status_sesudah?->value ?? '-' }}
+                            {{ $grant->statusHistory->last()?->status_sesudah?->label() ?? '-' }}
                         </flux:badge>
                     </flux:table.cell>
                     <flux:table.cell align="end">
                         <div class="flex justify-end gap-2">
-                            <flux:button variant="ghost" size="sm" icon="pencil-square" :href="route('grant-planning.edit', $grant)" wire:navigate />
+                            @if (in_array($grant->id, $editableIds))
+                                <flux:button variant="ghost" size="sm" icon="pencil-square" :href="route('grant-planning.edit', $grant)" wire:navigate />
+                            @endif
                             @if (in_array($grant->id, $submittableIds))
-                                <flux:button variant="primary" size="sm" wire:click="submit({{ $grant->id }})">
+                                <flux:button variant="primary" size="sm" wire:click="confirmSubmit({{ $grant->id }})">
                                     {{ __('page.grant-planning.submit-button') }}
                                 </flux:button>
                             @endif
@@ -55,4 +57,29 @@
             @endforelse
         </flux:table.rows>
     </flux:table>
+
+    @if (count($submittableIds) > 0)
+    <flux:modal wire:model.self="showSubmitModal" class="min-w-[22rem]">
+        <div class="space-y-6">
+            <div>
+                <flux:heading size="lg">{{ __('page.grant-planning.submit-confirm-title') }}</flux:heading>
+                <flux:text class="mt-2">
+                    {{ __('page.grant-planning.submit-confirm-description') }}
+                </flux:text>
+            </div>
+
+            <div class="flex gap-2">
+                <flux:spacer />
+
+                <flux:modal.close>
+                    <flux:button variant="ghost">{{ __('common.cancel') }}</flux:button>
+                </flux:modal.close>
+
+                <flux:button variant="primary" wire:click="submit">
+                    {{ __('page.grant-planning.submit-button') }}
+                </flux:button>
+            </div>
+        </div>
+    </flux:modal>
+    @endif
 </div>

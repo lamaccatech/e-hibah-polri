@@ -12,3 +12,4 @@ require __DIR__.'/settings.php';
 require __DIR__.'/user-management.php';
 require __DIR__.'/chief-management.php';
 require __DIR__.'/grant-planning.php';
+require __DIR__.'/grant-review.php';

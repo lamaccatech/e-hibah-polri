@@ -54,5 +54,7 @@
                 </div>
             </div>
         </div>
+    @elseif (auth()->user()->unit?->level_unit === \App\Enums\UnitLevel::SatuanInduk)
+        {{-- Polda dashboard — analytical data will be added later --}}
     @endif
 </x-layouts::app>

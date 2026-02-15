@@ -9,6 +9,7 @@ return [
     'navbar' => [
         'nav-dashboard' => 'Dasbor',
         'nav-grant-planning' => 'Usulan Hibah',
+        'nav-grant-review' => 'Usulan Hibah',
         'nav-chief-management' => 'Kepala Satker',
         'nav-user-management' => 'Manajemen User',
     ],
@@ -29,6 +30,14 @@ return [
 
     'settings-heading' => [
         'description' => 'Kelola profil dan pengaturan akun Anda',
+    ],
+
+    'notification' => [
+        'aria-label' => 'Notifikasi',
+        'title' => 'Notifikasi',
+        'mark-all-read' => 'Tandai semua dibaca',
+        'empty' => 'Tidak ada notifikasi.',
+        'submitted-planning' => 'mengajukan usulan hibah',
     ],
 
 ];

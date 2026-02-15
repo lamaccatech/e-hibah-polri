@@ -17,6 +17,7 @@ class Initialize extends Component
         if ($grant?->exists) {
             $userUnit = auth()->user()->unit;
             abort_unless($grant->id_satuan_kerja === $userUnit->id_user, 403);
+            abort_unless(app(GrantPlanningRepository::class)->isEditable($grant), 403);
 
             $this->grant = $grant;
             $this->activityName = str($grant->nama_hibah)->upper()->toString();

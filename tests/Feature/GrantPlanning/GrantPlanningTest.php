@@ -19,6 +19,7 @@ use App\Models\Grant;
 use App\Models\OrgUnit;
 use App\Models\User;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Notification;
 use Livewire\Livewire;
 
 function createSatkerUserForGrantTest(?int $parentUserId = null): User
@@ -43,9 +44,16 @@ function createMabesUserForGrantTest(): User
 
 function createGrantForUnit(User $user, array $overrides = []): Grant
 {
-    return $user->unit->grants()->create(
+    $grant = $user->unit->grants()->create(
         Grant::factory()->withoutDonor()->planned()->raw($overrides)
     );
+
+    $grant->statusHistory()->create([
+        'status_sesudah' => GrantStatus::PlanningInitialized->value,
+        'keterangan' => 'Test grant initialized',
+    ]);
+
+    return $grant;
 }
 
 function createFullGrant(User $user): Grant
@@ -98,6 +106,19 @@ function createFullGrant(User $user): Grant
         'subjudul' => '',
         'isi' => 'Assessment content',
         'nomor_urut' => 1,
+    ]);
+
+    return $grant;
+}
+
+function createSubmittedGrant(User $user): Grant
+{
+    $grant = createFullGrant($user);
+
+    $grant->statusHistory()->create([
+        'status_sebelum' => GrantStatus::CreatingPlanningAssessment->value,
+        'status_sesudah' => GrantStatus::PlanningSubmittedToPolda->value,
+        'keterangan' => 'Submitted to Polda',
     ]);
 
     return $grant;
@@ -827,7 +848,10 @@ describe('Grant Planning — Step 5 — Submit to Polda', function () {
         $this->actingAs($satker);
 
         Livewire::test(Index::class)
-            ->call('submit', $grant->id)
+            ->call('confirmSubmit', $grant->id)
+            ->assertSet('showSubmitModal', true)
+            ->assertSet('grantToSubmit', $grant->id)
+            ->call('submit')
             ->assertHasNoErrors();
 
         expect($grant->statusHistory()->latest('id')->first()->status_sesudah)
@@ -841,7 +865,8 @@ describe('Grant Planning — Step 5 — Submit to Polda', function () {
         $this->actingAs($satker);
 
         Livewire::test(Index::class)
-            ->call('submit', $grant->id)
+            ->call('confirmSubmit', $grant->id)
+            ->call('submit')
             ->assertHasErrors('submit');
     });
 
@@ -863,6 +888,78 @@ describe('Grant Planning — Step 5 — Submit to Polda', function () {
 
         Livewire::test(Index::class)
             ->assertSeeText(__('page.grant-planning.submit-button'));
+    });
+
+    it('prevents double submission', function () {
+        $satker = createSatkerUserForGrantTest();
+        $grant = createFullGrant($satker);
+
+        $this->actingAs($satker);
+
+        Livewire::test(Index::class)
+            ->call('confirmSubmit', $grant->id)
+            ->call('submit')
+            ->assertHasNoErrors()
+            ->call('confirmSubmit', $grant->id)
+            ->call('submit')
+            ->assertHasErrors('submit');
+    });
+
+    it('hides submit button for already-submitted grants', function () {
+        $satker = createSatkerUserForGrantTest();
+        $submitted = createSubmittedGrant($satker);
+
+        $this->actingAs($satker);
+
+        Livewire::test(Index::class)
+            ->assertDontSeeText(__('page.grant-planning.submit-button'));
+    });
+
+    it('hides edit button for submitted grants', function () {
+        $satker = createSatkerUserForGrantTest();
+        $submitted = createSubmittedGrant($satker);
+
+        $this->actingAs($satker);
+
+        Livewire::test(Index::class)
+            ->assertDontSeeHtml('icon="pencil-square"');
+    });
+
+    it('sends notification to Polda when Satker submits', function () {
+        Notification::fake();
+
+        $poldaUser = User::factory()->create();
+        $poldaUser->unit()->create(OrgUnit::factory()->satuanInduk()->raw());
+
+        $satker = createSatkerUserForGrantTest($poldaUser->id);
+        $grant = createFullGrant($satker);
+
+        $this->actingAs($satker);
+
+        Livewire::test(Index::class)
+            ->call('confirmSubmit', $grant->id)
+            ->call('submit')
+            ->assertHasNoErrors();
+
+        Notification::assertSentTo(
+            $poldaUser,
+            \App\Notifications\PlanningSubmittedNotification::class,
+            function ($notification) use ($grant) {
+                $data = $notification->toArray($notification);
+
+                return $data['grant_id'] === $grant->id;
+            }
+        );
+    });
+
+    it('displays human-readable status labels', function () {
+        $satker = createSatkerUserForGrantTest();
+        $grant = createFullGrant($satker);
+
+        $this->actingAs($satker);
+
+        Livewire::test(Index::class)
+            ->assertSeeText(__('page.grant-planning.badge-creating-assessment'));
     });
 });
 
@@ -894,6 +991,42 @@ describe('Grant Planning — Access Control', function () {
 
         $this->actingAs($satker2)
             ->get(route('grant-planning.donor', $grant))
+            ->assertForbidden();
+    });
+
+    it('prevents editing submitted grant via Initialize', function () {
+        $satker = createSatkerUserForGrantTest();
+        $grant = createSubmittedGrant($satker);
+
+        $this->actingAs($satker)
+            ->get(route('grant-planning.edit', $grant))
+            ->assertForbidden();
+    });
+
+    it('prevents editing submitted grant via DonorInfo', function () {
+        $satker = createSatkerUserForGrantTest();
+        $grant = createSubmittedGrant($satker);
+
+        $this->actingAs($satker)
+            ->get(route('grant-planning.donor', $grant))
+            ->assertForbidden();
+    });
+
+    it('prevents editing submitted grant via ProposalDocument', function () {
+        $satker = createSatkerUserForGrantTest();
+        $grant = createSubmittedGrant($satker);
+
+        $this->actingAs($satker)
+            ->get(route('grant-planning.proposal-document', $grant))
+            ->assertForbidden();
+    });
+
+    it('prevents editing submitted grant via Assessment', function () {
+        $satker = createSatkerUserForGrantTest();
+        $grant = createSubmittedGrant($satker);
+
+        $this->actingAs($satker)
+            ->get(route('grant-planning.assessment', $grant))
             ->assertForbidden();
     });
 });
