@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Concerns\HasFiles as HasFilesTrait;
 use App\Contracts\HasFiles;
+use App\Enums\GrantStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -24,6 +25,17 @@ class GrantStatusHistory extends Model implements HasFiles
         'status_sesudah',
         'keterangan',
     ];
+
+    /**
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'status_sebelum' => GrantStatus::class,
+            'status_sesudah' => GrantStatus::class,
+        ];
+    }
 
     public function grant(): BelongsTo
     {

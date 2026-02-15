@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\GrantStage;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -22,6 +23,16 @@ class GrantInformation extends Model
         'judul',
         'tahapan',
     ];
+
+    /**
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'tahapan' => GrantStage::class,
+        ];
+    }
 
     public function grant(): BelongsTo
     {

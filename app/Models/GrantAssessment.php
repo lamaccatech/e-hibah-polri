@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Enums\AssessmentAspect;
+use App\Enums\GrantStage;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -24,6 +26,17 @@ class GrantAssessment extends Model
         'aspek',
         'tahapan',
     ];
+
+    /**
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'aspek' => AssessmentAspect::class,
+            'tahapan' => GrantStage::class,
+        ];
+    }
 
     public function statusHistory(): BelongsTo
     {

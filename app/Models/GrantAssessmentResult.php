@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\AssessmentResult;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -21,6 +22,16 @@ class GrantAssessmentResult extends Model
         'id_unit',
         'rekomendasi',
     ];
+
+    /**
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'rekomendasi' => AssessmentResult::class,
+        ];
+    }
 
     public function assessment(): BelongsTo
     {
