@@ -1283,6 +1283,34 @@ public function user(): BelongsTo
 - Purpose: Business entities and domain concepts
 - Foreign keys: `id_user`, `id_hibah` pattern
 
+**Rationale:**
+- System tables use English to align with Laravel conventions and international developer familiarity
+- Business tables use Indonesian for clarity with stakeholders and domain experts
+- Consistent within each domain ensures predictability
+
+#### Bridge Convention
+
+Some tables bridge between system and business domains. Document the foreign key naming choice:
+
+```php
+// The `unit` table (business/Indonesian) connects to `users` table (system/English)
+// Uses `id_user` foreign key to match the business domain convention
+$table->foreignId('id_user')->constrained('users');
+```
+
+**Rule:** Any table that bridges system and business domains should document the foreign key naming choice in migration comments.
+
+#### Checklist for New Migrations
+
+Before creating a migration, decide:
+
+- [ ] Is this a system/background model? → Use **English** convention
+- [ ] Is this a business/user-facing model? → Use **Indonesian** convention
+- [ ] Are ALL fields following the chosen convention? (except timestamps)
+- [ ] Are foreign keys named correctly for the convention?
+- [ ] **Are all timestamps using `timestampsTz()` / `timestampTz()` / `softDeletesTz()`?** ← CRITICAL
+- [ ] Is the `down()` method consistent with the `up()` method?
+
 ### Model Structure
 
 ```php
@@ -1402,7 +1430,21 @@ Use `default('')` (empty string) when:
 - ✅ Field should always have a value but can be blank
 - ✅ Simpler application logic (no NULL checks needed)
 
-**Best Practice:** Prefer `nullable()` for optional data — it's semantically clearer.
+**Querying Differences:**
+
+```php
+// With nullable fields - need NULL checks
+$users = User::whereNotNull('phone')->get();
+$users = User::whereNull('email_verified_at')->get();
+
+// With default empty string - simpler
+$users = User::where('bio', '!=', '')->get();
+
+// But consider: NULL has semantic meaning
+// NULL phone = "not provided", empty phone = "provided but blank" ← different meanings
+```
+
+**Best Practice:** Prefer `nullable()` for optional data — it's semantically clearer. Use `default('')` only when empty string is a valid business value. Document the meaning of NULL in comments when it's not obvious.
 
 ---
 
@@ -1641,6 +1683,20 @@ public function delete(int $projectId): void
 }
 ```
 
+### Input Validation
+
+- **Validate all input** — Use Form Requests or Livewire `rules()`
+- **Never trust user input** — Always validate, even for authenticated users
+- **Use parameterized queries** — Eloquent handles this automatically
+- **Validate file uploads** — Check MIME types, size limits
+
+### Sensitive Data
+
+- **Never commit secrets** — Keep `.env`, credentials, and API keys out of version control
+- **Hide sensitive attributes** — Use `$hidden` on models for passwords, tokens, etc.
+- **Encrypt at rest** — Use Laravel's `encrypted` cast for sensitive data
+- **Audit access** — Log access to sensitive data when required by compliance
+
 ### Mass Assignment Protection
 
 Always define `$fillable` explicitly on models:
@@ -1693,23 +1749,175 @@ class ActivityLog extends Model
 }
 ```
 
+**Models that MUST follow this pattern:**
+
+All models with user/ownership foreign keys:
+
+| Model | Foreign Key Removed | Relationship Method |
+|-------|-------------------|---------------------|
+| `ActivityLog` | `user_id` | `auth()->user()->activityLogs()->create()` |
+| `ChangeHistory` | `user_id` | `auth()->user()->changesMade()->create()` |
+| `Grant` | `id_user` | `$user->grants()->create()` |
+| `OrgUnit` | `id_user` | `$user->unit()->create()` |
+| `File` | `user_id` | `auth()->user()->files()->create()` |
+
+**When to apply this rule:**
+- ✅ User relationships (`user_id`, `id_user`)
+- ✅ Core entity ownership relationships
+- ❌ Pivot/junction table foreign keys (can be fillable)
+- ❌ Non-critical reference foreign keys (case-by-case basis)
+
 **Exception:** Pivot/junction tables MAY keep foreign keys fillable for convenience.
 
-### Deletion Policy Framework
+### Deletion Policy & Data Integrity
 
-Before implementing any delete functionality, define a deletion policy for each table:
+**CRITICAL:** This application has strict deletion policies to maintain data integrity and audit trails. Always consult this section before implementing any delete functionality.
 
-| Policy | Constraint | When to Use |
-|--------|-----------|-------------|
-| **Never Delete** | `nullOnDelete` | Audit trail tables (logs, history) |
-| **Restrict Delete** | `restrictOnDelete` | Master/reference data |
-| **Soft Delete** | `SoftDeletes` trait + `softDeletesTz()` | Business data needing audit trail |
-| **Cascade Delete** | `cascadeOnDelete` | Only for integral child records (e.g., line items) |
+#### Deletion Policy Reference Table
 
-**Key Rules:**
-- NEVER use `cascadeOnDelete` on audit tables or master data
-- Soft delete tables that reference other soft delete tables MUST use `nullOnDelete`
-- Implement cascade soft deletes in application code, NOT database level
+| Table Category | Policy | On Delete Constraint | Reason |
+|---------------|--------|---------------------|---------|
+| **NEVER DELETE** | | | |
+| `activity_logs` | ❌ No delete | `nullOnDelete` | Audit trail — must be permanent |
+| `change_histories` | ❌ No delete | `nullOnDelete` | Audit trail — must be permanent |
+| `riwayat_perubahan_status_hibah` | ❌ No delete | `nullOnDelete` | Status history — must be permanent |
+| **RESTRICT DELETE** | | | |
+| `autocomplete` | ⚠️ Restrict | `restrictOnDelete` | Reference data — prevent if in use |
+| `tags` | ⚠️ Restrict | `restrictOnDelete` | Reference data — prevent if in use |
+| **SOFT DELETE** | | | |
+| `hibah` | ✅ Soft delete | N/A | Core business data |
+| `unit` | ✅ Soft delete | N/A | Organizational structure |
+| `pemberi_hibah` | ✅ Soft delete | N/A | Donor records |
+| `files` | ✅ Soft delete | N/A | File audit trail |
+| All other business tables | ✅ Soft delete | N/A | Business data preservation |
+
+#### Implementation Rules
+
+**1. NEVER DELETE Tables:**
+- ❌ NEVER implement delete functionality for audit trail tables
+- ❌ DO NOT add delete buttons, routes, or methods
+- ❌ Foreign keys MUST use `nullOnDelete` — preserve logs even if related entity is deleted
+
+```php
+// ✅ CORRECT - Audit logs preserved
+$table->foreignId('user_id')
+    ->nullable()
+    ->constrained('users')
+    ->nullOnDelete();  // User deleted? Log remains with null user_id
+
+// ❌ WRONG - Would lose audit trail
+$table->foreignId('user_id')
+    ->constrained('users')
+    ->cascadeOnDelete();  // NEVER use cascade for audit tables
+```
+
+**2. RESTRICT DELETE Tables (Master Data):**
+- ⚠️ Can only be deleted if not referenced by other tables
+- Foreign keys MUST use `restrictOnDelete`
+
+```php
+// ✅ CORRECT - Prevents deletion if data is in use
+$table->foreignId('id_autocomplete')
+    ->constrained('autocomplete')
+    ->restrictOnDelete();
+```
+
+**3. SOFT DELETE Tables:**
+- ✅ MUST use `SoftDeletes` trait in model
+- ✅ MUST add `$table->softDeletesTz();` in migration
+- ✅ Cascade soft deletes explicitly in application code (NOT database level)
+
+```php
+// Model
+use Illuminate\Database\Eloquent\SoftDeletes;
+
+class Grant extends Model
+{
+    use SoftDeletes;
+}
+
+// Migration
+$table->softDeletesTz();
+
+// Foreign keys for soft delete parents
+$table->foreignId('id_hibah')
+    ->nullable()
+    ->constrained('hibah')
+    ->nullOnDelete();  // Safety net for force deletes
+```
+
+**4. Cascade Soft Delete Implementation:**
+
+Application-level cascade (NOT database):
+
+```php
+// ✅ CORRECT - Application-level cascade soft delete
+class Grant extends Model
+{
+    use SoftDeletes;
+
+    protected static function booted(): void
+    {
+        static::deleting(function (Grant $grant) {
+            // Only cascade on soft delete, not force delete
+            if ($grant->isForceDeleting()) {
+                return;
+            }
+
+            // Cascade soft delete to related records
+            $grant->withdrawalPlans()->delete();
+            $grant->locationsAndAllocations()->delete();
+            $grant->budgetPlans()->delete();
+        });
+    }
+}
+
+// ❌ WRONG - Database cascade interferes with soft deletes
+$table->foreignId('id_hibah')
+    ->constrained('hibah')
+    ->cascadeOnDelete();  // This hard deletes even if parent soft deletes!
+```
+
+#### Dual-Layer Protection: Soft Deletes + nullOnDelete
+
+Soft delete tables that reference other soft delete tables should use BOTH `SoftDeletes` trait AND `nullOnDelete()`:
+
+**Scenario A: Normal Soft Delete (Application Layer)**
+```php
+$grant->delete(); // User clicks "Delete" button
+```
+- ✅ Application cascade logic runs
+- ✅ Parent gets `deleted_at` timestamp
+- ✅ Children get `deleted_at` timestamp via cascade
+- ✅ All records preserved for audit trail
+
+**Scenario B: Force Delete (Database Layer)**
+```php
+$grant->forceDelete(); // Emergency cleanup or direct DB operation
+```
+- ✅ Database physically deletes parent row
+- ✅ Database constraint `nullOnDelete()` TRIGGERS: sets child foreign keys to NULL
+- ✅ Child records survive but lose parent reference
+- ✅ No orphaned foreign keys or constraint errors
+
+**Benefits:**
+- Defense in depth — protection even if application logic is bypassed
+- Force delete safety — can emergency-delete without breaking referential integrity
+- Audit trail — soft deleted children remain visible
+- No orphans — force deleted parents don't leave dangling foreign keys
+
+#### Deletion Code Review Checklist
+
+Before committing any code that touches deletion:
+
+- [ ] Check deletion policy table above
+- [ ] Verify foreign key constraints match policy
+- [ ] For NEVER DELETE: No delete methods, `nullOnDelete` only
+- [ ] For RESTRICT: `restrictOnDelete` on foreign keys
+- [ ] For SOFT DELETE: Model has `SoftDeletes` trait, migration has `softDeletesTz()`
+- [ ] For cascade soft deletes: Implemented in application code, NOT database
+- [ ] Dual-layer protection: Soft delete tables referencing other soft delete tables use `nullOnDelete()`
+- [ ] Cascade logic includes `isForceDeleting()` check
 
 ### Rate Limiting
 
@@ -1838,3 +2046,31 @@ vendor/bin/sail artisan test --compact
 | Background work | Queued Job |
 | Business logic | Service in `app/Services/` |
 | Complex display logic | Presenter in `app/Presenters/` |
+
+---
+
+## Summary
+
+### Readable Code
+- Use descriptive names that reveal intent (`$isVerified`, not `$v`)
+- Prefix booleans with `is`, `has`, `can`, `should`
+- Keep functions short (< 30 lines), use early returns
+- Comments explain WHY, not WHAT
+
+### Maintainable Code
+- Follow the layer architecture: Components → ViewModels → Repositories → Models
+- One responsibility per class, extract shared logic to traits
+- Use enums for fixed values, avoid magic strings
+- Format with Pint before committing
+
+### Testable Code
+- Inject dependencies, avoid static calls in classes
+- Use factories for test data, never manual inserts
+- Test behavior not implementation, cover edge cases
+- Keep tests focused with descriptive names
+
+### Secure Code
+- Validate all input with Form Requests or Livewire rules
+- Authorize every action with Policies
+- Define `$fillable` explicitly, never use `$guarded = []`
+- Rate limit sensitive actions, hide sensitive model attributes
