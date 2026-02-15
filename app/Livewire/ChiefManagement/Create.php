@@ -2,6 +2,7 @@
 
 namespace App\Livewire\ChiefManagement;
 
+use App\Repositories\ChiefRepository;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 
@@ -30,13 +31,13 @@ class Create extends Component
         ];
     }
 
-    public function save(): void
+    public function save(ChiefRepository $repository): void
     {
         $validated = $this->validate();
 
         $path = $this->signature->store('signatures');
 
-        auth()->user()->unit->chiefs()->create([
+        $repository->create(auth()->user()->unit, [
             'nama_lengkap' => $validated['fullName'],
             'jabatan' => $validated['position'],
             'pangkat' => $validated['rank'],

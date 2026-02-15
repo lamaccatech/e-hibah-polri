@@ -2,7 +2,7 @@
 
 namespace App\Livewire\UserManagement;
 
-use App\Models\User;
+use App\Repositories\UserRepository;
 use Livewire\Component;
 
 class Index extends Component
@@ -17,12 +17,12 @@ class Index extends Component
         $this->showDeleteModal = true;
     }
 
-    public function delete(): void
+    public function delete(UserRepository $repository): void
     {
-        $user = User::with('unit')->findOrFail($this->userToDelete);
+        $user = $repository->findWithUnit($this->userToDelete);
         $unit = $user->unit;
 
-        if ($unit && $unit->grants()->exists()) {
+        if ($unit && $repository->unitHasGrants($unit)) {
             $this->addError('delete', __('page.user-management.error-has-grants'));
             $this->showDeleteModal = false;
             $this->userToDelete = null;
@@ -30,7 +30,7 @@ class Index extends Component
             return;
         }
 
-        if ($unit && $unit->children()->exists()) {
+        if ($unit && $repository->unitHasChildren($unit)) {
             $this->addError('delete', __('page.user-management.error-has-subordinates'));
             $this->showDeleteModal = false;
             $this->userToDelete = null;
@@ -38,11 +38,7 @@ class Index extends Component
             return;
         }
 
-        if ($unit) {
-            $unit->delete();
-        }
-
-        $user->delete();
+        $repository->delete($user);
 
         $this->showDeleteModal = false;
         $this->userToDelete = null;
@@ -50,10 +46,10 @@ class Index extends Component
         $this->redirect(route('user.index'), navigate: true);
     }
 
-    public function render()
+    public function render(UserRepository $repository)
     {
         return view('livewire.user-management.index', [
-            'users' => User::with('unit')->whereHas('unit')->get(),
+            'users' => $repository->allWithUnits(),
         ]);
     }
 }

@@ -3,8 +3,7 @@
 namespace App\Livewire\UserManagement;
 
 use App\Enums\UnitLevel;
-use App\Models\OrgUnit;
-use App\Models\User;
+use App\Repositories\UserRepository;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
 use Livewire\Component;
@@ -37,33 +36,32 @@ class Create extends Component
         ];
     }
 
-    public function save(): void
+    public function save(UserRepository $repository): void
     {
         $validated = $this->validate();
 
-        $user = User::create([
-            'name' => $validated['unitName'],
-            'email' => $validated['email'],
-            'password' => $validated['password'],
-        ]);
-
-        $user->unit()->create([
-            'nama_unit' => $validated['unitName'],
-            'kode' => $validated['code'],
-            'level_unit' => $validated['unitLevel'],
-            'id_unit_atasan' => $validated['parentUnitId'],
-        ]);
+        $repository->create(
+            [
+                'name' => $validated['unitName'],
+                'email' => $validated['email'],
+                'password' => $validated['password'],
+            ],
+            [
+                'nama_unit' => $validated['unitName'],
+                'kode' => $validated['code'],
+                'level_unit' => $validated['unitLevel'],
+                'id_unit_atasan' => $validated['parentUnitId'],
+            ],
+        );
 
         $this->redirect(route('user.index'), navigate: true);
     }
 
-    public function render()
+    public function render(UserRepository $repository)
     {
         return view('livewire.user-management.create', [
             'unitLevels' => UnitLevel::options(),
-            'parentUnits' => OrgUnit::query()
-                ->select(['id_user', 'nama_unit'])
-                ->get(),
+            'parentUnits' => $repository->allUnits(),
         ]);
     }
 }

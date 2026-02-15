@@ -3,6 +3,7 @@
 namespace App\Livewire\ChiefManagement;
 
 use App\Models\OrgUnitChief;
+use App\Repositories\ChiefRepository;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 
@@ -46,7 +47,7 @@ class Edit extends Component
         ];
     }
 
-    public function save(): void
+    public function save(ChiefRepository $repository): void
     {
         $validated = $this->validate();
 
@@ -61,7 +62,7 @@ class Edit extends Component
             $data['tanda_tangan'] = $this->signature->store('signatures');
         }
 
-        $this->chief->update($data);
+        $repository->update($this->chief, $data);
 
         $this->redirect(route('chief.index'), navigate: true);
     }

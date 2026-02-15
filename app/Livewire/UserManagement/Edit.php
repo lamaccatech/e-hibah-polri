@@ -3,6 +3,7 @@
 namespace App\Livewire\UserManagement;
 
 use App\Models\User;
+use App\Repositories\UserRepository;
 use Illuminate\Validation\Rule;
 use Livewire\Component;
 
@@ -33,18 +34,18 @@ class Edit extends Component
         ];
     }
 
-    public function save(): void
+    public function save(UserRepository $repository): void
     {
         $validated = $this->validate();
 
-        $this->user->update([
-            'email' => $validated['email'],
-        ]);
-
-        $this->user->unit->update([
-            'nama_unit' => $validated['unitName'],
-            'kode' => $validated['code'],
-        ]);
+        $repository->update(
+            $this->user,
+            ['email' => $validated['email']],
+            [
+                'nama_unit' => $validated['unitName'],
+                'kode' => $validated['code'],
+            ],
+        );
 
         $this->redirect(route('user.index'), navigate: true);
     }

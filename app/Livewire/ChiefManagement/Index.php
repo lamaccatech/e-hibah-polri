@@ -2,30 +2,20 @@
 
 namespace App\Livewire\ChiefManagement;
 
-use App\Models\OrgUnitChief;
-use Illuminate\Support\Facades\DB;
+use App\Repositories\ChiefRepository;
 use Livewire\Component;
 
 class Index extends Component
 {
-    public function assign(int $id): void
+    public function assign(int $id, ChiefRepository $repository): void
     {
-        $unit = auth()->user()->unit;
-        $chief = OrgUnitChief::where('id_unit', $unit->id_user)->findOrFail($id);
-
-        DB::transaction(function () use ($unit, $chief): void {
-            OrgUnitChief::where('id_unit', $unit->id_user)
-                ->where('sedang_menjabat', true)
-                ->update(['sedang_menjabat' => false]);
-
-            $chief->update(['sedang_menjabat' => true]);
-        });
+        $repository->assignActive(auth()->user()->unit, $id);
     }
 
-    public function render()
+    public function render(ChiefRepository $repository)
     {
         return view('livewire.chief-management.index', [
-            'chiefs' => auth()->user()->unit->chiefs,
+            'chiefs' => $repository->allForUnit(auth()->user()->unit),
         ]);
     }
 }
