@@ -6,7 +6,28 @@
         <div class="space-y-8">
             @foreach ($aspectCases as $aspect)
                 <div class="space-y-3 pb-6 border-b border-zinc-200 dark:border-zinc-700">
-                    <flux:heading size="xl" class="font-bold">{{ $aspect->label() }}</flux:heading>
+                    <div class="flex items-center gap-2">
+                        <flux:heading size="xl" class="font-bold">{{ $aspect->label() }}</flux:heading>
+                        @if (isset($reviewFeedback[$aspect->value]))
+                            @php $feedback = $reviewFeedback[$aspect->value]; @endphp
+                            @if ($feedback['result'] === \App\Enums\AssessmentResult::Fulfilled->value)
+                                <flux:badge color="green" size="sm">
+                                    <flux:icon.check-circle variant="mini" class="size-3.5" />
+                                    {{ __('page.grant-planning-assessment.feedback-fulfilled') }}
+                                </flux:badge>
+                            @elseif ($feedback['result'] === \App\Enums\AssessmentResult::Revision->value)
+                                <flux:badge color="yellow" size="sm">
+                                    <flux:icon.exclamation-circle variant="mini" class="size-3.5" />
+                                    {{ __('page.grant-planning-assessment.feedback-revision') }}
+                                </flux:badge>
+                            @endif
+                        @endif
+                    </div>
+                    @if (isset($reviewFeedback[$aspect->value]) && $reviewFeedback[$aspect->value]['result'] === \App\Enums\AssessmentResult::Revision->value && $reviewFeedback[$aspect->value]['remarks'])
+                        <div class="text-sm text-amber-700 dark:text-amber-300 prose prose-sm dark:prose-invert max-w-none">
+                            {!! $reviewFeedback[$aspect->value]['remarks'] !!}
+                        </div>
+                    @endif
 
                     @foreach ($aspect->prompts() as $promptIndex => $prompt)
                         <div>

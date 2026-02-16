@@ -964,6 +964,178 @@ describe('Grant Planning — Step 5 — Submit to Polda', function () {
 });
 
 // ============================================================
+// Revision Cycle
+// ============================================================
+
+describe('Grant Planning — Revision Cycle', function () {
+    it('allows Satker to edit grant after Polda requests revision', function () {
+        $poldaUser = User::factory()->create();
+        $poldaUser->unit()->create(OrgUnit::factory()->satuanInduk()->raw());
+
+        $satker = createSatkerUserForGrantTest($poldaUser->id);
+        $grant = createSubmittedGrant($satker);
+
+        // Polda requests revision
+        $grant->statusHistory()->create([
+            'status_sebelum' => GrantStatus::PlanningSubmittedToPolda->value,
+            'status_sesudah' => GrantStatus::PoldaRequestedPlanningRevision->value,
+            'keterangan' => 'Polda meminta revisi',
+        ]);
+
+        $this->actingAs($satker)
+            ->get(route('grant-planning.edit', $grant))
+            ->assertSuccessful();
+    });
+
+    it('allows Satker to edit grant after Mabes requests revision', function () {
+        $poldaUser = User::factory()->create();
+        $poldaUser->unit()->create(OrgUnit::factory()->satuanInduk()->raw());
+
+        $satker = createSatkerUserForGrantTest($poldaUser->id);
+        $grant = createSubmittedGrant($satker);
+
+        // Mabes requests revision
+        $grant->statusHistory()->create([
+            'status_sebelum' => GrantStatus::PlanningSubmittedToPolda->value,
+            'status_sesudah' => GrantStatus::MabesRequestedPlanningRevision->value,
+            'keterangan' => 'Mabes meminta revisi',
+        ]);
+
+        $this->actingAs($satker)
+            ->get(route('grant-planning.edit', $grant))
+            ->assertSuccessful();
+    });
+
+    it('loads existing assessment data when editing after revision request', function () {
+        $poldaUser = User::factory()->create();
+        $poldaUser->unit()->create(OrgUnit::factory()->satuanInduk()->raw());
+
+        $satker = createSatkerUserForGrantTest($poldaUser->id);
+        $grant = createFullGrant($satker);
+
+        // Submit to Polda
+        $grant->statusHistory()->create([
+            'status_sebelum' => GrantStatus::CreatingPlanningAssessment->value,
+            'status_sesudah' => GrantStatus::PlanningSubmittedToPolda->value,
+            'keterangan' => 'Submitted',
+        ]);
+
+        // Polda starts review (creates 4 review assessments with same aspek values)
+        $repository = app(\App\Repositories\GrantReviewRepository::class);
+        $repository->startReview($grant, $poldaUser->unit);
+
+        // Polda requests revision
+        $assessments = $repository->getReviewAssessments($grant);
+        foreach ($assessments as $index => $assessment) {
+            if ($index === 0) {
+                $repository->submitAspectResult($assessment, $poldaUser->unit, \App\Enums\AssessmentResult::Revision, 'Perlu revisi');
+            } else {
+                $repository->submitAspectResult($assessment, $poldaUser->unit, \App\Enums\AssessmentResult::Fulfilled, null);
+            }
+        }
+
+        $this->actingAs($satker);
+
+        // Assessment component should load Satker's original data, not empty review data
+        $component = Livewire::test(Assessment::class, ['grant' => $grant]);
+
+        // The Technical aspect (created by createFullGrant) should have content loaded
+        $mandatoryAspects = $component->get('mandatoryAspects');
+        $technicalContent = $mandatoryAspects[AssessmentAspect::Technical->value] ?? [];
+        expect($technicalContent)->not->toBeEmpty();
+        expect($technicalContent[0])->toBe('Assessment content');
+
+        // Review feedback should also be loaded
+        $reviewFeedback = $component->get('reviewFeedback');
+        expect($reviewFeedback)->not->toBeEmpty();
+        expect($reviewFeedback[AssessmentAspect::Technical->value]['result'])
+            ->toBe(\App\Enums\AssessmentResult::Revision->value);
+        expect($reviewFeedback[AssessmentAspect::Technical->value]['remarks'])
+            ->toBe('Perlu revisi');
+        expect($reviewFeedback[AssessmentAspect::Economic->value]['result'])
+            ->toBe(\App\Enums\AssessmentResult::Fulfilled->value);
+
+        // View should render revision callout with remarks
+        $component->assertSeeText(__('page.grant-planning-assessment.feedback-revision'))
+            ->assertSeeText('Perlu revisi')
+            ->assertSeeText(__('page.grant-planning-assessment.feedback-fulfilled'));
+    });
+
+    it('does not show review feedback for fresh grants', function () {
+        $satker = createSatkerUserForGrantTest();
+        $grant = createFullGrant($satker);
+
+        $this->actingAs($satker);
+
+        $component = Livewire::test(Assessment::class, ['grant' => $grant]);
+        $reviewFeedback = $component->get('reviewFeedback');
+        expect($reviewFeedback)->toBeEmpty();
+
+        $component->assertDontSeeText(__('page.grant-planning-assessment.feedback-fulfilled'))
+            ->assertDontSeeText(__('page.grant-planning-assessment.feedback-revision'));
+    });
+
+    it('uses PlanningRevisionResubmitted status when resubmitting after revision request', function () {
+        $poldaUser = User::factory()->create();
+        $poldaUser->unit()->create(OrgUnit::factory()->satuanInduk()->raw());
+
+        $satker = createSatkerUserForGrantTest($poldaUser->id);
+        $grant = createFullGrant($satker);
+
+        // Simulate Polda revision request
+        $grant->statusHistory()->create([
+            'status_sebelum' => GrantStatus::PlanningSubmittedToPolda->value,
+            'status_sesudah' => GrantStatus::PoldaRequestedPlanningRevision->value,
+            'keterangan' => 'Polda meminta revisi',
+        ]);
+
+        $this->actingAs($satker);
+
+        Livewire::test(Index::class)
+            ->call('confirmSubmit', $grant->id)
+            ->call('submit')
+            ->assertHasNoErrors();
+
+        expect($grant->statusHistory()->latest('id')->first()->status_sesudah)
+            ->toBe(GrantStatus::PlanningRevisionResubmitted);
+    });
+
+    it('sends revision notification to Satker when Polda requests revision', function () {
+        Notification::fake();
+
+        $poldaUser = User::factory()->create();
+        $poldaUser->unit()->create(OrgUnit::factory()->satuanInduk()->raw());
+
+        $satker = createSatkerUserForGrantTest($poldaUser->id);
+        $grant = createSubmittedGrant($satker);
+
+        // Start Polda review and request revision
+        $repository = app(\App\Repositories\GrantReviewRepository::class);
+        $repository->startReview($grant, $poldaUser->unit);
+        $assessments = $repository->getReviewAssessments($grant);
+
+        foreach ($assessments as $index => $assessment) {
+            if ($index === 0) {
+                $repository->submitAspectResult($assessment, $poldaUser->unit, \App\Enums\AssessmentResult::Revision, 'Perlu revisi');
+            } else {
+                $repository->submitAspectResult($assessment, $poldaUser->unit, \App\Enums\AssessmentResult::Fulfilled, null);
+            }
+        }
+
+        Notification::assertSentTo(
+            $satker,
+            \App\Notifications\PlanningRevisionRequestedNotification::class,
+            function ($notification) use ($grant) {
+                $data = $notification->toArray($notification);
+
+                return $data['grant_id'] === $grant->id
+                    && $data['revision_requested_by'] === 'Polda';
+            }
+        );
+    });
+});
+
+// ============================================================
 // Access Control
 // ============================================================
 

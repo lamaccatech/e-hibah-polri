@@ -305,6 +305,92 @@ describe('Mabes Grant Review — Rejection Notification', function () {
     });
 });
 
+describe('Mabes Grant Review — Revision Cycle', function () {
+    it('full cycle: Mabes requests revision → Satker resubmits → Polda re-reviews → approves → Mabes re-reviews', function () {
+        $grant = createPoldaVerifiedGrant();
+        startMabesReviewForGrant($grant);
+
+        $mabesUnit = OrgUnit::where('level_unit', \App\Enums\UnitLevel::Mabes)->first();
+        $mabesRepository = app(MabesGrantReviewRepository::class);
+
+        // Mabes requests revision
+        $assessments = $mabesRepository->getReviewAssessments($grant);
+        foreach ($assessments as $index => $assessment) {
+            if ($index === 0) {
+                $mabesRepository->submitAspectResult($assessment, $mabesUnit, AssessmentResult::Revision, 'Perlu revisi');
+            } else {
+                $mabesRepository->submitAspectResult($assessment, $mabesUnit, AssessmentResult::Fulfilled, null);
+            }
+        }
+
+        expect($grant->statusHistory()->latest('id')->first()->status_sesudah)
+            ->toBe(GrantStatus::MabesRequestedPlanningRevision);
+
+        // Satker resubmits revision
+        $grant->statusHistory()->create([
+            'status_sebelum' => GrantStatus::MabesRequestedPlanningRevision->value,
+            'status_sesudah' => GrantStatus::PlanningRevisionResubmitted->value,
+            'keterangan' => 'Satker mengajukan revisi',
+        ]);
+
+        // Polda re-reviews and approves
+        $poldaUnit = $grant->orgUnit->parent;
+        $poldaRepository = app(GrantReviewRepository::class);
+
+        expect($poldaRepository->canStartReview($grant))->toBeTrue();
+
+        $poldaRepository->startReview($grant, $poldaUnit);
+        $poldaAssessments = $poldaRepository->getReviewAssessments($grant);
+
+        foreach ($poldaAssessments as $assessment) {
+            $poldaRepository->submitAspectResult($assessment, $poldaUnit, AssessmentResult::Fulfilled, null);
+        }
+
+        expect($grant->statusHistory()->latest('id')->first()->status_sesudah)
+            ->toBe(GrantStatus::PoldaVerifiedPlanning);
+
+        // Mabes can start re-review
+        expect($mabesRepository->canStartReview($grant))->toBeTrue();
+
+        $mabesRepository->startReview($grant, $mabesUnit);
+        $newAssessments = $mabesRepository->getReviewAssessments($grant);
+
+        // Mabes approves all
+        foreach ($newAssessments as $assessment) {
+            $mabesRepository->submitAspectResult($assessment, $mabesUnit, AssessmentResult::Fulfilled, null);
+        }
+
+        // Should end with PlanningNumberIssued
+        expect($grant->statusHistory()->latest('id')->first()->status_sesudah)
+            ->toBe(GrantStatus::PlanningNumberIssued);
+    });
+
+    it('notifies Satker when Mabes requests revision', function () {
+        $grant = createPoldaVerifiedGrant();
+        startMabesReviewForGrant($grant);
+
+        $mabesUnit = OrgUnit::where('level_unit', \App\Enums\UnitLevel::Mabes)->first();
+        $repository = app(MabesGrantReviewRepository::class);
+        $assessments = $repository->getReviewAssessments($grant);
+
+        foreach ($assessments as $index => $assessment) {
+            if ($index === 0) {
+                $repository->submitAspectResult($assessment, $mabesUnit, AssessmentResult::Revision, 'Perlu revisi');
+            } else {
+                $repository->submitAspectResult($assessment, $mabesUnit, AssessmentResult::Fulfilled, null);
+            }
+        }
+
+        $satkerUser = $grant->orgUnit->user;
+        $notification = $satkerUser->notifications()->latest()->first();
+
+        expect($notification)->not->toBeNull();
+        expect($notification->data['grant_id'])->toBe($grant->id);
+        expect($notification->data['grant_name'])->toBe($grant->nama_hibah);
+        expect($notification->data['revision_requested_by'])->toBe('Mabes');
+    });
+});
+
 describe('Mabes Grant Review — Auto-Status Resolution', function () {
     it('auto-approves grant and issues planning number when all aspects fulfilled', function () {
         $grant = createPoldaVerifiedGrant();

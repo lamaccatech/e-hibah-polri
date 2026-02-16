@@ -5,6 +5,7 @@ namespace App\Livewire\GrantDetail;
 use App\Models\Grant;
 use App\Repositories\GrantDetailRepository;
 use App\Repositories\GrantDocumentRepository;
+use App\Repositories\GrantPlanningRepository;
 use Livewire\Component;
 
 class Show extends Component
@@ -25,7 +26,7 @@ class Show extends Component
         $this->activeTab = $tab;
     }
 
-    public function render(GrantDetailRepository $repository, GrantDocumentRepository $documentRepository)
+    public function render(GrantDetailRepository $repository, GrantDocumentRepository $documentRepository, GrantPlanningRepository $planningRepository)
     {
         $data = ['grant' => $this->grant];
 
@@ -39,6 +40,8 @@ class Show extends Component
             $data['satkerAssessments'] = $repository->getSatkerAssessments($this->grant);
             $data['poldaResults'] = $repository->getPoldaAssessmentResults($this->grant);
             $data['mabesResults'] = $repository->getMabesAssessmentResults($this->grant);
+            $data['canEditAssessment'] = auth()->user()->unit->level_unit === \App\Enums\UnitLevel::SatuanKerja
+                && $planningRepository->isEditable($this->grant);
         } elseif ($this->activeTab === 'document-history') {
             $data['documentHistory'] = $documentRepository->getDocumentHistory($this->grant);
         }

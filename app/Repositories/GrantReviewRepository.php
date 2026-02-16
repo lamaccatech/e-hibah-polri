@@ -11,6 +11,7 @@ use App\Models\GrantAssessment;
 use App\Models\GrantAssessmentResult;
 use App\Models\OrgUnit;
 use App\Notifications\PlanningRejectedNotification;
+use App\Notifications\PlanningRevisionRequestedNotification;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 
@@ -183,6 +184,10 @@ class GrantReviewRepository
 
         if ($newStatus === GrantStatus::PoldaRejectedPlanning) {
             $grant->orgUnit->user->notify(new PlanningRejectedNotification($grant, 'Polda'));
+        }
+
+        if ($newStatus === GrantStatus::PoldaRequestedPlanningRevision) {
+            $grant->orgUnit->user->notify(new PlanningRevisionRequestedNotification($grant, 'Polda'));
         }
     }
 }

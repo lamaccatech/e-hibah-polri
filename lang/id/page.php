@@ -298,6 +298,8 @@ return [
         'add-custom-aspect' => 'Tambah Aspek',
         'add-paragraph' => 'Tambah Paragraf',
         'label-aspect-title' => 'Judul Aspek',
+        'feedback-fulfilled' => 'Aspek ini telah disetujui oleh pengkaji.',
+        'feedback-revision' => 'Aspek ini perlu direvisi.',
     ],
 
     // Grant Review — Polda
@@ -399,6 +401,7 @@ return [
         'satker-assessment' => 'Kajian Satuan Kerja',
         'polda-result' => 'Hasil Kajian Satuan Induk',
         'mabes-result' => 'Hasil Kajian Mabes',
+        'edit-assessment' => 'Edit Pengkajian',
         'generate-document' => 'Cetak Dokumen',
         'tab-document-history' => 'Dokumen',
         'document-date-label' => 'Tanggal Dokumen',

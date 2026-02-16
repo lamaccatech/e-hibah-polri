@@ -310,6 +310,79 @@ describe('Grant Review — Rejection Notification', function () {
     });
 });
 
+describe('Grant Review — Revision Resubmission', function () {
+    it('allows Polda to re-review after Satker resubmits revision', function () {
+        $polda = createPoldaUser();
+        $satker = createSatkerUserUnderPolda($polda);
+        $grant = createSubmittedGrantForReview($satker);
+
+        // First review: Polda requests revision
+        $repository = app(\App\Repositories\GrantReviewRepository::class);
+        $repository->startReview($grant, $polda->unit);
+        $assessments = $repository->getReviewAssessments($grant);
+
+        foreach ($assessments as $index => $assessment) {
+            if ($index === 0) {
+                $repository->submitAspectResult($assessment, $polda->unit, AssessmentResult::Revision, 'Perlu revisi');
+            } else {
+                $repository->submitAspectResult($assessment, $polda->unit, AssessmentResult::Fulfilled, null);
+            }
+        }
+
+        expect($grant->statusHistory()->latest('id')->first()->status_sesudah)
+            ->toBe(GrantStatus::PoldaRequestedPlanningRevision);
+
+        // Satker resubmits
+        $grant->statusHistory()->create([
+            'status_sebelum' => GrantStatus::PoldaRequestedPlanningRevision->value,
+            'status_sesudah' => GrantStatus::PlanningRevisionResubmitted->value,
+            'keterangan' => 'Satker mengajukan revisi',
+        ]);
+
+        // Polda can start re-review
+        expect($repository->canStartReview($grant))->toBeTrue();
+
+        $repository->startReview($grant, $polda->unit);
+        $newAssessments = $repository->getReviewAssessments($grant);
+
+        expect($newAssessments)->toHaveCount(4);
+
+        // Polda approves all
+        foreach ($newAssessments as $assessment) {
+            $repository->submitAspectResult($assessment, $polda->unit, AssessmentResult::Fulfilled, null);
+        }
+
+        expect($grant->statusHistory()->latest('id')->first()->status_sesudah)
+            ->toBe(GrantStatus::PoldaVerifiedPlanning);
+    });
+
+    it('notifies Satker when Polda requests revision', function () {
+        $polda = createPoldaUser();
+        $satker = createSatkerUserUnderPolda($polda);
+        $grant = createSubmittedGrantForReview($satker);
+        startReviewForGrant($grant);
+
+        $repository = app(\App\Repositories\GrantReviewRepository::class);
+        $assessments = $repository->getReviewAssessments($grant);
+
+        foreach ($assessments as $index => $assessment) {
+            if ($index === 0) {
+                $repository->submitAspectResult($assessment, $polda->unit, AssessmentResult::Revision, 'Perlu revisi');
+            } else {
+                $repository->submitAspectResult($assessment, $polda->unit, AssessmentResult::Fulfilled, null);
+            }
+        }
+
+        $satkerUser = $grant->orgUnit->user;
+        $notification = $satkerUser->notifications()->latest()->first();
+
+        expect($notification)->not->toBeNull();
+        expect($notification->data['grant_id'])->toBe($grant->id);
+        expect($notification->data['grant_name'])->toBe($grant->nama_hibah);
+        expect($notification->data['revision_requested_by'])->toBe('Polda');
+    });
+});
+
 describe('Grant Review — Auto-Status Resolution', function () {
     it('auto-approves grant when all aspects fulfilled', function () {
         $polda = createPoldaUser();

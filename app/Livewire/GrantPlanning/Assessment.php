@@ -4,7 +4,9 @@ namespace App\Livewire\GrantPlanning;
 
 use App\Enums\AssessmentAspect;
 use App\Enums\GrantStage;
+use App\Enums\GrantStatus;
 use App\Models\Grant;
+use App\Models\GrantAssessment;
 use App\Repositories\GrantPlanningRepository;
 use Livewire\Component;
 
@@ -18,6 +20,9 @@ class Assessment extends Component
     /** @var array<int, array{title: string, paragraphs: array<int, string>}> */
     public array $customAspects = [];
 
+    /** @var array<string, array{result: string, remarks: ?string}> Keyed by AssessmentAspect value */
+    public array $reviewFeedback = [];
+
     public function mount(Grant $grant): void
     {
         $userUnit = auth()->user()->unit;
@@ -27,6 +32,7 @@ class Assessment extends Component
         $this->grant = $grant;
         $this->initializeAspects();
         $this->loadExistingData();
+        $this->loadReviewFeedback();
     }
 
     protected function rules(): array
@@ -132,6 +138,7 @@ class Assessment extends Component
     {
         return view('livewire.grant-planning.assessment', [
             'aspectCases' => AssessmentAspect::cases(),
+            'reviewFeedback' => $this->reviewFeedback,
         ]);
     }
 
@@ -143,13 +150,65 @@ class Assessment extends Component
         }
     }
 
+    private function loadReviewFeedback(): void
+    {
+        $latestStatus = $this->grant->statusHistory()
+            ->latest('id')
+            ->first()
+            ?->status_sesudah;
+
+        if (! $latestStatus?->isRevisionRequested()) {
+            return;
+        }
+
+        // Find the review that led to the revision request
+        $reviewStatus = match ($latestStatus) {
+            GrantStatus::PoldaRequestedPlanningRevision => GrantStatus::PoldaReviewingPlanning,
+            GrantStatus::MabesRequestedPlanningRevision => GrantStatus::MabesReviewingPlanning,
+            default => null,
+        };
+
+        if (! $reviewStatus) {
+            return;
+        }
+
+        $reviewHistory = $this->grant->statusHistory()
+            ->where('status_sesudah', $reviewStatus)
+            ->latest('id')
+            ->first();
+
+        if (! $reviewHistory) {
+            return;
+        }
+
+        $reviewHistory->assessments()
+            ->with('result')
+            ->get()
+            ->each(function (GrantAssessment $assessment): void {
+                if ($assessment->aspek && $assessment->result) {
+                    $this->reviewFeedback[$assessment->aspek->value] = [
+                        'result' => $assessment->result->rekomendasi->value,
+                        'remarks' => $assessment->result->keterangan,
+                    ];
+                }
+            });
+    }
+
     private function loadExistingData(): void
     {
-        $existingAssessments = $this->grant->statusHistory()
-            ->with(['assessments' => fn ($q) => $q->where('tahapan', GrantStage::Planning)->with('contents')])
-            ->get()
-            ->pluck('assessments')
-            ->flatten();
+        $assessmentHistory = $this->grant->statusHistory()
+            ->where('status_sesudah', GrantStatus::CreatingPlanningAssessment)
+            ->latest('id')
+            ->first();
+
+        if (! $assessmentHistory) {
+            return;
+        }
+
+        $existingAssessments = $assessmentHistory->assessments()
+            ->where('tahapan', GrantStage::Planning)
+            ->with('contents')
+            ->get();
 
         if ($existingAssessments->isEmpty()) {
             return;

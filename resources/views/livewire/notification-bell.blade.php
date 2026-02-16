@@ -34,6 +34,10 @@
                             @if (isset($notification->data['planning_number']))
                                 {{ __('component.notification.planning-number-issued') }}
                                 <span class="font-medium">{{ $notification->data['grant_name'] ?? '' }}</span>
+                            @elseif (isset($notification->data['revision_requested_by']))
+                                {{ $notification->data['revision_requested_by'] }}
+                                {{ __('component.notification.revision-requested') }}
+                                <span class="font-medium">{{ $notification->data['grant_name'] ?? '' }}</span>
                             @else
                                 {{ $notification->data['unit_name'] ?? '' }}
                                 {{ __('component.notification.submitted-planning') }}

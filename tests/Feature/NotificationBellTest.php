@@ -4,6 +4,7 @@ use App\Livewire\NotificationBell;
 use App\Models\OrgUnit;
 use App\Models\User;
 use App\Notifications\PlanningRejectedNotification;
+use App\Notifications\PlanningRevisionRequestedNotification;
 use App\Notifications\PlanningSubmittedNotification;
 use Livewire\Livewire;
 
@@ -93,6 +94,25 @@ describe('Notification Bell', function () {
         $url = $component->instance()->getUrl($notification);
 
         expect($url)->toBe(route('grant-detail.show', $grant->id));
+    });
+
+    it('routes revision notification to grant planning edit page', function () {
+        $satker = createUserWithUnit('satuan_kerja');
+
+        $grant = $satker->unit->grants()->create(
+            \App\Models\Grant::factory()->planned()->raw()
+        );
+
+        $satker->notify(new PlanningRevisionRequestedNotification($grant, 'Polda'));
+
+        $notification = $satker->notifications()->latest()->first();
+
+        $this->actingAs($satker);
+
+        $component = Livewire::test(NotificationBell::class);
+        $url = $component->instance()->getUrl($notification);
+
+        expect($url)->toBe(route('grant-planning.edit', $grant->id));
     });
 
     it('marks all notifications as read', function () {

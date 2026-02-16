@@ -507,6 +507,75 @@ describe('Grant Detail — Generate Document Button', function () {
 });
 
 // -------------------------------------------------------------------
+// Edit Assessment Button
+// -------------------------------------------------------------------
+
+describe('Grant Detail — Edit Assessment Button', function () {
+    it('shows edit button for Satker when revision is requested', function () {
+        $satker = createSatkerUserForDetail();
+        $polda = User::find($satker->unit->id_unit_atasan);
+        $grant = createGrantWithFullData($satker);
+
+        // Submit to Polda
+        $grant->statusHistory()->create([
+            'status_sebelum' => GrantStatus::CreatingPlanningAssessment->value,
+            'status_sesudah' => GrantStatus::PlanningSubmittedToPolda->value,
+            'keterangan' => 'Submitted to Polda',
+        ]);
+
+        // Polda requests revision
+        $poldaRepo = app(GrantReviewRepository::class);
+        $poldaRepo->startReview($grant, $polda->unit);
+
+        $assessments = $poldaRepo->getReviewAssessments($grant);
+        foreach ($assessments as $index => $assessment) {
+            if ($index === 0) {
+                $poldaRepo->submitAspectResult($assessment, $polda->unit, AssessmentResult::Revision, 'Perlu diperbaiki');
+            } else {
+                $poldaRepo->submitAspectResult($assessment, $polda->unit, AssessmentResult::Fulfilled, null);
+            }
+        }
+
+        $this->actingAs($satker);
+
+        Livewire::test(Show::class, ['grant' => $grant])
+            ->call('switchTab', 'assessment-info')
+            ->assertSeeText(__('page.grant-detail.edit-assessment'));
+    });
+
+    it('hides edit button when grant is not editable', function () {
+        $satker = createSatkerUserForDetail();
+        $polda = User::find($satker->unit->id_unit_atasan);
+        $grant = createGrantWithFullData($satker);
+
+        // Submit to Polda (no longer editable by Satker)
+        $grant->statusHistory()->create([
+            'status_sebelum' => GrantStatus::CreatingPlanningAssessment->value,
+            'status_sesudah' => GrantStatus::PlanningSubmittedToPolda->value,
+            'keterangan' => 'Submitted to Polda',
+        ]);
+
+        $this->actingAs($satker);
+
+        Livewire::test(Show::class, ['grant' => $grant])
+            ->call('switchTab', 'assessment-info')
+            ->assertDontSeeText(__('page.grant-detail.edit-assessment'));
+    });
+
+    it('hides edit button for Polda user', function () {
+        $satker = createSatkerUserForDetail();
+        $polda = User::find($satker->unit->id_unit_atasan);
+        $grant = createGrantWithFullData($satker);
+
+        $this->actingAs($polda);
+
+        Livewire::test(Show::class, ['grant' => $grant])
+            ->call('switchTab', 'assessment-info')
+            ->assertDontSeeText(__('page.grant-detail.edit-assessment'));
+    });
+});
+
+// -------------------------------------------------------------------
 // Tab Navigation
 // -------------------------------------------------------------------
 

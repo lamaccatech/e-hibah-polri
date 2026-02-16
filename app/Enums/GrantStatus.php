@@ -86,6 +86,14 @@ enum GrantStatus: string
         ]);
     }
 
+    public function isRevisionRequested(): bool
+    {
+        return in_array($this, [
+            self::PoldaRequestedPlanningRevision,
+            self::MabesRequestedPlanningRevision,
+        ]);
+    }
+
     public function isEditableBySatker(): bool
     {
         return in_array($this, [
@@ -94,6 +102,8 @@ enum GrantStatus: string
             self::CreatingProposalDocument,
             self::CreatingPlanningAssessment,
             self::RevisingPlanning,
+            self::PoldaRequestedPlanningRevision,
+            self::MabesRequestedPlanningRevision,
         ]);
     }
 

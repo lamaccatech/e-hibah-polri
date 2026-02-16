@@ -12,6 +12,7 @@ use App\Models\GrantAssessmentResult;
 use App\Models\OrgUnit;
 use App\Notifications\PlanningNumberIssuedNotification;
 use App\Notifications\PlanningRejectedNotification;
+use App\Notifications\PlanningRevisionRequestedNotification;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 
@@ -206,6 +207,10 @@ class MabesGrantReviewRepository
 
         if ($newStatus === GrantStatus::MabesRejectedPlanning) {
             $grant->orgUnit->user->notify(new PlanningRejectedNotification($grant, 'Mabes'));
+        }
+
+        if ($newStatus === GrantStatus::MabesRequestedPlanningRevision) {
+            $grant->orgUnit->user->notify(new PlanningRevisionRequestedNotification($grant, 'Mabes'));
         }
 
         if ($newStatus === GrantStatus::MabesVerifiedPlanning) {

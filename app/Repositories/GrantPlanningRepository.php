@@ -276,9 +276,21 @@ class GrantPlanningRepository
 
     public function submitToPolda(Grant $grant): void
     {
+        $currentStatus = $this->getLatestStatus($grant);
+
+        $isResubmission = in_array($currentStatus, [
+            GrantStatus::PoldaRequestedPlanningRevision,
+            GrantStatus::MabesRequestedPlanningRevision,
+            GrantStatus::RevisingPlanning,
+        ]);
+
+        $newStatus = $isResubmission
+            ? GrantStatus::PlanningRevisionResubmitted
+            : GrantStatus::PlanningSubmittedToPolda;
+
         $grant->statusHistory()->create([
-            'status_sebelum' => $this->getLatestStatus($grant)?->value,
-            'status_sesudah' => GrantStatus::PlanningSubmittedToPolda->value,
+            'status_sebelum' => $currentStatus?->value,
+            'status_sesudah' => $newStatus->value,
             'keterangan' => "{$grant->orgUnit->nama_unit} mengajukan usulan hibah untuk kegiatan {$grant->nama_hibah}",
         ]);
 
