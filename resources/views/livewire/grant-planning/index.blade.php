@@ -60,6 +60,7 @@
                     </flux:table.cell>
                     <flux:table.cell align="end">
                         <div class="flex justify-end gap-2">
+                            <flux:button variant="ghost" size="sm" icon="eye" :href="route('grant-detail.show', $grant)" wire:navigate />
                             @if (in_array($grant->id, $editableIds))
                                 <flux:button variant="ghost" size="sm" icon="pencil-square" :href="route('grant-planning.edit', $grant)" wire:navigate />
                             @endif
