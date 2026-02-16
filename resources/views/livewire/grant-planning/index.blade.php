@@ -31,25 +31,30 @@
                         @endif
                     </flux:table.cell>
                     <flux:table.cell>
-                        <div class="flex flex-col gap-1">
+                        <div class="flex items-center gap-1">
                             <flux:badge size="sm">
                                 {{ $grant->statusHistory->last()?->status_sesudah?->label() ?? '-' }}
                             </flux:badge>
-                            @if ($grant->numberings->where('tahapan', \App\Enums\GrantStage::Planning)->first())
-                                @php $planningNumber = $grant->numberings->where('tahapan', \App\Enums\GrantStage::Planning)->first()->nomor; @endphp
-                                <div class="flex items-center gap-1">
-                                    <flux:text size="xs" class="font-mono">{{ $planningNumber }}</flux:text>
-                                    <flux:button
-                                        variant="subtle"
-                                        size="xs"
-                                        icon="clipboard-document"
-                                        x-on:click="
-                                            navigator.clipboard.writeText('{{ $planningNumber }}');
-                                            $el.querySelector('svg').classList.add('text-green-500');
-                                            setTimeout(() => $el.querySelector('svg').classList.remove('text-green-500'), 1500);
-                                        "
-                                    />
-                                </div>
+                            @php $planningNumber = $grant->numberings->where('tahapan', \App\Enums\GrantStage::Planning)->first()?->nomor; @endphp
+                            @if ($planningNumber)
+                                <flux:tooltip toggleable>
+                                    <flux:button icon="information-circle" size="sm" variant="ghost" class="shrink-0" />
+                                    <flux:tooltip.content>
+                                        <span
+                                            class="inline-flex items-center gap-1.5 font-mono cursor-pointer"
+                                            x-data="{ copied: false }"
+                                            x-on:click.stop="
+                                                navigator.clipboard.writeText('{{ $planningNumber }}');
+                                                copied = true;
+                                                setTimeout(() => copied = false, 1500);
+                                            "
+                                        >
+                                            {{ $planningNumber }}
+                                            <template x-if="!copied"><x-flux::icon.clipboard-document class="size-3.5" /></template>
+                                            <template x-if="copied"><x-flux::icon.check class="size-3.5 text-green-500" /></template>
+                                        </span>
+                                    </flux:tooltip.content>
+                                </flux:tooltip>
                             @endif
                         </div>
                     </flux:table.cell>
