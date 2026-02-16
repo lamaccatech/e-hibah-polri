@@ -282,6 +282,34 @@ describe('Grant Review — Per-Aspect Assessment', function () {
     });
 });
 
+describe('Grant Review — Rejection Notification', function () {
+    it('notifies Satker when Polda rejects grant', function () {
+        $polda = createPoldaUser();
+        $satker = createSatkerUserUnderPolda($polda);
+        $grant = createSubmittedGrantForReview($satker);
+        startReviewForGrant($grant);
+
+        $repository = app(\App\Repositories\GrantReviewRepository::class);
+        $assessments = $repository->getReviewAssessments($grant);
+
+        foreach ($assessments as $index => $assessment) {
+            if ($index === 0) {
+                $repository->submitAspectResult($assessment, $polda->unit, AssessmentResult::Rejected, 'Ditolak');
+            } else {
+                $repository->submitAspectResult($assessment, $polda->unit, AssessmentResult::Fulfilled, null);
+            }
+        }
+
+        $satkerUser = $grant->orgUnit->user;
+        $notification = $satkerUser->notifications()->latest()->first();
+
+        expect($notification)->not->toBeNull();
+        expect($notification->data['grant_id'])->toBe($grant->id);
+        expect($notification->data['grant_name'])->toBe($grant->nama_hibah);
+        expect($notification->data['rejected_by'])->toBe('Polda');
+    });
+});
+
 describe('Grant Review — Auto-Status Resolution', function () {
     it('auto-approves grant when all aspects fulfilled', function () {
         $polda = createPoldaUser();

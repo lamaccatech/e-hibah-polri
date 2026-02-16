@@ -422,6 +422,91 @@ describe('Grant Detail — Tab: Assessment Info', function () {
 });
 
 // -------------------------------------------------------------------
+// Generate Document Button Visibility
+// -------------------------------------------------------------------
+
+describe('Grant Detail — Generate Document Button', function () {
+    it('shows generate document button for Satker on active grant', function () {
+        $satker = createSatkerUserForDetail();
+        $grant = createGrantWithFullData($satker);
+
+        $this->actingAs($satker);
+
+        Livewire::test(Show::class, ['grant' => $grant])
+            ->assertSeeText(__('page.grant-detail.generate-document'));
+    });
+
+    it('hides generate document button when grant is rejected by Polda', function () {
+        $satker = createSatkerUserForDetail();
+        $polda = User::find($satker->unit->id_unit_atasan);
+        $grant = createGrantWithFullData($satker);
+
+        // Submit to Polda
+        $grant->statusHistory()->create([
+            'status_sebelum' => GrantStatus::CreatingPlanningAssessment->value,
+            'status_sesudah' => GrantStatus::PlanningSubmittedToPolda->value,
+            'keterangan' => 'Submitted to Polda',
+        ]);
+
+        // Polda rejects
+        $poldaRepo = app(GrantReviewRepository::class);
+        $poldaRepo->startReview($grant, $polda->unit);
+
+        $assessments = $poldaRepo->getReviewAssessments($grant);
+        foreach ($assessments as $index => $assessment) {
+            if ($index === 0) {
+                $poldaRepo->submitAspectResult($assessment, $polda->unit, AssessmentResult::Rejected, 'Ditolak');
+            } else {
+                $poldaRepo->submitAspectResult($assessment, $polda->unit, AssessmentResult::Fulfilled, null);
+            }
+        }
+
+        $this->actingAs($satker);
+
+        Livewire::test(Show::class, ['grant' => $grant])
+            ->assertDontSeeText(__('page.grant-detail.generate-document'));
+    });
+
+    it('hides generate document button when grant is rejected by Mabes', function () {
+        $satker = createSatkerUserForDetail();
+        $polda = User::find($satker->unit->id_unit_atasan);
+        $mabes = createMabesUserForDetail();
+        $grant = createGrantWithFullData($satker);
+
+        submitAndReviewGrant($grant, $polda);
+
+        // Mabes rejects
+        $mabesRepo = app(MabesGrantReviewRepository::class);
+        $mabesRepo->startReview($grant, $mabes->unit);
+
+        $assessments = $mabesRepo->getReviewAssessments($grant);
+        foreach ($assessments as $index => $assessment) {
+            if ($index === 0) {
+                $mabesRepo->submitAspectResult($assessment, $mabes->unit, AssessmentResult::Rejected, 'Ditolak');
+            } else {
+                $mabesRepo->submitAspectResult($assessment, $mabes->unit, AssessmentResult::Fulfilled, null);
+            }
+        }
+
+        $this->actingAs($satker);
+
+        Livewire::test(Show::class, ['grant' => $grant])
+            ->assertDontSeeText(__('page.grant-detail.generate-document'));
+    });
+
+    it('hides generate document button for non-Satker users', function () {
+        $satker = createSatkerUserForDetail();
+        $polda = User::find($satker->unit->id_unit_atasan);
+        $grant = createGrantWithFullData($satker);
+
+        $this->actingAs($polda);
+
+        Livewire::test(Show::class, ['grant' => $grant])
+            ->assertDontSeeText(__('page.grant-detail.generate-document'));
+    });
+});
+
+// -------------------------------------------------------------------
 // Tab Navigation
 // -------------------------------------------------------------------
 

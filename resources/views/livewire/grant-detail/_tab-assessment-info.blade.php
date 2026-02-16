@@ -49,7 +49,7 @@
                                 <span class="text-xs text-zinc-400 dark:text-zinc-500">{{ $poldaResult->created_at->format('d M Y H:i') }}</span>
                             </div>
                             @if ($poldaResult->keterangan)
-                                <p class="mt-1 text-sm text-zinc-600 dark:text-zinc-400">{{ $poldaResult->keterangan }}</p>
+                                <div class="mt-1 text-sm text-zinc-600 dark:text-zinc-400 prose prose-sm dark:prose-invert max-w-none">{!! $poldaResult->keterangan !!}</div>
                             @endif
                         </div>
                     @endif
@@ -73,7 +73,7 @@
                                 <span class="text-xs text-zinc-400 dark:text-zinc-500">{{ $mabesResult->created_at->format('d M Y H:i') }}</span>
                             </div>
                             @if ($mabesResult->keterangan)
-                                <p class="mt-1 text-sm text-zinc-600 dark:text-zinc-400">{{ $mabesResult->keterangan }}</p>
+                                <div class="mt-1 text-sm text-zinc-600 dark:text-zinc-400 prose prose-sm dark:prose-invert max-w-none">{!! $mabesResult->keterangan !!}</div>
                             @endif
                         </div>
                     @endif

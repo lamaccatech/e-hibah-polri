@@ -32,7 +32,7 @@
                     </flux:table.cell>
                     <flux:table.cell>
                         <div class="flex items-center gap-1">
-                            <flux:badge size="sm">
+                            <flux:badge size="sm" :color="$grant->statusHistory->last()?->status_sesudah?->isRejected() ? 'red' : null">
                                 {{ $grant->statusHistory->last()?->status_sesudah?->label() ?? '-' }}
                             </flux:badge>
                             @php $planningNumber = $grant->numberings->where('tahapan', \App\Enums\GrantStage::Planning)->first()?->nomor; @endphp

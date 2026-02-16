@@ -11,6 +11,7 @@ use App\Models\GrantAssessment;
 use App\Models\GrantAssessmentResult;
 use App\Models\OrgUnit;
 use App\Notifications\PlanningNumberIssuedNotification;
+use App\Notifications\PlanningRejectedNotification;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 
@@ -202,6 +203,10 @@ class MabesGrantReviewRepository
             'status_sesudah' => $newStatus->value,
             'keterangan' => $keterangan,
         ]);
+
+        if ($newStatus === GrantStatus::MabesRejectedPlanning) {
+            $grant->orgUnit->user->notify(new PlanningRejectedNotification($grant, 'Mabes'));
+        }
 
         if ($newStatus === GrantStatus::MabesVerifiedPlanning) {
             $this->issuePlanningNumber($grant);

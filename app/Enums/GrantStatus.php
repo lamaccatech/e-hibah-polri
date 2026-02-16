@@ -78,6 +78,14 @@ enum GrantStatus: string
         };
     }
 
+    public function isRejected(): bool
+    {
+        return in_array($this, [
+            self::PoldaRejectedPlanning,
+            self::MabesRejectedPlanning,
+        ]);
+    }
+
     public function isEditableBySatker(): bool
     {
         return in_array($this, [

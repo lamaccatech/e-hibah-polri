@@ -10,6 +10,7 @@ use App\Models\Grant;
 use App\Models\GrantAssessment;
 use App\Models\GrantAssessmentResult;
 use App\Models\OrgUnit;
+use App\Notifications\PlanningRejectedNotification;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 
@@ -179,5 +180,9 @@ class GrantReviewRepository
             'status_sesudah' => $newStatus->value,
             'keterangan' => $keterangan,
         ]);
+
+        if ($newStatus === GrantStatus::PoldaRejectedPlanning) {
+            $grant->orgUnit->user->notify(new PlanningRejectedNotification($grant, 'Polda'));
+        }
     }
 }

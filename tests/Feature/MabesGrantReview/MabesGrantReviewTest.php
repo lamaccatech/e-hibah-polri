@@ -278,6 +278,33 @@ describe('Mabes Grant Review — Per-Aspect Assessment', function () {
     });
 });
 
+describe('Mabes Grant Review — Rejection Notification', function () {
+    it('notifies Satker when Mabes rejects grant', function () {
+        $grant = createPoldaVerifiedGrant();
+        startMabesReviewForGrant($grant);
+
+        $mabesUnit = OrgUnit::where('level_unit', \App\Enums\UnitLevel::Mabes)->first();
+        $repository = app(MabesGrantReviewRepository::class);
+        $assessments = $repository->getReviewAssessments($grant);
+
+        foreach ($assessments as $index => $assessment) {
+            if ($index === 0) {
+                $repository->submitAspectResult($assessment, $mabesUnit, AssessmentResult::Rejected, 'Ditolak');
+            } else {
+                $repository->submitAspectResult($assessment, $mabesUnit, AssessmentResult::Fulfilled, null);
+            }
+        }
+
+        $satkerUser = $grant->orgUnit->user;
+        $notification = $satkerUser->notifications()->latest()->first();
+
+        expect($notification)->not->toBeNull();
+        expect($notification->data['grant_id'])->toBe($grant->id);
+        expect($notification->data['grant_name'])->toBe($grant->nama_hibah);
+        expect($notification->data['rejected_by'])->toBe('Mabes');
+    });
+});
+
 describe('Mabes Grant Review — Auto-Status Resolution', function () {
     it('auto-approves grant and issues planning number when all aspects fulfilled', function () {
         $grant = createPoldaVerifiedGrant();

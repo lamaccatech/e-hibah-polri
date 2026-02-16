@@ -4,7 +4,7 @@
             <flux:heading size="xl">{{ __('page.grant-detail.title') }}</flux:heading>
             <flux:text class="mt-1">{{ $grant->nama_hibah }}</flux:text>
         </div>
-        @if (auth()->user()->unit->level_unit === \App\Enums\UnitLevel::SatuanKerja)
+        @if (auth()->user()->unit->level_unit === \App\Enums\UnitLevel::SatuanKerja && !$grant->statusHistory->last()?->status_sesudah?->isRejected())
             <flux:dropdown>
                 <flux:button variant="primary" size="sm" icon="document-text" icon-trailing="chevron-down">
                     {{ __('page.grant-detail.generate-document') }}

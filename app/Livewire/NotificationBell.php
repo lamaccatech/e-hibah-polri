@@ -25,6 +25,10 @@ class NotificationBell extends Component
             return route('grant-planning.index');
         }
 
+        if (isset($notification->data['rejected_by'])) {
+            return route('grant-detail.show', $notification->data['grant_id']);
+        }
+
         if (isset($notification->data['grant_id'])) {
             return route('grant-review.index');
         }
