@@ -2,9 +2,9 @@
 
 ## Overview
 
-The agreement journey covers the full lifecycle of formalizing a grant agreement (perjanjian), from Satker entering basic reception data through multi-level review to Mabes issuing an official agreement number. This journey applies to both grant types:
-- **Planned grants** (`GrantType::Planned`) — enter Agreement after Planning is completed
-- **Direct grants** (`GrantType::Direct`) — start directly at Agreement, skipping Planning
+The agreement journey covers the full lifecycle of formalizing a grant agreement (perjanjian), from Satker entering basic reception data through multi-level review to Mabes issuing an official agreement number. This journey applies to both entry paths:
+- **From planning** (`GrantType::Direct`, `ada_usulan = true`) — enter Agreement after Planning is completed, same grant transitions
+- **Direct (no proposal)** (`GrantType::Direct`, `ada_usulan = false`) — start directly at Agreement, new grant created
 
 ## Actors
 
@@ -36,9 +36,10 @@ stateDiagram-v2
         FillingHarmonization --> direct_check
 
         direct_check --> FillingAdditionalMaterials: Direct grant\n(no proposal)
-        direct_check --> UploadingDraftAgreement: Planned grant\n(has proposal)
+        direct_check --> FillingOtherMaterials: Has proposal\n(skip additional)
 
-        FillingAdditionalMaterials --> UploadingDraftAgreement: Upload draft
+        FillingAdditionalMaterials --> FillingOtherMaterials: Other materials\n(optional)
+        FillingOtherMaterials --> UploadingDraftAgreement: Upload draft
         UploadingDraftAgreement --> AgreementSubmittedToPolda: Submit
     }
 
@@ -83,24 +84,26 @@ stateDiagram-v2
 
 ```mermaid
 flowchart LR
-    subgraph Planned["Planned Grant (Terencana)"]
+    subgraph Planned["From Planning (ada_usulan=true)"]
         direction TB
         P1[Planning Stage<br/>completed] --> P2[Reception Data<br/>+ proposal number]
         P2 --> P3[Donor info<br/>locked from proposal]
         P3 --> P4[Assessment]
         P4 --> P5[Harmonization]
-        P5 --> P6[Upload draft]
-        P6 --> P7[Submit]
+        P5 --> P6[Other Materials<br/>optional]
+        P6 --> P7[Upload draft]
+        P7 --> P8[Submit]
     end
 
-    subgraph Direct["Direct Grant (Langsung)"]
+    subgraph Direct["Direct Grant (ada_usulan=false)"]
         direction TB
         D1[Reception Data<br/>new entry] --> D2[Donor info<br/>new entry]
         D2 --> D3[Assessment]
         D3 --> D4[Harmonization]
         D4 --> D5[Additional Materials<br/>targets, benefits, etc.]
-        D5 --> D6[Upload draft]
-        D6 --> D7[Submit]
+        D5 --> D6[Other Materials<br/>optional]
+        D6 --> D7[Upload draft]
+        D7 --> D8[Submit]
     end
 
     style P3 fill:#e8f4fd,stroke:#1a7fba
@@ -116,13 +119,14 @@ flowchart LR
 | 3    | Satker | Create assessment document          | `CreatingAgreementAssessment`             | Always            |
 | 4    | Satker | Fill harmonization data             | `FillingHarmonization`                    | Always            |
 | 5    | Satker | Fill additional materials           | `FillingAdditionalMaterials`              | Direct grants only|
-| 6    | Satker | Upload draft agreement              | `UploadingDraftAgreement`                 | Always            |
-| 7    | Satker | Submit to Polda                     | `AgreementSubmittedToPolda`               | Always            |
-| 8    | Polda  | Begin review                        | `PoldaReviewingAgreement`                 | Always            |
-| 9    | Polda  | Assess all 4 aspects                | `PoldaVerified/Rejected/RequestedRevision`| Always            |
-| 10   | Mabes  | Begin review                        | `MabesReviewingAgreement`                 | Always            |
-| 11   | Mabes  | Assess all 4 aspects                | `MabesVerified/Rejected/RequestedRevision`| Always            |
-| 12   | System | Issue agreement number              | `AgreementNumberIssued`                   | Always            |
+| 6    | Satker | Fill other materials (optional)     | `FillingOtherMaterials`                   | Optional          |
+| 7    | Satker | Upload draft agreement              | `UploadingDraftAgreement`                 | Always            |
+| 8    | Satker | Submit to Polda                     | `AgreementSubmittedToPolda`               | Always            |
+| 9    | Polda  | Begin review                        | `PoldaReviewingAgreement`                 | Always            |
+| 10   | Polda  | Assess all 4 aspects                | `PoldaVerified/Rejected/RequestedRevision`| Always            |
+| 11   | Mabes  | Begin review                        | `MabesReviewingAgreement`                 | Always            |
+| 12   | Mabes  | Assess all 4 aspects                | `MabesVerified/Rejected/RequestedRevision`| Always            |
+| 13   | System | Issue agreement number              | `AgreementNumberIssued`                   | Always            |
 
 ## Step 1: Fill Basic Reception Data
 
@@ -225,16 +229,25 @@ For grants with no proposal (`ada_usulan = false`), Satker fills in supplementar
 - Status transitions to `GrantStatus::FillingAdditionalMaterials`
 - **Skipped for planned grants** — these sections are already copied from the proposal
 
-## Step 6: Upload Draft Agreement
+## Step 6: Fill Other Materials (Optional)
+
+Satker may add custom additional chapters with arbitrary titles. This step is entirely optional.
+
+### Business Rules
+- Custom chapters stored as `GrantInformation` + `GrantInformationContent` with `tahapan = Agreement`
+- Can be skipped — status `FillingOtherMaterials` created regardless
+- Status transitions to `GrantStatus::FillingOtherMaterials`
+
+## Step 7: Upload Draft Agreement
 
 Satker uploads the draft agreement document (PDF).
 
 ### Business Rules
-- File uploaded as attachment(s) with type `NASKAH_PERJANJIAN`
-- Uses polymorphic file storage (attachable to `Grant`)
+- File uploaded as attachment with type `FileType::DraftAgreement`
+- Attached to `GrantStatusHistory` via `HasFiles`
 - Status transitions to `GrantStatus::UploadingDraftAgreement`
 
-## Step 7: Submit to Polda
+## Step 8: Submit to Polda
 
 Satker submits the completed agreement for Polda review.
 
@@ -242,7 +255,7 @@ Satker submits the completed agreement for Polda review.
 - Status transitions to `GrantStatus::AgreementSubmittedToPolda`
 - No additional data required — all previous steps must be completed
 
-## Step 8–9: Polda Review
+## Step 9–10: Polda Review
 
 Polda reviews the agreement by assessing all 4 mandatory aspects. Same logic as Planning review.
 
@@ -259,7 +272,7 @@ Polda reviews the agreement by assessing all 4 mandatory aspects. Same logic as 
 | Any aspect `Rejected`                   | `PoldaRejectedAgreement` (terminal)         |
 | Any `Revision`, none `Rejected`         | `PoldaRequestedAgreementRevision` (→ Satker)|
 
-## Step 10–11: Mabes Review
+## Step 11–12: Mabes Review
 
 Mabes reviews the agreement after Polda verification. Same assessment logic.
 
@@ -276,7 +289,7 @@ Mabes reviews the agreement after Polda verification. Same assessment logic.
 | Any aspect `Rejected`                   | `MabesRejectedAgreement` (terminal)           |
 | Any `Revision`, none `Rejected`         | `MabesRequestedAgreementRevision` (→ Satker)  |
 
-## Step 12: Agreement Number Issued
+## Step 13: Agreement Number Issued
 
 When Mabes verifies, the system automatically issues an official agreement number.
 
@@ -371,19 +384,23 @@ sequenceDiagram
 11. Satker fills additional materials (targets, benefits, schedule, reporting, evaluation) — status `FillingAdditionalMaterials`
 12. Satker adds custom additional chapters with arbitrary titles
 
-### Happy Path — Step 6–7: Upload and Submit
-13. Satker uploads draft agreement PDF — status `UploadingDraftAgreement`
-14. Satker submits agreement to Polda — status `AgreementSubmittedToPolda`
+### Happy Path — Step 6: Other Materials (Optional)
+13. Satker skips other materials — status `FillingOtherMaterials`
+14. Satker adds custom chapters with arbitrary titles — status `FillingOtherMaterials`
+
+### Happy Path — Step 7–8: Upload and Submit
+15. Satker uploads draft agreement PDF — status `UploadingDraftAgreement`
+16. Satker submits agreement to Polda — status `AgreementSubmittedToPolda`
 
 ### Happy Path — Review Cycle
-15. Polda begins review — status `PoldaReviewingAgreement`
-16. Polda fulfills an aspect — creates assessment result with `Fulfilled`
-17. Polda rejects an aspect — creates assessment result with `Rejected` and reason
-18. Polda requests revision — creates assessment result with `Revision` and reason
-19. All 4 Polda aspects fulfilled → `PoldaVerifiedAgreement`
-20. Mabes begins review — status `MabesReviewingAgreement`
-21. All 4 Mabes aspects fulfilled → `MabesVerifiedAgreement`, then auto `AgreementNumberIssued`
-22. Agreement number record created with `GrantStage::Agreement`
+17. Polda begins review — status `PoldaReviewingAgreement`
+18. Polda fulfills an aspect — creates assessment result with `Fulfilled`
+19. Polda rejects an aspect — creates assessment result with `Rejected` and reason
+20. Polda requests revision — creates assessment result with `Revision` and reason
+21. All 4 Polda aspects fulfilled → `PoldaVerifiedAgreement`
+22. Mabes begins review — status `MabesReviewingAgreement`
+23. All 4 Mabes aspects fulfilled → `MabesVerifiedAgreement`, then auto `AgreementNumberIssued`
+24. Agreement number record created with `GrantStage::Agreement`
 
 ### Decision Logic
 1. Polda: all 4 aspects fulfilled → `PoldaVerifiedAgreement`
@@ -404,10 +421,13 @@ sequenceDiagram
 1. After reception data → redirected to donor info form
 2. After donor info → redirected to assessment form
 3. After assessment → redirected to harmonization form
-4. After harmonization (direct grants only) → redirected to additional materials form
-5. After additional materials → redirected to draft upload form
+4. After harmonization (direct) → redirected to additional materials form
+5. After harmonization (has proposal) → redirected to other materials form (skip Step 5)
+6. After additional materials → redirected to other materials form
+7. After other materials → redirected to draft upload form
 
 ### Conditional Logic
-1. Additional materials step is skipped for planned grants (ada_usulan = true)
-2. Donor data is read-only when grant has a proposal
-3. Purpose section auto-generated for direct grants after donor entry
+1. Additional materials step (Step 5) is skipped for planned grants (ada_usulan = true)
+2. Other materials step (Step 6) is optional — can be skipped
+3. Donor data is read-only when grant has a proposal
+4. Purpose section auto-generated for direct grants after donor entry
