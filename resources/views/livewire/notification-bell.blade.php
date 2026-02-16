@@ -34,13 +34,27 @@
                             @if (isset($notification->data['planning_number']))
                                 {{ __('component.notification.planning-number-issued') }}
                                 <span class="font-medium">{{ $notification->data['grant_name'] ?? '' }}</span>
-                                &mdash; {{ $notification->data['planning_number'] }}
                             @else
                                 {{ $notification->data['unit_name'] ?? '' }}
                                 {{ __('component.notification.submitted-planning') }}
                                 <span class="font-medium">{{ $notification->data['grant_name'] ?? '' }}</span>
                             @endif
                         </span>
+                        @if (isset($notification->data['planning_number']))
+                            <span
+                                class="inline-flex items-center gap-1 font-mono text-xs text-zinc-600 dark:text-zinc-400 cursor-pointer hover:text-zinc-900 dark:hover:text-zinc-200"
+                                x-data="{ copied: false }"
+                                x-on:click.stop.prevent="
+                                    navigator.clipboard.writeText('{{ $notification->data['planning_number'] }}');
+                                    copied = true;
+                                    setTimeout(() => copied = false, 1500);
+                                "
+                            >
+                                {{ $notification->data['planning_number'] }}
+                                <template x-if="!copied"><x-flux::icon.clipboard-document class="size-3.5" /></template>
+                                <template x-if="copied"><x-flux::icon.check class="size-3.5 text-green-500" /></template>
+                            </span>
+                        @endif
                         <flux:text size="xs">{{ $notification->created_at->diffForHumans() }}</flux:text>
                     </div>
                 </flux:menu.item>

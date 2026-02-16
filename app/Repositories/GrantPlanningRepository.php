@@ -53,7 +53,7 @@ class GrantPlanningRepository
     {
         return $unit->grants()
             ->where('tahapan', GrantStage::Planning)
-            ->with(['donor', 'statusHistory'])
+            ->with(['donor', 'statusHistory', 'numberings'])
             ->orderByDesc('created_at')
             ->get();
     }

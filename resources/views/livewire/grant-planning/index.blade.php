@@ -31,9 +31,27 @@
                         @endif
                     </flux:table.cell>
                     <flux:table.cell>
-                        <flux:badge size="sm">
-                            {{ $grant->statusHistory->last()?->status_sesudah?->label() ?? '-' }}
-                        </flux:badge>
+                        <div class="flex flex-col gap-1">
+                            <flux:badge size="sm">
+                                {{ $grant->statusHistory->last()?->status_sesudah?->label() ?? '-' }}
+                            </flux:badge>
+                            @if ($grant->numberings->where('tahapan', \App\Enums\GrantStage::Planning)->first())
+                                @php $planningNumber = $grant->numberings->where('tahapan', \App\Enums\GrantStage::Planning)->first()->nomor; @endphp
+                                <div class="flex items-center gap-1">
+                                    <flux:text size="xs" class="font-mono">{{ $planningNumber }}</flux:text>
+                                    <flux:button
+                                        variant="subtle"
+                                        size="xs"
+                                        icon="clipboard-document"
+                                        x-on:click="
+                                            navigator.clipboard.writeText('{{ $planningNumber }}');
+                                            $el.querySelector('svg').classList.add('text-green-500');
+                                            setTimeout(() => $el.querySelector('svg').classList.remove('text-green-500'), 1500);
+                                        "
+                                    />
+                                </div>
+                            @endif
+                        </div>
                     </flux:table.cell>
                     <flux:table.cell align="end">
                         <div class="flex justify-end gap-2">
