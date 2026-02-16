@@ -223,7 +223,7 @@ describe('Grant Review — Per-Aspect Assessment', function () {
             ->first();
 
         Livewire::test(Review::class, ['grant' => $grant])
-            ->call('openResultModal', $assessment->id)
+            ->call('openResultModal', $assessment->id, $assessment->aspek->label())
             ->assertSet('showResultModal', true)
             ->set('result', AssessmentResult::Fulfilled->value)
             ->call('submitResult');
@@ -247,7 +247,7 @@ describe('Grant Review — Per-Aspect Assessment', function () {
             ->first();
 
         Livewire::test(Review::class, ['grant' => $grant])
-            ->call('openResultModal', $assessment->id)
+            ->call('openResultModal', $assessment->id, $assessment->aspek->label())
             ->set('result', AssessmentResult::Rejected->value)
             ->set('remarks', 'Tidak memenuhi standar')
             ->call('submitResult');
@@ -271,7 +271,7 @@ describe('Grant Review — Per-Aspect Assessment', function () {
             ->first();
 
         Livewire::test(Review::class, ['grant' => $grant])
-            ->call('openResultModal', $assessment->id)
+            ->call('openResultModal', $assessment->id, $assessment->aspek->label())
             ->set('result', AssessmentResult::Revision->value)
             ->set('remarks', 'Perlu perbaikan data anggaran')
             ->call('submitResult');

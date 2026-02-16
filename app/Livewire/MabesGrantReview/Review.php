@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Livewire\GrantReview;
+namespace App\Livewire\MabesGrantReview;
 
 use App\Enums\AssessmentResult;
 use App\Models\Grant;
-use App\Repositories\GrantReviewRepository;
+use App\Repositories\MabesGrantReviewRepository;
 use Flux\Flux;
 use Livewire\Component;
 
@@ -24,16 +24,9 @@ class Review extends Component
 
     public function mount(): void
     {
-        $repository = app(GrantReviewRepository::class);
+        $repository = app(MabesGrantReviewRepository::class);
 
-        $unit = auth()->user()->unit;
-        $childUnitUserIds = $unit->children()->pluck('id_user');
-
-        abort_unless(
-            $childUnitUserIds->contains($this->grant->id_satuan_kerja)
-            && $repository->isUnderReview($this->grant),
-            403
-        );
+        abort_unless($repository->isUnderReview($this->grant), 403);
     }
 
     public function openResultModal(int $assessmentId, string $aspectLabel): void
@@ -46,7 +39,7 @@ class Review extends Component
         $this->showResultModal = true;
     }
 
-    public function submitResult(GrantReviewRepository $repository): void
+    public function submitResult(MabesGrantReviewRepository $repository): void
     {
         $this->validate([
             'result' => ['required', 'in:'.implode(',', array_column(AssessmentResult::cases(), 'value'))],
@@ -69,21 +62,23 @@ class Review extends Component
         $this->result = null;
         $this->remarks = null;
 
-        Flux::toast(__('page.grant-review.result-saved'));
+        Flux::toast(__('page.mabes-grant-review.result-saved'));
 
         if (! $repository->isUnderReview($this->grant)) {
-            $this->redirect(route('grant-review.index'), navigate: true);
+            $this->redirect(route('mabes-grant-review.index'), navigate: true);
         }
     }
 
-    public function render(GrantReviewRepository $repository)
+    public function render(MabesGrantReviewRepository $repository)
     {
         $assessments = $repository->getReviewAssessments($this->grant);
         $satkerAssessments = $repository->getSatkerAssessments($this->grant);
+        $poldaAssessments = $repository->getPoldaAssessments($this->grant);
 
-        return view('livewire.grant-review.review', [
+        return view('livewire.mabes-grant-review.review', [
             'assessments' => $assessments,
             'satkerAssessments' => $satkerAssessments,
+            'poldaAssessments' => $poldaAssessments,
         ]);
     }
 }

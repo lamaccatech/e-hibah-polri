@@ -31,6 +31,9 @@
                 @endif
 
                 @if (auth()->user()->unit?->level_unit === \App\Enums\UnitLevel::Mabes)
+                    <flux:navbar.item icon="document-text" :href="route('mabes-grant-review.index')" :current="request()->routeIs('mabes-grant-review.*')" wire:navigate>
+                        {{ __('component.navbar.nav-mabes-grant-review') }}
+                    </flux:navbar.item>
                     <flux:navbar.item icon="users" :href="route('user.index')" :current="request()->routeIs('user.*')" wire:navigate>
                         {{ __('component.navbar.nav-user-management') }}
                     </flux:navbar.item>
@@ -111,6 +114,9 @@
                 @endif
 
                 @if (auth()->user()->unit?->level_unit === \App\Enums\UnitLevel::Mabes)
+                    <flux:sidebar.item icon="document-text" :href="route('mabes-grant-review.index')" :current="request()->routeIs('mabes-grant-review.*')" wire:navigate>
+                        {{ __('component.navbar.nav-mabes-grant-review') }}
+                    </flux:sidebar.item>
                     <flux:sidebar.item icon="users" :href="route('user.index')" :current="request()->routeIs('user.*')" wire:navigate>
                         {{ __('component.navbar.nav-user-management') }}
                     </flux:sidebar.item>

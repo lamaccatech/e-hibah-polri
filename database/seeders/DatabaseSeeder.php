@@ -16,6 +16,10 @@ class DatabaseSeeder extends Seeder
      *  2. With demo data: php artisan migrate:fresh --seed --seeder=DemoScenarioSeeder
      *     → Includes a fully submitted grant plan from POLRESTA BANDA ACEH.
      *     → Login as POLDA ACEH (poldaaceh@polri.go.id / password) to review it.
+     *
+     *  3. Mabes review: php artisan migrate:fresh --seed --seeder=DemoMabesScenarioSeeder
+     *     → Includes a Polda-verified grant plan ready for Mabes review.
+     *     → Login as Mabes (mabes@polri.go.id / password) to review it.
      */
     public function run(): void
     {

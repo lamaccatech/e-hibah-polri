@@ -69,6 +69,10 @@ enum GrantStatus: string
             self::PoldaVerifiedPlanning => __('page.grant-review.badge-verified'),
             self::PoldaRejectedPlanning => __('page.grant-review.badge-rejected'),
             self::PoldaRequestedPlanningRevision => __('page.grant-review.badge-revision-requested'),
+            self::MabesReviewingPlanning => __('page.mabes-grant-review.badge-reviewing'),
+            self::MabesVerifiedPlanning => __('page.mabes-grant-review.badge-verified'),
+            self::MabesRejectedPlanning => __('page.mabes-grant-review.badge-rejected'),
+            self::MabesRequestedPlanningRevision => __('page.mabes-grant-review.badge-revision-requested'),
             default => $this->value,
         };
     }
@@ -94,6 +98,13 @@ enum GrantStatus: string
         return in_array($this, [
             self::PlanningSubmittedToPolda,
             self::PlanningRevisionResubmitted,
+        ]);
+    }
+
+    public function canStartMabesReview(): bool
+    {
+        return in_array($this, [
+            self::PoldaVerifiedPlanning,
         ]);
     }
 }
