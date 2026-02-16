@@ -15,3 +15,4 @@ require __DIR__.'/grant-planning.php';
 require __DIR__.'/grant-review.php';
 require __DIR__.'/mabes-grant-review.php';
 require __DIR__.'/grant-detail.php';
+require __DIR__.'/grant-document.php';

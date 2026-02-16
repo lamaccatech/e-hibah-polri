@@ -1,7 +1,23 @@
 <div>
-    <div class="mb-6">
-        <flux:heading size="xl">{{ __('page.grant-detail.title') }}</flux:heading>
-        <flux:text class="mt-1">{{ $grant->nama_hibah }}</flux:text>
+    <div class="mb-6 flex items-start justify-between">
+        <div>
+            <flux:heading size="xl">{{ __('page.grant-detail.title') }}</flux:heading>
+            <flux:text class="mt-1">{{ $grant->nama_hibah }}</flux:text>
+        </div>
+        @if (auth()->user()->unit->level_unit === \App\Enums\UnitLevel::SatuanKerja)
+            <flux:dropdown>
+                <flux:button variant="primary" size="sm" icon="document-text" icon-trailing="chevron-down">
+                    {{ __('page.grant-detail.generate-document') }}
+                </flux:button>
+                <flux:menu>
+                    @foreach (\App\Enums\GrantGeneratedDocumentType::cases() as $docType)
+                        <flux:menu.item :href="route('grant-document.generate', [$grant, $docType->slug()])" wire:navigate>
+                            {{ $docType->label() }}
+                        </flux:menu.item>
+                    @endforeach
+                </flux:menu>
+            </flux:dropdown>
+        @endif
     </div>
 
     <flux:navbar class="mb-6">
@@ -26,6 +42,13 @@
         >
             {{ __('page.grant-detail.tab-assessment-info') }}
         </flux:navbar.item>
+        <flux:navbar.item
+            wire:click.prevent="switchTab('document-history')"
+            :current="$activeTab === 'document-history'"
+            class="cursor-pointer"
+        >
+            {{ __('page.grant-detail.tab-document-history') }}
+        </flux:navbar.item>
     </flux:navbar>
 
     @if ($activeTab === 'grant-info')
@@ -34,5 +57,7 @@
         @include('livewire.grant-detail._tab-proposal-info')
     @elseif ($activeTab === 'assessment-info')
         @include('livewire.grant-detail._tab-assessment-info')
+    @elseif ($activeTab === 'document-history')
+        @include('livewire.grant-detail._tab-document-history')
     @endif
 </div>

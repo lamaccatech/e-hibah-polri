@@ -4,6 +4,7 @@ namespace App\Livewire\GrantDetail;
 
 use App\Models\Grant;
 use App\Repositories\GrantDetailRepository;
+use App\Repositories\GrantDocumentRepository;
 use Livewire\Component;
 
 class Show extends Component
@@ -24,7 +25,7 @@ class Show extends Component
         $this->activeTab = $tab;
     }
 
-    public function render(GrantDetailRepository $repository)
+    public function render(GrantDetailRepository $repository, GrantDocumentRepository $documentRepository)
     {
         $data = ['grant' => $this->grant];
 
@@ -38,6 +39,8 @@ class Show extends Component
             $data['satkerAssessments'] = $repository->getSatkerAssessments($this->grant);
             $data['poldaResults'] = $repository->getPoldaAssessmentResults($this->grant);
             $data['mabesResults'] = $repository->getMabesAssessmentResults($this->grant);
+        } elseif ($this->activeTab === 'document-history') {
+            $data['documentHistory'] = $documentRepository->getDocumentHistory($this->grant);
         }
 
         return view('livewire.grant-detail.show', $data);

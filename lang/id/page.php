@@ -399,6 +399,21 @@ return [
         'satker-assessment' => 'Kajian Satuan Kerja',
         'polda-result' => 'Hasil Kajian Satuan Induk',
         'mabes-result' => 'Hasil Kajian Mabes',
+        'generate-document' => 'Cetak Dokumen',
+        'tab-document-history' => 'Dokumen',
+        'document-date-label' => 'Tanggal Dokumen',
+        'generated-at' => 'Dicetak pada',
+        'no-document-generated' => 'Belum pernah dicetak.',
+    ],
+
+    // Grant Document Generation
+    'grant-document' => [
+        'label-date' => 'Tanggal Dokumen',
+        'show-preview' => 'Lihat Pratinjau',
+        'hide-preview' => 'Sembunyikan Pratinjau',
+        'download-pdf' => 'Unduh PDF',
+        'no-chief-title' => 'Kepala Satker Tidak Tersedia',
+        'no-chief-description' => 'Tidak ada kepala satker yang sedang menjabat. Silakan tambahkan kepala satker terlebih dahulu untuk dapat mencetak dokumen.',
     ],
 
 ];
