@@ -39,6 +39,7 @@ return [
         'mark-all-read' => 'Tandai semua dibaca',
         'empty' => 'Tidak ada notifikasi.',
         'submitted-planning' => 'mengajukan usulan hibah',
+        'planning-number-issued' => 'Nomor usulan hibah terbit untuk',
     ],
 
 ];

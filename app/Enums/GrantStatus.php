@@ -73,6 +73,7 @@ enum GrantStatus: string
             self::MabesVerifiedPlanning => __('page.mabes-grant-review.badge-verified'),
             self::MabesRejectedPlanning => __('page.mabes-grant-review.badge-rejected'),
             self::MabesRequestedPlanningRevision => __('page.mabes-grant-review.badge-revision-requested'),
+            self::PlanningNumberIssued => __('page.mabes-grant-review.badge-number-issued'),
             default => $this->value,
         };
     }

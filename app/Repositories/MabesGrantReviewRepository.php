@@ -10,6 +10,7 @@ use App\Models\Grant;
 use App\Models\GrantAssessment;
 use App\Models\GrantAssessmentResult;
 use App\Models\OrgUnit;
+use App\Notifications\PlanningNumberIssuedNotification;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 
@@ -25,7 +26,8 @@ class MabesGrantReviewRepository
                     ->orWhere('status_sesudah', GrantStatus::MabesReviewingPlanning)
                     ->orWhere('status_sesudah', GrantStatus::MabesVerifiedPlanning)
                     ->orWhere('status_sesudah', GrantStatus::MabesRejectedPlanning)
-                    ->orWhere('status_sesudah', GrantStatus::MabesRequestedPlanningRevision);
+                    ->orWhere('status_sesudah', GrantStatus::MabesRequestedPlanningRevision)
+                    ->orWhere('status_sesudah', GrantStatus::PlanningNumberIssued);
             })
             ->with(['donor', 'statusHistory', 'orgUnit.parent'])
             ->orderByDesc('created_at')
@@ -200,5 +202,24 @@ class MabesGrantReviewRepository
             'status_sesudah' => $newStatus->value,
             'keterangan' => $keterangan,
         ]);
+
+        if ($newStatus === GrantStatus::MabesVerifiedPlanning) {
+            $this->issuePlanningNumber($grant);
+        }
+    }
+
+    private function issuePlanningNumber(Grant $grant): void
+    {
+        $numberingRepository = app(GrantNumberingRepository::class);
+        $numbering = $numberingRepository->issuePlanningNumber($grant);
+
+        $grant->statusHistory()->create([
+            'status_sebelum' => GrantStatus::MabesVerifiedPlanning->value,
+            'status_sesudah' => GrantStatus::PlanningNumberIssued->value,
+            'keterangan' => "Nomor usulan hibah terbit untuk kegiatan {$grant->nama_hibah}",
+        ]);
+
+        $satkerUser = $grant->orgUnit->user;
+        $satkerUser->notify(new PlanningNumberIssuedNotification($grant, $numbering->nomor));
     }
 }

@@ -279,7 +279,7 @@ describe('Mabes Grant Review — Per-Aspect Assessment', function () {
 });
 
 describe('Mabes Grant Review — Auto-Status Resolution', function () {
-    it('auto-approves grant when all aspects fulfilled', function () {
+    it('auto-approves grant and issues planning number when all aspects fulfilled', function () {
         $grant = createPoldaVerifiedGrant();
         startMabesReviewForGrant($grant);
 
@@ -291,8 +291,50 @@ describe('Mabes Grant Review — Auto-Status Resolution', function () {
             $repository->submitAspectResult($assessment, $mabesUnit, AssessmentResult::Fulfilled, null);
         }
 
+        // Verify MabesVerifiedPlanning status exists
+        $this->assertDatabaseHas('riwayat_perubahan_status_hibah', [
+            'id_hibah' => $grant->id,
+            'status_sebelum' => GrantStatus::MabesReviewingPlanning->value,
+            'status_sesudah' => GrantStatus::MabesVerifiedPlanning->value,
+        ]);
+
+        // Verify PlanningNumberIssued status
+        $this->assertDatabaseHas('riwayat_perubahan_status_hibah', [
+            'id_hibah' => $grant->id,
+            'status_sebelum' => GrantStatus::MabesVerifiedPlanning->value,
+            'status_sesudah' => GrantStatus::PlanningNumberIssued->value,
+        ]);
+
+        // Verify numbering record
+        $this->assertDatabaseHas('penomoran_hibah', [
+            'id_hibah' => $grant->id,
+            'tahapan' => \App\Enums\GrantStage::Planning->value,
+        ]);
+
         $latestStatus = $grant->statusHistory()->latest('id')->first();
-        expect($latestStatus->status_sesudah)->toBe(GrantStatus::MabesVerifiedPlanning);
+        expect($latestStatus->status_sesudah)->toBe(GrantStatus::PlanningNumberIssued);
+    });
+
+    it('notifies Satker with planning number when all aspects fulfilled', function () {
+        $grant = createPoldaVerifiedGrant();
+        startMabesReviewForGrant($grant);
+
+        $mabesUnit = OrgUnit::where('level_unit', \App\Enums\UnitLevel::Mabes)->first();
+        $repository = app(MabesGrantReviewRepository::class);
+        $assessments = $repository->getReviewAssessments($grant);
+
+        foreach ($assessments as $assessment) {
+            $repository->submitAspectResult($assessment, $mabesUnit, AssessmentResult::Fulfilled, null);
+        }
+
+        $satkerUser = $grant->orgUnit->user;
+        $notification = $satkerUser->notifications()->latest()->first();
+
+        expect($notification)->not->toBeNull();
+        expect($notification->data['grant_id'])->toBe($grant->id);
+        expect($notification->data['grant_name'])->toBe($grant->nama_hibah);
+        expect($notification->data['planning_number'])->not->toBeNull();
+        expect($notification->data['planning_number'])->toContain('SUHL');
     });
 
     it('auto-rejects grant when any aspect rejected', function () {

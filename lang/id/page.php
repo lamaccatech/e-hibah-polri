@@ -346,6 +346,7 @@ return [
         'badge-verified' => 'Disetujui Mabes',
         'badge-rejected' => 'Ditolak Mabes',
         'badge-revision-requested' => 'Perlu Revisi Mabes',
+        'badge-number-issued' => 'Nomor Terbit',
         'start-review-button' => 'Mulai Kajian',
         'start-review-confirm-title' => 'Mulai Kajian Usulan Hibah',
         'start-review-confirm-description' => 'Yakin ingin memulai kajian untuk usulan hibah ini?',

@@ -31,9 +31,15 @@
                 >
                     <div class="flex flex-col gap-0.5">
                         <span class="text-sm">
-                            {{ $notification->data['unit_name'] ?? '' }}
-                            {{ __('component.notification.submitted-planning') }}
-                            <span class="font-medium">{{ $notification->data['grant_name'] ?? '' }}</span>
+                            @if (isset($notification->data['planning_number']))
+                                {{ __('component.notification.planning-number-issued') }}
+                                <span class="font-medium">{{ $notification->data['grant_name'] ?? '' }}</span>
+                                &mdash; {{ $notification->data['planning_number'] }}
+                            @else
+                                {{ $notification->data['unit_name'] ?? '' }}
+                                {{ __('component.notification.submitted-planning') }}
+                                <span class="font-medium">{{ $notification->data['grant_name'] ?? '' }}</span>
+                            @endif
                         </span>
                         <flux:text size="xs">{{ $notification->created_at->diffForHumans() }}</flux:text>
                     </div>

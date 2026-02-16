@@ -21,6 +21,10 @@ class NotificationBell extends Component
 
     public function getUrl(DatabaseNotification $notification): ?string
     {
+        if (isset($notification->data['planning_number'])) {
+            return route('grant-planning.index');
+        }
+
         if (isset($notification->data['grant_id'])) {
             return route('grant-review.index');
         }

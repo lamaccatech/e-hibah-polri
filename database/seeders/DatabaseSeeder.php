@@ -13,7 +13,7 @@ class DatabaseSeeder extends Seeder
      *  1. Default: php artisan migrate:fresh --seed
      *     → Clean slate. Login as any Satker to create a grant plan from scratch.
      *
-     *  2. With demo data: php artisan migrate:fresh --seed --seeder=DemoScenarioSeeder
+     *  2. Polda review: php artisan migrate:fresh --seed --seeder=DemoPoldaScenarioSeeder
      *     → Includes a fully submitted grant plan from POLRESTA BANDA ACEH.
      *     → Login as POLDA ACEH (poldaaceh@polri.go.id / password) to review it.
      *
