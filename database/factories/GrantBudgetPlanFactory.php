@@ -17,6 +17,7 @@ class GrantBudgetPlanFactory extends Factory
     public function definition(): array
     {
         return [
+            'nomor_urut' => fake()->numberBetween(1, 100),
             'uraian' => fake()->sentence(3),
             'nilai' => fake()->randomFloat(2, 100000, 10000000),
         ];
