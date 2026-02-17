@@ -11,6 +11,7 @@ use App\Models\Donor;
 use App\Models\Grant;
 use App\Models\GrantNumbering;
 use App\Models\OrgUnit;
+use App\Notifications\AgreementSubmittedNotification;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
@@ -515,6 +516,62 @@ class GrantAgreementRepository
 
             $statusHistory->attachFile($draftFile, FileType::DraftAgreement);
         });
+    }
+
+    public function findForUnit(int $grantId, OrgUnit $unit): Grant
+    {
+        return $unit->grants()
+            ->where('tahapan', GrantStage::Agreement)
+            ->with('orgUnit.parent.user')
+            ->findOrFail($grantId);
+    }
+
+    public function canSubmit(Grant $grant): bool
+    {
+        $latestStatus = $this->getLatestStatus($grant);
+
+        if ($latestStatus === null || ! $latestStatus->canSubmitForAgreement()) {
+            return false;
+        }
+
+        $hasDonor = $grant->id_pemberi_hibah !== null;
+
+        $hasAssessment = $grant->statusHistory()
+            ->whereHas('assessments', fn ($q) => $q->where('tahapan', GrantStage::Agreement))
+            ->exists();
+
+        $hasDraft = $grant->statusHistory()
+            ->whereHas('files', fn ($q) => $q->where('file_type', FileType::DraftAgreement))
+            ->exists();
+
+        return $hasDonor && $hasAssessment && $hasDraft;
+    }
+
+    public function submitToPolda(Grant $grant): void
+    {
+        $currentStatus = $this->getLatestStatus($grant);
+
+        $isResubmission = in_array($currentStatus, [
+            GrantStatus::PoldaRequestedAgreementRevision,
+            GrantStatus::MabesRequestedAgreementRevision,
+            GrantStatus::RevisingAgreement,
+        ]);
+
+        $newStatus = $isResubmission
+            ? GrantStatus::AgreementRevisionResubmitted
+            : GrantStatus::AgreementSubmittedToPolda;
+
+        $grant->statusHistory()->create([
+            'status_sebelum' => $currentStatus?->value,
+            'status_sesudah' => $newStatus->value,
+            'keterangan' => "{$grant->orgUnit->nama_unit} mengajukan perjanjian hibah untuk kegiatan {$grant->nama_hibah}",
+        ]);
+
+        $poldaUser = $grant->orgUnit->parent?->user;
+
+        if ($poldaUser) {
+            $poldaUser->notify(new AgreementSubmittedNotification($grant));
+        }
     }
 
     public function isEditable(Grant $grant): bool

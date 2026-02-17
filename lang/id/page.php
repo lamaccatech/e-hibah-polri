@@ -425,6 +425,13 @@ return [
         'badge-filling-additional' => 'Materi Tambahan',
         'badge-filling-other' => 'Materi Lainnya',
         'badge-uploading-draft' => 'Draft Perjanjian',
+        'badge-submitted' => 'Diajukan',
+        'badge-revising' => 'Revisi',
+        'badge-revision-resubmitted' => 'Revisi Diajukan',
+        'submit-button' => 'Ajukan ke Polda',
+        'submit-incomplete' => 'Lengkapi semua langkah sebelum mengajukan.',
+        'submit-confirm-title' => 'Ajukan Perjanjian Hibah',
+        'submit-confirm-description' => 'Yakin ingin mengajukan perjanjian hibah ini ke Polda?',
     ],
 
     // Grant Agreement — Step 1: Dasar Penerimaan

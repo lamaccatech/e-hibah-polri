@@ -81,6 +81,9 @@ enum GrantStatus: string
             self::FillingAdditionalMaterials => __('page.grant-agreement.badge-filling-additional'),
             self::FillingOtherMaterials => __('page.grant-agreement.badge-filling-other'),
             self::UploadingDraftAgreement => __('page.grant-agreement.badge-uploading-draft'),
+            self::AgreementSubmittedToPolda => __('page.grant-agreement.badge-submitted'),
+            self::RevisingAgreement => __('page.grant-agreement.badge-revising'),
+            self::AgreementRevisionResubmitted => __('page.grant-agreement.badge-revision-resubmitted'),
             default => $this->value,
         };
     }
@@ -90,6 +93,8 @@ enum GrantStatus: string
         return in_array($this, [
             self::PoldaRejectedPlanning,
             self::MabesRejectedPlanning,
+            self::PoldaRejectedAgreement,
+            self::MabesRejectedAgreement,
         ]);
     }
 
@@ -98,6 +103,8 @@ enum GrantStatus: string
         return in_array($this, [
             self::PoldaRequestedPlanningRevision,
             self::MabesRequestedPlanningRevision,
+            self::PoldaRequestedAgreementRevision,
+            self::MabesRequestedAgreementRevision,
         ]);
     }
 
@@ -141,6 +148,11 @@ enum GrantStatus: string
             self::PoldaRequestedAgreementRevision,
             self::MabesRequestedAgreementRevision,
         ]);
+    }
+
+    public function canSubmitForAgreement(): bool
+    {
+        return $this->isEditableBySatkerAgreement();
     }
 
     public function canStartMabesReview(): bool

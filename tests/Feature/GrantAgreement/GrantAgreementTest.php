@@ -23,6 +23,7 @@ use App\Models\OrgUnit;
 use App\Models\User;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
 
@@ -1078,5 +1079,185 @@ describe('Step 7: Draft Naskah Perjanjian', function () {
             ->set('draftFile', UploadedFile::fake()->create('draft.docx', 1000, 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'))
             ->call('save')
             ->assertHasErrors(['draftFile']);
+    });
+});
+
+// ============================================================
+// Submit to Polda
+// ============================================================
+
+function createFullAgreementGrant(User $user): Grant
+{
+    $donor = Donor::factory()->create();
+    $grant = $user->unit->grants()->create(
+        Grant::factory()->raw([
+            'jenis_hibah' => GrantType::Direct->value,
+            'tahapan' => GrantStage::Agreement->value,
+            'ada_usulan' => false,
+            'id_pemberi_hibah' => $donor->id,
+        ])
+    );
+
+    // Assessment status history with assessments
+    $assessmentHistory = $grant->statusHistory()->create([
+        'status_sesudah' => GrantStatus::CreatingAgreementAssessment->value,
+        'keterangan' => 'Assessment created',
+    ]);
+
+    foreach (AssessmentAspect::cases() as $aspect) {
+        $assessment = $assessmentHistory->assessments()->create([
+            'judul' => $aspect->label(),
+            'aspek' => $aspect->value,
+            'tahapan' => GrantStage::Agreement->value,
+        ]);
+
+        $assessment->contents()->create([
+            'subjudul' => '',
+            'isi' => '<p>Content</p>',
+            'nomor_urut' => 1,
+        ]);
+    }
+
+    // Draft agreement status history with file
+    $draftHistory = $grant->statusHistory()->create([
+        'status_sesudah' => GrantStatus::UploadingDraftAgreement->value,
+        'keterangan' => 'Draft uploaded',
+    ]);
+
+    $draftHistory->files()->create([
+        'file_type' => FileType::DraftAgreement->value,
+        'name' => 'draft.pdf',
+        'path' => 'drafts/draft.pdf',
+        'url' => '/drafts/draft.pdf',
+        'mime_type' => 'application/pdf',
+        'size_in_bytes' => 1024,
+    ]);
+
+    return $grant;
+}
+
+function createSubmittedAgreementGrant(User $user): Grant
+{
+    $grant = createFullAgreementGrant($user);
+
+    $grant->statusHistory()->create([
+        'status_sebelum' => GrantStatus::UploadingDraftAgreement->value,
+        'status_sesudah' => GrantStatus::AgreementSubmittedToPolda->value,
+        'keterangan' => 'Submitted to Polda',
+    ]);
+
+    return $grant;
+}
+
+describe('Submit Agreement to Polda', function () {
+    it('allows Satker to submit a completed agreement', function () {
+        $user = createSatkerUserForAgreementTest();
+        $grant = createFullAgreementGrant($user);
+
+        $this->actingAs($user);
+
+        Livewire::test(Index::class)
+            ->call('confirmSubmit', $grant->id)
+            ->assertSet('showSubmitModal', true)
+            ->assertSet('grantToSubmit', $grant->id)
+            ->call('submit')
+            ->assertHasNoErrors();
+
+        expect($grant->statusHistory()->latest('id')->first()->status_sesudah)
+            ->toBe(GrantStatus::AgreementSubmittedToPolda);
+    });
+
+    it('prevents submission when steps are incomplete', function () {
+        $user = createSatkerUserForAgreementTest();
+        $grant = createAgreementGrant($user);
+
+        $this->actingAs($user);
+
+        Livewire::test(Index::class)
+            ->call('confirmSubmit', $grant->id)
+            ->call('submit')
+            ->assertHasErrors('submit');
+    });
+
+    it('hides submit button for incomplete grants', function () {
+        $user = createSatkerUserForAgreementTest();
+        createAgreementGrant($user);
+
+        $this->actingAs($user);
+
+        Livewire::test(Index::class)
+            ->assertDontSeeText(__('page.grant-agreement.submit-button'));
+    });
+
+    it('shows submit button for completed grants', function () {
+        $user = createSatkerUserForAgreementTest();
+        createFullAgreementGrant($user);
+
+        $this->actingAs($user);
+
+        Livewire::test(Index::class)
+            ->assertSeeText(__('page.grant-agreement.submit-button'));
+    });
+
+    it('prevents double submission', function () {
+        $user = createSatkerUserForAgreementTest();
+        $grant = createFullAgreementGrant($user);
+
+        $this->actingAs($user);
+
+        Livewire::test(Index::class)
+            ->call('confirmSubmit', $grant->id)
+            ->call('submit')
+            ->assertHasNoErrors()
+            ->call('confirmSubmit', $grant->id)
+            ->call('submit')
+            ->assertHasErrors('submit');
+    });
+
+    it('hides submit button for already-submitted grants', function () {
+        $user = createSatkerUserForAgreementTest();
+        createSubmittedAgreementGrant($user);
+
+        $this->actingAs($user);
+
+        Livewire::test(Index::class)
+            ->assertDontSeeText(__('page.grant-agreement.submit-button'));
+    });
+
+    it('hides edit button for submitted grants', function () {
+        $user = createSatkerUserForAgreementTest();
+        createSubmittedAgreementGrant($user);
+
+        $this->actingAs($user);
+
+        Livewire::test(Index::class)
+            ->assertDontSeeHtml('icon="pencil-square"');
+    });
+
+    it('sends notification to Polda when Satker submits', function () {
+        Notification::fake();
+
+        $poldaUser = User::factory()->create();
+        $poldaUser->unit()->create(OrgUnit::factory()->satuanInduk()->raw());
+
+        $user = createSatkerUserForAgreementTest($poldaUser->id);
+        $grant = createFullAgreementGrant($user);
+
+        $this->actingAs($user);
+
+        Livewire::test(Index::class)
+            ->call('confirmSubmit', $grant->id)
+            ->call('submit')
+            ->assertHasNoErrors();
+
+        Notification::assertSentTo(
+            $poldaUser,
+            \App\Notifications\AgreementSubmittedNotification::class,
+            function ($notification) use ($grant) {
+                $data = $notification->toArray($notification);
+
+                return $data['grant_id'] === $grant->id;
+            }
+        );
     });
 });
