@@ -16,5 +16,6 @@ require __DIR__.'/grant-review.php';
 require __DIR__.'/mabes-grant-review.php';
 require __DIR__.'/grant-agreement.php';
 require __DIR__.'/agreement-review.php';
+require __DIR__.'/mabes-agreement-review.php';
 require __DIR__.'/grant-detail.php';
 require __DIR__.'/grant-document.php';

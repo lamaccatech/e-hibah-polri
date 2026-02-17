@@ -396,6 +396,38 @@ return [
         'polda-assessment-heading' => 'Kajian Satuan Induk',
     ],
 
+    // Mabes Agreement Review
+    'mabes-agreement-review' => [
+        'title' => 'Perjanjian Hibah Masuk',
+        'column-unit' => 'Satuan Kerja',
+        'column-polda' => 'Satuan Induk',
+        'column-name' => 'Nama Kegiatan',
+        'column-donor' => 'Pemberi Hibah',
+        'column-value' => 'Nilai',
+        'column-status' => 'Status',
+        'column-action' => 'Aksi',
+        'empty-state' => 'Belum ada perjanjian hibah masuk.',
+        'badge-reviewing' => 'Sedang Dikaji Mabes',
+        'badge-verified' => 'Disetujui Mabes',
+        'badge-rejected' => 'Ditolak Mabes',
+        'badge-revision-requested' => 'Perlu Revisi Mabes',
+        'badge-number-issued' => 'Nomor Terbit',
+        'start-review-button' => 'Mulai Kajian',
+        'start-review-confirm-title' => 'Mulai Kajian Perjanjian Hibah',
+        'start-review-confirm-description' => 'Yakin ingin memulai kajian untuk perjanjian hibah ini?',
+        'continue-review-button' => 'Lanjut Kajian',
+        'review-title' => 'Kajian Perjanjian Hibah',
+        'submit-result-button' => 'Berikan Penilaian',
+        'result-label' => 'Penilaian',
+        'result-remarks-label' => 'Keterangan',
+        'result-fulfilled' => 'Terpenuhi',
+        'result-revision' => 'Revisi',
+        'result-rejected' => 'Ditolak',
+        'result-saved' => 'Penilaian berhasil disimpan.',
+        'satker-assessment-heading' => 'Kajian Satuan Kerja',
+        'polda-assessment-heading' => 'Kajian Satuan Induk',
+    ],
+
     // Grant Detail
     'grant-detail' => [
         'title' => 'Detail Hibah',
