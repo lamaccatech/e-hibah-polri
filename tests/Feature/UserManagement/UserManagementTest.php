@@ -33,6 +33,47 @@ function createSatuanKerjaUser(?int $parentUserId = null): User
     return $user;
 }
 
+describe('User Management — Search', function () {
+    it('filters users by unit name', function () {
+        $mabes = createMabesUser();
+        $matchUser = createSatuanKerjaUser($mabes->id);
+        $matchUser->unit->update(['nama_unit' => 'Polres Jakarta Selatan']);
+
+        $otherUser = createSatuanKerjaUser($mabes->id);
+        $otherUser->unit->update(['nama_unit' => 'Polres Bandung']);
+
+        $this->actingAs($mabes);
+
+        Livewire::test(Index::class)
+            ->set('search', 'Jakarta')
+            ->assertSeeText('Polres Jakarta Selatan')
+            ->assertDontSeeText('Polres Bandung');
+    });
+
+    it('shows all users when search is empty', function () {
+        $mabes = createMabesUser();
+        $user1 = createSatuanKerjaUser($mabes->id);
+        $user2 = createSatuanKerjaUser($mabes->id);
+
+        $this->actingAs($mabes);
+
+        Livewire::test(Index::class)
+            ->assertSeeText($user1->unit->nama_unit)
+            ->assertSeeText($user2->unit->nama_unit);
+    });
+
+    it('shows empty state when search has no results', function () {
+        $mabes = createMabesUser();
+        createSatuanKerjaUser($mabes->id);
+
+        $this->actingAs($mabes);
+
+        Livewire::test(Index::class)
+            ->set('search', 'nonexistent unit xyz')
+            ->assertSeeText(__('page.user-management.empty-state'));
+    });
+});
+
 describe('User Management — Happy Path — Create', function () {
     it('allows Mabes to access the user list page', function () {
         $mabes = createMabesUser();

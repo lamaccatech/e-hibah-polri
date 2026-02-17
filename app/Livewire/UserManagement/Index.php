@@ -10,6 +10,8 @@ class Index extends Component
 {
     use WithPagination;
 
+    public string $search = '';
+
     public bool $showDeleteModal = false;
 
     public ?int $userToDelete = null;
@@ -49,10 +51,15 @@ class Index extends Component
         $this->redirect(route('user.index'), navigate: true);
     }
 
+    public function updatedSearch(): void
+    {
+        $this->resetPage();
+    }
+
     public function render(UserRepository $repository)
     {
         return view('livewire.user-management.index', [
-            'users' => $repository->paginateWithUnits(),
+            'users' => $repository->paginateWithUnits($this->search),
         ]);
     }
 }

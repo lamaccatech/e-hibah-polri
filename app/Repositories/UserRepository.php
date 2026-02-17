@@ -10,9 +10,15 @@ use Illuminate\Database\Eloquent\Collection;
 class UserRepository
 {
     /** @return LengthAwarePaginator<int, User> */
-    public function paginateWithUnits(int $perPage = 15): LengthAwarePaginator
+    public function paginateWithUnits(string $search = '', int $perPage = 15): LengthAwarePaginator
     {
-        return User::with('unit')->whereHas('unit')->paginate($perPage);
+        return User::with('unit')
+            ->whereHas('unit', function ($query) use ($search) {
+                if ($search !== '') {
+                    $query->where('nama_unit', 'ilike', "%{$search}%");
+                }
+            })
+            ->paginate($perPage);
     }
 
     public function findWithUnit(int $id): User

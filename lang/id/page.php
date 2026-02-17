@@ -135,6 +135,7 @@ return [
         'column-code' => 'Kode',
         'column-level' => 'Level',
         'column-action' => 'Aksi',
+        'search-placeholder' => 'Cari nama unit...',
         'empty-state' => 'Belum ada user.',
         'delete-modal-title' => 'Hapus User',
         'delete-modal-description' => 'Hapus user dan unit ini? Tindakan ini tidak dapat dibatalkan.',
