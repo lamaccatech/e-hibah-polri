@@ -39,11 +39,6 @@ Authenticated users can manage their account settings: profile information, pass
 - On save, updates user record
 - If email is changed, `email_verified_at` is set to null (re-verification required)
 - Unverified email shows a "resend verification link" option
-- Includes a nested `DeleteUserForm` component for account deletion (only visible when email is verified)
-
-### Delete Account
-- Requires password confirmation via modal
-- Deletes the user account
 
 ## Password Settings
 

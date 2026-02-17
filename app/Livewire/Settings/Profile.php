@@ -69,11 +69,4 @@ class Profile extends Component
     {
         return Auth::user() instanceof MustVerifyEmail && ! Auth::user()->hasVerifiedEmail();
     }
-
-    #[Computed]
-    public function showDeleteUser(): bool
-    {
-        return ! Auth::user() instanceof MustVerifyEmail
-            || (Auth::user() instanceof MustVerifyEmail && Auth::user()->hasVerifiedEmail());
-    }
 }

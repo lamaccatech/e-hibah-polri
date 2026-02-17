@@ -119,14 +119,6 @@ return [
         'system' => 'Sistem',
     ],
 
-    // Delete Account
-    'delete-account' => [
-        'title' => 'Hapus akun',
-        'description' => 'Hapus akun Anda dan semua sumber dayanya',
-        'modal-title' => 'Apakah Anda yakin ingin menghapus akun Anda?',
-        'modal-description' => 'Setelah akun Anda dihapus, semua sumber daya dan data akan dihapus secara permanen. Silakan masukkan password Anda untuk mengonfirmasi bahwa Anda ingin menghapus akun secara permanen.',
-    ],
-
     // User Management
     'user-management' => [
         'title' => 'Manajemen User',
