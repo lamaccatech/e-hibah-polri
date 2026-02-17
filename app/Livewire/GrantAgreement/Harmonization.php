@@ -140,7 +140,7 @@ class Harmonization extends Component
 
         // ada_usulan=true skips Step 5 (planning chapters already copied at Step 1)
         $nextRoute = $this->grant->ada_usulan
-            ? route('grant-agreement.index')
+            ? route('grant-agreement.other', $this->grant)
             : route('grant-agreement.additional', $this->grant);
 
         $this->redirect($nextRoute, navigate: true);

@@ -1,6 +1,6 @@
 <?php
 
-// SPEC: Grant Agreement — Satker Steps 1-5
+// SPEC: Grant Agreement — Satker Steps 1-6
 // See specs/features/agreement-flow.md for full feature spec.
 
 use App\Enums\AssessmentAspect;
@@ -14,6 +14,7 @@ use App\Livewire\GrantAgreement\Assessment;
 use App\Livewire\GrantAgreement\DonorInfo;
 use App\Livewire\GrantAgreement\Harmonization;
 use App\Livewire\GrantAgreement\Index;
+use App\Livewire\GrantAgreement\OtherMaterials;
 use App\Livewire\GrantAgreement\ReceptionBasis;
 use App\Models\Donor;
 use App\Models\Grant;
@@ -950,5 +951,83 @@ describe('Step 5: Materi Tambahan — Direct agreement', function () {
 
         $chapters = $component->get('chapters');
         expect($chapters[ProposalChapter::Target->value][0])->toBe('<p>Sasaran kegiatan yang sudah ada</p>');
+    });
+});
+
+// ============================================================
+// Step 6 — Materi Tambahan Lainnya
+// ============================================================
+
+describe('Step 6: Materi Tambahan Lainnya', function () {
+    it('saves custom chapters with agreement stage', function () {
+        $user = createSatkerUserForAgreementTest();
+        $grant = createAgreementGrant($user);
+
+        Livewire::actingAs($user)
+            ->test(OtherMaterials::class, ['grant' => $grant])
+            ->call('addCustomChapter')
+            ->set('customChapters.0.title', 'Aspek Keamanan')
+            ->set('customChapters.0.paragraphs.0', '<p>Keamanan dijaga oleh tim khusus dengan pengawasan berkala.</p>')
+            ->call('save')
+            ->assertHasNoErrors()
+            ->assertRedirect();
+
+        $latestHistory = $grant->statusHistory()->latest('id')->first();
+        expect($latestHistory->status_sesudah)->toBe(GrantStatus::FillingOtherMaterials);
+
+        // Check custom chapter was saved (not a known ProposalChapter)
+        $knownValues = array_map(fn ($c) => $c->value, ProposalChapter::cases());
+        $customInfo = $grant->information()
+            ->where('tahapan', GrantStage::Agreement)
+            ->whereNotIn('judul', $knownValues)
+            ->get();
+
+        expect($customInfo)->toHaveCount(1)
+            ->and($customInfo->first()->judul)->toBe('Aspek Keamanan');
+    });
+
+    it('skips and creates status history without saving chapters', function () {
+        $user = createSatkerUserForAgreementTest();
+        $grant = createAgreementGrant($user);
+
+        Livewire::actingAs($user)
+            ->test(OtherMaterials::class, ['grant' => $grant])
+            ->call('skip')
+            ->assertRedirect();
+
+        $latestHistory = $grant->statusHistory()->latest('id')->first();
+        expect($latestHistory->status_sesudah)->toBe(GrantStatus::FillingOtherMaterials);
+    });
+
+    it('starts with no custom chapters', function () {
+        $user = createSatkerUserForAgreementTest();
+        $grant = createAgreementGrant($user);
+
+        Livewire::actingAs($user)
+            ->test(OtherMaterials::class, ['grant' => $grant])
+            ->assertSet('customChapters', []);
+    });
+
+    it('loads existing custom chapters for editing', function () {
+        $user = createSatkerUserForAgreementTest();
+        $grant = createAgreementGrant($user);
+
+        $info = $grant->information()->create([
+            'judul' => 'Aspek Lingkungan',
+            'tahapan' => GrantStage::Agreement->value,
+        ]);
+        $info->contents()->create([
+            'subjudul' => '',
+            'isi' => '<p>Pengelolaan dampak lingkungan dilaksanakan sesuai regulasi.</p>',
+            'nomor_urut' => 1,
+        ]);
+
+        $component = Livewire::actingAs($user)
+            ->test(OtherMaterials::class, ['grant' => $grant]);
+
+        $chapters = $component->get('customChapters');
+        expect($chapters)->toHaveCount(1)
+            ->and($chapters[0]['title'])->toBe('Aspek Lingkungan')
+            ->and($chapters[0]['paragraphs'][0])->toBe('<p>Pengelolaan dampak lingkungan dilaksanakan sesuai regulasi.</p>');
     });
 });

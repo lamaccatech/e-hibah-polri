@@ -468,6 +468,12 @@ return [
         'title' => 'Materi Tambahan Kesiapan Hibah',
     ],
 
+    // Grant Agreement — Step 6: Materi Tambahan Lainnya
+    'grant-agreement-other' => [
+        'title' => 'Materi Kesiapan Hibah Lainnya',
+        'skip' => 'Lewati',
+    ],
+
     // Grant Document Generation
     'grant-document' => [
         'label-date' => 'Tanggal Dokumen',

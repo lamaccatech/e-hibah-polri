@@ -73,7 +73,7 @@ class AdditionalMaterials extends Component
 
         $repository->saveAdditionalMaterials($this->grant, $chaptersData);
 
-        $this->redirect(route('grant-agreement.index'), navigate: true);
+        $this->redirect(route('grant-agreement.other', $this->grant), navigate: true);
     }
 
     public function render()

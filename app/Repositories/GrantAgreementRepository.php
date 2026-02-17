@@ -445,6 +445,63 @@ class GrantAgreementRepository
         });
     }
 
+    /**
+     * @param  array<int, array{title: string, paragraphs: array<int, string>}>  $customChapters
+     */
+    public function saveOtherMaterials(Grant $grant, array $customChapters): void
+    {
+        DB::transaction(function () use ($grant, $customChapters): void {
+            $this->deleteCustomAgreementChapters($grant);
+
+            foreach ($customChapters as $chapter) {
+                $info = $grant->information()->create([
+                    'judul' => $chapter['title'],
+                    'tahapan' => GrantStage::Agreement->value,
+                ]);
+
+                foreach ($chapter['paragraphs'] as $index => $paragraph) {
+                    if (trim($paragraph) === '') {
+                        continue;
+                    }
+
+                    $info->contents()->create([
+                        'subjudul' => '',
+                        'isi' => $this->sanitizeHtml($paragraph),
+                        'nomor_urut' => $index + 1,
+                    ]);
+                }
+            }
+
+            $grant->statusHistory()->create([
+                'status_sebelum' => $this->getLatestStatus($grant)?->value,
+                'status_sesudah' => GrantStatus::FillingOtherMaterials->value,
+                'keterangan' => "{$grant->orgUnit->nama_unit} mengisi materi kesiapan hibah lainnya untuk kegiatan {$grant->nama_hibah}",
+            ]);
+        });
+    }
+
+    public function skipOtherMaterials(Grant $grant): void
+    {
+        $grant->statusHistory()->create([
+            'status_sebelum' => $this->getLatestStatus($grant)?->value,
+            'status_sesudah' => GrantStatus::FillingOtherMaterials->value,
+            'keterangan' => "{$grant->orgUnit->nama_unit} melewati langkah materi kesiapan hibah lainnya untuk kegiatan {$grant->nama_hibah}",
+        ]);
+    }
+
+    private function deleteCustomAgreementChapters(Grant $grant): void
+    {
+        $knownChapterValues = array_map(fn ($c) => $c->value, ProposalChapter::cases());
+
+        $grant->information()
+            ->where('tahapan', GrantStage::Agreement)
+            ->whereNotIn('judul', $knownChapterValues)
+            ->each(function ($info): void {
+                $info->contents()->forceDelete();
+                $info->forceDelete();
+            });
+    }
+
     public function isEditable(Grant $grant): bool
     {
         $latestStatus = $this->getLatestStatus($grant);
