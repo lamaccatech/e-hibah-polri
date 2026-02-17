@@ -65,7 +65,7 @@
                 @if ($agreementNumber)
                     <div class="sm:col-span-2">
                         <dt class="text-sm text-zinc-500 dark:text-zinc-400">{{ __('page.grant-detail.label-agreement-number') }}</dt>
-                        <dd class="mt-1">
+                        <dd class="mt-1 flex items-center gap-2">
                             <span
                                 class="inline-flex items-center gap-1.5 font-mono font-medium cursor-pointer"
                                 x-data="{ copied: false }"
@@ -79,6 +79,17 @@
                                 <template x-if="!copied"><x-flux::icon.clipboard-document class="size-4 text-zinc-400" /></template>
                                 <template x-if="copied"><x-flux::icon.check class="size-4 text-green-500" /></template>
                             </span>
+                            @if ($canReviseAgreementNumber)
+                                <flux:button
+                                    size="sm"
+                                    variant="subtle"
+                                    icon="arrow-path"
+                                    wire:click="reviseAgreementNumberMonth"
+                                    wire:confirm="{{ __('page.grant-detail.revise-number-confirm') }}"
+                                >
+                                    {{ __('page.grant-detail.revise-number-button') }}
+                                </flux:button>
+                            @endif
                         </dd>
                     </div>
                 @endif

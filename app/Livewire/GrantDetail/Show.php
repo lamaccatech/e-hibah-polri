@@ -3,11 +3,13 @@
 namespace App\Livewire\GrantDetail;
 
 use App\Enums\GrantStage;
+use App\Enums\GrantStatus;
 use App\Enums\UnitLevel;
 use App\Models\Grant;
 use App\Repositories\GrantAgreementRepository;
 use App\Repositories\GrantDetailRepository;
 use App\Repositories\GrantDocumentRepository;
+use App\Repositories\GrantNumberingRepository;
 use App\Repositories\GrantPlanningRepository;
 use Livewire\Component;
 
@@ -41,6 +43,24 @@ class Show extends Component
         }
     }
 
+    public function reviseAgreementNumberMonth(GrantNumberingRepository $repository): void
+    {
+        $unit = auth()->user()->unit;
+        abort_unless($unit->level_unit === UnitLevel::SatuanKerja && $this->grant->id_satuan_kerja === $unit->id_user, 403);
+
+        $latestNumbering = $this->grant->numberings
+            ->where('tahapan', GrantStage::Agreement)
+            ->first();
+
+        abort_unless($latestNumbering, 404);
+
+        $repository->reviseAgreementNumberMonth($latestNumbering);
+
+        $this->grant->load('numberings');
+
+        session()->flash('message', __('page.grant-detail.revise-number-success'));
+    }
+
     public function render(
         GrantDetailRepository $repository,
         GrantDocumentRepository $documentRepository,
@@ -58,6 +78,24 @@ class Show extends Component
             && $this->grant->id_satuan_kerja === auth()->user()->unit->id_user
             && $agreementRepository->canSubmitSehati($this->grant);
 
+        $canReviseAgreementNumber = false;
+        if (auth()->user()->unit->level_unit === UnitLevel::SatuanKerja
+            && $this->grant->id_satuan_kerja === auth()->user()->unit->id_user) {
+            $numberIssuedEntry = $this->grant->statusHistory
+                ->where('status_sesudah', GrantStatus::AgreementNumberIssued)
+                ->first();
+
+            $latestAgreementNumbering = $this->grant->numberings
+                ->where('tahapan', GrantStage::Agreement)
+                ->first();
+
+            if ($numberIssuedEntry && $latestAgreementNumbering
+                && $numberIssuedEntry->created_at->month < now()->month
+                && $latestAgreementNumbering->tahun === (int) now()->format('Y')) {
+                $canReviseAgreementNumber = true;
+            }
+        }
+
         $data = [
             'grant' => $this->grant,
             'isAgreementStage' => $isAgreementStage,
@@ -65,6 +103,7 @@ class Show extends Component
             'showProposal' => $this->showProposal,
             'canUploadSigned' => $canUploadSigned,
             'canSubmitSehati' => $canSubmitSehati,
+            'canReviseAgreementNumber' => $canReviseAgreementNumber,
         ];
 
         if ($this->activeTab === 'grant-info') {

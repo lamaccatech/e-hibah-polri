@@ -499,6 +499,9 @@ return [
         'label-sehati-withdrawal-deadline' => 'Tanggal Batas Penarikan',
         'label-sehati-account-closing-date' => 'Tanggal Penutupan Rekening',
         'uploaded-documents' => 'Dokumen',
+        'revise-number-button' => 'Revisi Bulan',
+        'revise-number-confirm' => 'Yakin ingin merevisi bulan pada nomor perjanjian?',
+        'revise-number-success' => 'Nomor perjanjian berhasil direvisi.',
     ],
 
     // Grant Agreement — Index

@@ -5,6 +5,7 @@ namespace App\Repositories;
 use App\Enums\GrantStage;
 use App\Models\Grant;
 use App\Models\GrantNumbering;
+use Illuminate\Support\Facades\DB;
 
 class GrantNumberingRepository
 {
@@ -20,6 +21,35 @@ class GrantNumberingRepository
     public function issueAgreementNumber(Grant $grant): GrantNumbering
     {
         return $this->issueNumber($grant, self::PREFIX_AGREEMENT);
+    }
+
+    public function reviseAgreementNumberMonth(GrantNumbering $numbering): GrantNumbering
+    {
+        abort_if($numbering->tahun !== (int) now()->format('Y'), 422);
+
+        $currentMonth = (int) now()->format('m');
+
+        $newNumber = collect([
+            $numbering->kode,
+            $numbering->tahun,
+            $this->romanMonth($currentMonth),
+            $numbering->nomor_urut,
+            $numbering->kode_satuan_kerja,
+        ])->join('/');
+
+        return DB::transaction(function () use ($numbering, $newNumber, $currentMonth) {
+            $numbering->delete();
+
+            return $numbering->grant->numberings()->create([
+                'nomor' => $newNumber,
+                'kode' => $numbering->kode,
+                'nomor_urut' => $numbering->nomor_urut,
+                'bulan' => $currentMonth,
+                'tahun' => $numbering->tahun,
+                'tahapan' => $numbering->tahapan->value,
+                'kode_satuan_kerja' => $numbering->kode_satuan_kerja,
+            ]);
+        });
     }
 
     private function issueNumber(Grant $grant, string $prefix): GrantNumbering
