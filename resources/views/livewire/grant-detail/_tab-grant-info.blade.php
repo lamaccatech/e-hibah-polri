@@ -61,6 +61,27 @@
                         </dd>
                     </div>
                 @endif
+                @php $agreementNumber = $grant->numberings->where('tahapan', \App\Enums\GrantStage::Agreement)->first()?->nomor; @endphp
+                @if ($agreementNumber)
+                    <div class="sm:col-span-2">
+                        <dt class="text-sm text-zinc-500 dark:text-zinc-400">{{ __('page.grant-detail.label-agreement-number') }}</dt>
+                        <dd class="mt-1">
+                            <span
+                                class="inline-flex items-center gap-1.5 font-mono font-medium cursor-pointer"
+                                x-data="{ copied: false }"
+                                x-on:click="
+                                    navigator.clipboard.writeText('{{ $agreementNumber }}');
+                                    copied = true;
+                                    setTimeout(() => copied = false, 1500);
+                                "
+                            >
+                                {{ $agreementNumber }}
+                                <template x-if="!copied"><x-flux::icon.clipboard-document class="size-4 text-zinc-400" /></template>
+                                <template x-if="copied"><x-flux::icon.check class="size-4 text-green-500" /></template>
+                            </span>
+                        </dd>
+                    </div>
+                @endif
             </dl>
         </div>
 

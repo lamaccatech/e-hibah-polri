@@ -442,6 +442,7 @@ return [
         'label-value' => 'Nilai Hibah',
         'label-status' => 'Status',
         'label-planning-number' => 'Nomor Perencanaan',
+        'label-agreement-number' => 'Nomor Perjanjian',
         'donor-info' => 'Informasi Pemberi Hibah',
         'label-donor-name' => 'Nama Pemberi',
         'label-donor-origin' => 'Asal Pemberi Hibah',
