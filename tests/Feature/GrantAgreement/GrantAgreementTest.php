@@ -8,12 +8,15 @@ use App\Enums\GrantStage;
 use App\Enums\GrantStatus;
 use App\Enums\GrantType;
 use App\Enums\ProposalChapter;
+use App\Livewire\GrantAgreement\DonorInfo;
 use App\Livewire\GrantAgreement\Index;
 use App\Livewire\GrantAgreement\ReceptionBasis;
+use App\Models\Donor;
 use App\Models\Grant;
 use App\Models\OrgUnit;
 use App\Models\User;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
 
@@ -96,6 +99,37 @@ function createAgreementGrant(User $user, array $overrides = []): Grant
     $grant->statusHistory()->create([
         'status_sesudah' => GrantStatus::FillingReceptionData->value,
         'keterangan' => 'Test agreement initialized',
+    ]);
+
+    return $grant;
+}
+
+function createAgreementGrantFromPlanning(User $user): Grant
+{
+    $donor = Donor::factory()->create();
+    $grant = $user->unit->grants()->create(
+        Grant::factory()->raw([
+            'jenis_hibah' => GrantType::Direct->value,
+            'tahapan' => GrantStage::Agreement->value,
+            'ada_usulan' => true,
+            'id_pemberi_hibah' => $donor->id,
+        ])
+    );
+
+    $grant->statusHistory()->create([
+        'status_sesudah' => GrantStatus::FillingReceptionData->value,
+        'keterangan' => 'Transitioned from planning',
+    ]);
+
+    // Add agreement-stage objectives
+    $info = $grant->information()->create([
+        'judul' => ProposalChapter::Objective->value,
+        'tahapan' => GrantStage::Agreement->value,
+    ]);
+    $info->contents()->create([
+        'subjudul' => 'PENINGKATAN KAPASITAS SDM',
+        'isi' => '<p>Tujuan kegiatan</p>',
+        'nomor_urut' => 1,
     ]);
 
     return $grant;
@@ -336,5 +370,138 @@ describe('Step 1: Dasar Penerimaan — Edit', function () {
             ->where('judul', ProposalChapter::Objective->value)
             ->first();
         expect($updatedObjective->contents->first()->subjudul)->toBe('NEW PURPOSE');
+    });
+});
+
+describe('Step 2: Pemberi Hibah — Read-only (from planning)', function () {
+    it('shows read-only view when ada_usulan is true', function () {
+        $user = createSatkerUserForAgreementTest();
+        $grant = createAgreementGrantFromPlanning($user);
+
+        Livewire::actingAs($user)
+            ->test(DonorInfo::class, ['grant' => $grant])
+            ->assertSet('isReadOnly', true)
+            ->assertSee(__('page.grant-agreement-donor.readonly-heading'))
+            ->assertSuccessful();
+    });
+
+    it('displays donor data from planning', function () {
+        $user = createSatkerUserForAgreementTest();
+        $grant = createAgreementGrantFromPlanning($user);
+
+        Livewire::actingAs($user)
+            ->test(DonorInfo::class, ['grant' => $grant])
+            ->assertSet('name', $grant->donor->nama)
+            ->assertSuccessful();
+    });
+
+    it('advances status to FillingDonorInfo on continue', function () {
+        $user = createSatkerUserForAgreementTest();
+        $grant = createAgreementGrantFromPlanning($user);
+
+        Livewire::actingAs($user)
+            ->test(DonorInfo::class, ['grant' => $grant])
+            ->call('save')
+            ->assertRedirect();
+
+        $latestStatus = $grant->statusHistory()->latest('id')->first();
+        expect($latestStatus->status_sesudah)->toBe(GrantStatus::FillingDonorInfo);
+    });
+});
+
+describe('Step 2: Pemberi Hibah — Editable (direct agreement)', function () {
+    beforeEach(function () {
+        Http::fake(['*' => Http::response([], 200)]);
+    });
+
+    it('shows editable form when ada_usulan is false', function () {
+        $user = createSatkerUserForAgreementTest();
+        $grant = createAgreementGrant($user);
+
+        Livewire::actingAs($user)
+            ->test(DonorInfo::class, ['grant' => $grant])
+            ->assertSet('isReadOnly', false)
+            ->assertSuccessful();
+    });
+
+    it('creates a new donor and links to agreement', function () {
+        $user = createSatkerUserForAgreementTest();
+        $grant = createAgreementGrant($user);
+
+        Livewire::actingAs($user)
+            ->test(DonorInfo::class, ['grant' => $grant])
+            ->set('name', 'PT Donor Perjanjian')
+            ->set('origin', 'LUAR NEGERI')
+            ->set('phone', '081234567890')
+            ->set('address', 'Jl. Test No. 1')
+            ->set('country', 'JAPAN')
+            ->call('save')
+            ->assertHasNoErrors()
+            ->assertRedirect();
+
+        $grant->refresh();
+        expect($grant->id_pemberi_hibah)->not->toBeNull()
+            ->and($grant->donor->nama)->toBe('PT DONOR PERJANJIAN');
+    });
+
+    it('selects an existing donor', function () {
+        $user = createSatkerUserForAgreementTest();
+        $grant = createAgreementGrant($user);
+        $donor = Donor::factory()->create(['asal' => 'LUAR NEGERI']);
+
+        Livewire::actingAs($user)
+            ->test(DonorInfo::class, ['grant' => $grant])
+            ->call('selectDonor', $donor->id)
+            ->call('save')
+            ->assertHasNoErrors()
+            ->assertRedirect();
+
+        $grant->refresh();
+        expect($grant->id_pemberi_hibah)->toBe($donor->id);
+    });
+
+    it('creates status history with FillingDonorInfo', function () {
+        $user = createSatkerUserForAgreementTest();
+        $grant = createAgreementGrant($user);
+        $donor = Donor::factory()->create(['asal' => 'LUAR NEGERI']);
+
+        Livewire::actingAs($user)
+            ->test(DonorInfo::class, ['grant' => $grant])
+            ->call('selectDonor', $donor->id)
+            ->call('save');
+
+        $latestStatus = $grant->statusHistory()->latest('id')->first();
+        expect($latestStatus->status_sesudah)->toBe(GrantStatus::FillingDonorInfo);
+    });
+
+    it('auto-generates Purpose chapter for direct agreements', function () {
+        $user = createSatkerUserForAgreementTest();
+        $grant = createAgreementGrant($user);
+
+        // Add objectives so Purpose can reference them
+        $info = $grant->information()->create([
+            'judul' => ProposalChapter::Objective->value,
+            'tahapan' => GrantStage::Agreement->value,
+        ]);
+        $info->contents()->create([
+            'subjudul' => 'PENINGKATAN KAPASITAS SDM',
+            'isi' => '<p>Detail tujuan</p>',
+            'nomor_urut' => 1,
+        ]);
+
+        $donor = Donor::factory()->create(['asal' => 'LUAR NEGERI']);
+
+        Livewire::actingAs($user)
+            ->test(DonorInfo::class, ['grant' => $grant])
+            ->call('selectDonor', $donor->id)
+            ->call('save');
+
+        $purposeInfo = $grant->information()
+            ->where('tahapan', GrantStage::Agreement)
+            ->where('judul', ProposalChapter::Purpose->value)
+            ->first();
+
+        expect($purposeInfo)->not->toBeNull()
+            ->and($purposeInfo->contents)->toHaveCount(1);
     });
 });

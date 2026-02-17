@@ -6,6 +6,7 @@ use App\Enums\GrantStage;
 use App\Enums\GrantStatus;
 use App\Enums\GrantType;
 use App\Enums\ProposalChapter;
+use App\Models\Donor;
 use App\Models\Grant;
 use App\Models\GrantNumbering;
 use App\Models\OrgUnit;
@@ -192,6 +193,78 @@ class GrantAgreementRepository
                 ])->all()
             );
         }
+    }
+
+    public function linkDonor(Grant $grant, int $donorId): void
+    {
+        DB::transaction(function () use ($grant, $donorId): void {
+            $grant->update(['id_pemberi_hibah' => $donorId]);
+
+            $donor = Donor::find($donorId);
+
+            $grant->statusHistory()->create([
+                'status_sebelum' => $this->getLatestStatus($grant)?->value,
+                'status_sesudah' => GrantStatus::FillingDonorInfo->value,
+                'keterangan' => "{$grant->orgUnit->nama_unit} mengisi data pemberi hibah {$donor?->nama} untuk kegiatan {$grant->nama_hibah}",
+            ]);
+
+            // Auto-generate Purpose for direct grants (ada_usulan = false)
+            if (! $grant->ada_usulan) {
+                $this->generatePurpose($grant);
+            }
+        });
+    }
+
+    public function advanceToFillingDonorInfo(Grant $grant): void
+    {
+        $grant->statusHistory()->create([
+            'status_sebelum' => $this->getLatestStatus($grant)?->value,
+            'status_sesudah' => GrantStatus::FillingDonorInfo->value,
+            'keterangan' => "{$grant->orgUnit->nama_unit} melanjutkan ke langkah data pemberi hibah untuk kegiatan {$grant->nama_hibah}",
+        ]);
+    }
+
+    private function generatePurpose(Grant $grant): void
+    {
+        // Only generate if Purpose doesn't exist for agreement stage
+        $existingPurpose = $grant->information()
+            ->where('tahapan', GrantStage::Agreement)
+            ->where('judul', ProposalChapter::Purpose->value)
+            ->exists();
+
+        if ($existingPurpose) {
+            return;
+        }
+
+        $objectives = $grant->information()
+            ->where('tahapan', GrantStage::Agreement)
+            ->where('judul', ProposalChapter::Objective->value)
+            ->with('contents')
+            ->first();
+
+        $purposeText = "<p>Kegiatan {$grant->nama_hibah}";
+        if ($objectives && $objectives->contents->isNotEmpty()) {
+            $objectiveNames = $objectives->contents
+                ->sortBy('nomor_urut')
+                ->pluck('subjudul')
+                ->filter()
+                ->implode(', ');
+            if ($objectiveNames) {
+                $purposeText .= " bertujuan untuk {$objectiveNames}";
+            }
+        }
+        $purposeText .= '.</p>';
+
+        $info = $grant->information()->create([
+            'judul' => ProposalChapter::Purpose->value,
+            'tahapan' => GrantStage::Agreement->value,
+        ]);
+
+        $info->contents()->create([
+            'subjudul' => '',
+            'isi' => $purposeText,
+            'nomor_urut' => 1,
+        ]);
     }
 
     public function isEditable(Grant $grant): bool

@@ -438,6 +438,13 @@ return [
         'linked-to-planning' => 'Nomor surat cocok dengan nomor usulan. Data usulan akan dimuat.',
     ],
 
+    // Grant Agreement — Step 2: Pemberi Hibah
+    'grant-agreement-donor' => [
+        'title' => 'Pemberi Hibah',
+        'readonly-heading' => 'Data Pemberi Hibah dari Usulan',
+        'readonly-description' => 'Data pemberi hibah telah dimuat dari proses usulan dan tidak dapat diubah.',
+    ],
+
     // Grant Document Generation
     'grant-document' => [
         'label-date' => 'Tanggal Dokumen',

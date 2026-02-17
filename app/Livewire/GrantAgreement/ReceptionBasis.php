@@ -132,7 +132,7 @@ class ReceptionBasis extends Component
             }
         }
 
-        $this->redirect(route('grant-agreement.index'), navigate: true);
+        $this->redirect(route('grant-agreement.donor', $grant), navigate: true);
     }
 
     public function render()
