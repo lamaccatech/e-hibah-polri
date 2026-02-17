@@ -498,6 +498,7 @@ return [
         'label-sehati-effective-date' => 'Tanggal Efektif',
         'label-sehati-withdrawal-deadline' => 'Tanggal Batas Penarikan',
         'label-sehati-account-closing-date' => 'Tanggal Penutupan Rekening',
+        'uploaded-documents' => 'Dokumen',
     ],
 
     // Grant Agreement — Index

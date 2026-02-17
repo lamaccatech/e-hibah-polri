@@ -69,6 +69,7 @@ class Show extends Component
 
         if ($this->activeTab === 'grant-info') {
             $data['statusHistory'] = $this->grant->statusHistory;
+            $data['uploadedFiles'] = $repository->getUploadedFiles($this->grant);
         } elseif ($this->activeTab === 'proposal-info') {
             $data['chapters'] = $repository->getProposalChapters($this->grant);
             $data['budgetPlans'] = $repository->getBudgetPlans($this->grant);

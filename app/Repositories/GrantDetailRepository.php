@@ -2,12 +2,15 @@
 
 namespace App\Repositories;
 
+use App\Enums\FileType;
 use App\Enums\GrantStage;
 use App\Enums\GrantStatus;
 use App\Enums\UnitLevel;
+use App\Models\File;
 use App\Models\Grant;
 use App\Models\GrantAssessment;
 use App\Models\GrantAssessmentResult;
+use App\Models\GrantStatusHistory;
 use App\Models\OrgUnit;
 use Illuminate\Database\Eloquent\Collection;
 
@@ -231,5 +234,20 @@ class GrantDetailRepository
             ->map(fn (GrantAssessment $a) => $a->result)
             ->filter()
             ->all();
+    }
+
+    /**
+     * @return Collection<int, File>
+     */
+    public function getUploadedFiles(Grant $grant): Collection
+    {
+        $statusHistoryIds = $grant->statusHistory()->pluck('id');
+
+        return File::query()
+            ->where('fileable_type', GrantStatusHistory::class)
+            ->whereIn('fileable_id', $statusHistoryIds)
+            ->where('file_type', '!=', FileType::GeneratedDocument)
+            ->orderByDesc('created_at')
+            ->get();
     }
 }

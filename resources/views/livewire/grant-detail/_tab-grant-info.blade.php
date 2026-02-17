@@ -85,6 +85,30 @@
             </dl>
         </div>
 
+        {{-- Uploaded Documents --}}
+        @if ($uploadedFiles->isNotEmpty())
+            <div class="rounded-lg border border-zinc-200 dark:border-zinc-700 p-6">
+                <flux:heading size="lg" class="mb-4">{{ __('page.grant-detail.uploaded-documents') }}</flux:heading>
+
+                <div class="divide-y divide-zinc-200 dark:divide-zinc-700">
+                    @foreach ($uploadedFiles as $file)
+                        <div class="flex items-center justify-between py-3 first:pt-0 last:pb-0">
+                            <div class="min-w-0">
+                                <p class="font-medium truncate">{{ $file->name }}</p>
+                                <p class="text-sm text-zinc-500 dark:text-zinc-400">
+                                    {{ $file->file_type->label() }} &middot; {{ $file->created_at->format('d M Y H:i') }}
+                                </p>
+                            </div>
+                            <a href="{{ route('grant-file.download', [$grant, $file]) }}"
+                               class="ml-4 shrink-0">
+                                <flux:button size="sm" variant="subtle" icon="arrow-down-tray" />
+                            </a>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+        @endif
+
         {{-- SEHATI Data --}}
         @if ($grant->financeMinistrySubmission)
             <div class="rounded-lg border border-zinc-200 dark:border-zinc-700 p-6">
