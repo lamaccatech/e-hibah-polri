@@ -1,17 +1,25 @@
 @php
     use App\Enums\ProposalChapter;
 
-    // Agreement chapters include ReceptionBasis and SupervisionMechanism (which planning excludes)
-    $agreementChapterEnums = [
+    // Ordered to match the agreement creation form flow:
+    // Step 1: ReceptionBasis, Objective
+    // Step 2: Purpose (auto-generated)
+    // Step 5: Target, Benefit, ImplementationPlan, ReportingPlan, EvaluationPlan
+    // Step 4: BudgetPlan (table), WithdrawalPlan (table), SupervisionMechanism, Schedule (table)
+    // Closing
+    $orderedChapters = [
         ProposalChapter::ReceptionBasis,
+        ProposalChapter::Purpose,
+        ProposalChapter::Objective,
+        ProposalChapter::Target,
+        ProposalChapter::Benefit,
+        ProposalChapter::ImplementationPlan,
+        ProposalChapter::ReportingPlan,
+        ProposalChapter::EvaluationPlan,
+        ProposalChapter::BudgetPlan,       // rendered as budget table
         ProposalChapter::SupervisionMechanism,
+        ProposalChapter::Closing,
     ];
-
-    // Standard planning chapters (same as proposal tab, for shared content)
-    $sharedChapters = array_filter(
-        ProposalChapter::cases(),
-        fn (ProposalChapter $c) => !in_array($c, [ProposalChapter::ReceptionBasis, ProposalChapter::SupervisionMechanism]),
-    );
 
     // Key chapters by judul for quick lookup
     $chaptersByKey = $agreementChapters->keyBy('judul');
@@ -25,56 +33,9 @@
 
 <div class="max-w-3xl space-y-8">
     @if ($hasAnyData)
-        {{-- Agreement-specific chapters first --}}
-        @foreach ($agreementChapterEnums as $enum)
-            @php $chapter = $chaptersByKey->get($enum->value); @endphp
-            @if ($chapter)
-                <div>
-                    <flux:heading size="xl">{{ $enum->label() }}</flux:heading>
-                    @if ($chapter->contents->isNotEmpty())
-                        <div class="mt-3 space-y-2">
-                            @foreach ($chapter->contents as $content)
-                                @if ($content->subjudul)
-                                    <p class="font-semibold text-base text-zinc-700 dark:text-zinc-300">{{ $content->subjudul }}</p>
-                                @endif
-                                <div class="text-sm text-zinc-600 dark:text-zinc-400 prose prose-sm dark:prose-invert max-w-none">{!! $content->isi !!}</div>
-                            @endforeach
-                        </div>
-                    @endif
-                </div>
-            @endif
-        @endforeach
-
-        {{-- Shared chapters in enum order --}}
-        @foreach ($sharedChapters as $enum)
+        @foreach ($orderedChapters as $enum)
             @if ($enum === ProposalChapter::BudgetPlan)
-                {{-- Schedule table before budget --}}
-                <div>
-                    <flux:heading size="xl" class="mb-4">{{ __('page.grant-detail.section-schedule') }}</flux:heading>
-
-                    @if ($activitySchedules->isNotEmpty())
-                        <flux:table>
-                            <flux:table.columns>
-                                <flux:table.column>{{ __('page.grant-detail.column-schedule-activity') }}</flux:table.column>
-                                <flux:table.column>{{ __('page.grant-detail.column-schedule-start') }}</flux:table.column>
-                                <flux:table.column>{{ __('page.grant-detail.column-schedule-end') }}</flux:table.column>
-                            </flux:table.columns>
-                            <flux:table.rows>
-                                @foreach ($activitySchedules as $schedule)
-                                    <flux:table.row>
-                                        <flux:table.cell>{{ $schedule->uraian_kegiatan }}</flux:table.cell>
-                                        <flux:table.cell>{{ $schedule->tanggal_mulai?->format('d M Y') ?? '-' }}</flux:table.cell>
-                                        <flux:table.cell>{{ $schedule->tanggal_selesai?->format('d M Y') ?? '-' }}</flux:table.cell>
-                                    </flux:table.row>
-                                @endforeach
-                            </flux:table.rows>
-                        </flux:table>
-                    @else
-                        <flux:text>{{ __('page.grant-detail.no-schedule-data') }}</flux:text>
-                    @endif
-                </div>
-
-                {{-- Budget table in place of the BudgetPlan chapter --}}
+                {{-- Budget table --}}
                 <div>
                     <flux:heading size="xl" class="mb-4">{{ $enum->label() }}</flux:heading>
 
@@ -101,6 +62,64 @@
                         </flux:table>
                     @else
                         <flux:text>{{ __('page.grant-detail.no-budget-data') }}</flux:text>
+                    @endif
+                </div>
+
+                {{-- Withdrawal plan table (right after budget) --}}
+                <div>
+                    <flux:heading size="xl" class="mb-4">{{ __('page.grant-detail.section-withdrawal') }}</flux:heading>
+
+                    @if ($withdrawalPlans->isNotEmpty())
+                        <flux:table>
+                            <flux:table.columns>
+                                <flux:table.column>No</flux:table.column>
+                                <flux:table.column>{{ __('page.grant-detail.column-withdrawal-description') }}</flux:table.column>
+                                <flux:table.column>{{ __('page.grant-detail.column-withdrawal-date') }}</flux:table.column>
+                                <flux:table.column align="end">{{ __('page.grant-detail.column-withdrawal-value') }}</flux:table.column>
+                            </flux:table.columns>
+                            <flux:table.rows>
+                                @foreach ($withdrawalPlans as $plan)
+                                    <flux:table.row>
+                                        <flux:table.cell>{{ $plan->nomor_urut }}</flux:table.cell>
+                                        <flux:table.cell>{{ $plan->uraian }}</flux:table.cell>
+                                        <flux:table.cell>{{ $plan->tanggal?->format('d M Y') ?? '-' }}</flux:table.cell>
+                                        <flux:table.cell align="end">{{ number_format($plan->nilai, 0, ',', '.') }}</flux:table.cell>
+                                    </flux:table.row>
+                                @endforeach
+                                <flux:table.row>
+                                    <flux:table.cell colspan="3" class="font-bold">Total</flux:table.cell>
+                                    <flux:table.cell align="end" class="font-bold">{{ number_format($withdrawalPlans->sum('nilai'), 0, ',', '.') }}</flux:table.cell>
+                                </flux:table.row>
+                            </flux:table.rows>
+                        </flux:table>
+                    @else
+                        <flux:text>{{ __('page.grant-detail.no-withdrawal-data') }}</flux:text>
+                    @endif
+                </div>
+
+                {{-- Schedule table (after withdrawal) --}}
+                <div>
+                    <flux:heading size="xl" class="mb-4">{{ __('page.grant-detail.section-schedule') }}</flux:heading>
+
+                    @if ($activitySchedules->isNotEmpty())
+                        <flux:table>
+                            <flux:table.columns>
+                                <flux:table.column>{{ __('page.grant-detail.column-schedule-activity') }}</flux:table.column>
+                                <flux:table.column>{{ __('page.grant-detail.column-schedule-start') }}</flux:table.column>
+                                <flux:table.column>{{ __('page.grant-detail.column-schedule-end') }}</flux:table.column>
+                            </flux:table.columns>
+                            <flux:table.rows>
+                                @foreach ($activitySchedules as $schedule)
+                                    <flux:table.row>
+                                        <flux:table.cell>{{ $schedule->uraian_kegiatan }}</flux:table.cell>
+                                        <flux:table.cell>{{ $schedule->tanggal_mulai?->format('d M Y') ?? '-' }}</flux:table.cell>
+                                        <flux:table.cell>{{ $schedule->tanggal_selesai?->format('d M Y') ?? '-' }}</flux:table.cell>
+                                    </flux:table.row>
+                                @endforeach
+                            </flux:table.rows>
+                        </flux:table>
+                    @else
+                        <flux:text>{{ __('page.grant-detail.no-schedule-data') }}</flux:text>
                     @endif
                 </div>
             @else

@@ -56,6 +56,16 @@ class GrantDetailRepository
     }
 
     /**
+     * @return Collection<int, \App\Models\GrantWithdrawalPlan>
+     */
+    public function getWithdrawalPlans(Grant $grant): Collection
+    {
+        return $grant->withdrawalPlans()
+            ->orderBy('nomor_urut')
+            ->get();
+    }
+
+    /**
      * @return Collection<int, \App\Models\ActivitySchedule>
      */
     public function getActivitySchedules(Grant $grant): Collection

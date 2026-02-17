@@ -72,6 +72,7 @@ class Show extends Component
         } elseif ($this->activeTab === 'agreement-info') {
             $data['agreementChapters'] = $repository->getAgreementChapters($this->grant);
             $data['budgetPlans'] = $repository->getBudgetPlans($this->grant);
+            $data['withdrawalPlans'] = $repository->getWithdrawalPlans($this->grant);
             $data['activitySchedules'] = $repository->getActivitySchedules($this->grant);
         } elseif ($this->activeTab === 'agreement-assessment') {
             $data['satkerAgreementAssessments'] = $repository->getSatkerAgreementAssessments($this->grant);
