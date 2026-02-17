@@ -333,6 +333,37 @@ return [
         'satker-assessment-heading' => 'Kajian Satuan Kerja',
     ],
 
+    // Agreement Review — Polda
+    'agreement-review' => [
+        'title' => 'Perjanjian Hibah Masuk',
+        'column-unit' => 'Satuan Kerja',
+        'column-name' => 'Nama Kegiatan',
+        'column-donor' => 'Pemberi Hibah',
+        'column-value' => 'Nilai',
+        'column-status' => 'Status',
+        'column-action' => 'Aksi',
+        'empty-state' => 'Belum ada perjanjian hibah masuk.',
+        'badge-submitted' => 'Diajukan',
+        'badge-reviewing' => 'Sedang Dikaji',
+        'badge-verified' => 'Disetujui Polda',
+        'badge-rejected' => 'Ditolak',
+        'badge-revision-requested' => 'Perlu Revisi',
+        'start-review-button' => 'Mulai Kajian',
+        'start-review-confirm-title' => 'Mulai Kajian Perjanjian Hibah',
+        'start-review-confirm-description' => 'Yakin ingin memulai kajian untuk perjanjian hibah ini?',
+        'start-review-success' => 'Kajian berhasil dimulai.',
+        'continue-review-button' => 'Lanjut Kajian',
+        'review-title' => 'Kajian Perjanjian Hibah',
+        'submit-result-button' => 'Berikan Penilaian',
+        'result-label' => 'Penilaian',
+        'result-remarks-label' => 'Keterangan',
+        'result-fulfilled' => 'Terpenuhi',
+        'result-revision' => 'Revisi',
+        'result-rejected' => 'Ditolak',
+        'result-saved' => 'Penilaian berhasil disimpan.',
+        'satker-assessment-heading' => 'Kajian Satuan Kerja',
+    ],
+
     // Grant Review — Mabes
     'mabes-grant-review' => [
         'title' => 'Usulan Hibah Masuk',

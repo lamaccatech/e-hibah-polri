@@ -84,6 +84,10 @@ enum GrantStatus: string
             self::AgreementSubmittedToPolda => __('page.grant-agreement.badge-submitted'),
             self::RevisingAgreement => __('page.grant-agreement.badge-revising'),
             self::AgreementRevisionResubmitted => __('page.grant-agreement.badge-revision-resubmitted'),
+            self::PoldaReviewingAgreement => __('page.agreement-review.badge-reviewing'),
+            self::PoldaVerifiedAgreement => __('page.agreement-review.badge-verified'),
+            self::PoldaRejectedAgreement => __('page.agreement-review.badge-rejected'),
+            self::PoldaRequestedAgreementRevision => __('page.agreement-review.badge-revision-requested'),
             default => $this->value,
         };
     }
@@ -153,6 +157,14 @@ enum GrantStatus: string
     public function canSubmitForAgreement(): bool
     {
         return $this->isEditableBySatkerAgreement();
+    }
+
+    public function canStartPoldaAgreementReview(): bool
+    {
+        return in_array($this, [
+            self::AgreementSubmittedToPolda,
+            self::AgreementRevisionResubmitted,
+        ]);
     }
 
     public function canStartMabesReview(): bool

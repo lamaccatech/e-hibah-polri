@@ -11,6 +11,7 @@ return [
         'nav-grant-planning' => 'Usulan Hibah',
         'nav-grant-agreement' => 'Perjanjian Hibah',
         'nav-grant-review' => 'Usulan Hibah',
+        'nav-agreement-review' => 'Perjanjian Hibah',
         'nav-chief-management' => 'Kepala Satker',
         'nav-mabes-grant-review' => 'Usulan Hibah',
         'nav-user-management' => 'Manajemen User',

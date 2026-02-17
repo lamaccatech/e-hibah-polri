@@ -31,6 +31,9 @@
                     <flux:navbar.item icon="document-text" :href="route('grant-review.index')" :current="request()->routeIs('grant-review.*')" wire:navigate>
                         {{ __('component.navbar.nav-grant-review') }}
                     </flux:navbar.item>
+                    <flux:navbar.item icon="clipboard-document-list" :href="route('agreement-review.index')" :current="request()->routeIs('agreement-review.*')" wire:navigate>
+                        {{ __('component.navbar.nav-agreement-review') }}
+                    </flux:navbar.item>
                 @endif
 
                 @if (auth()->user()->unit?->level_unit === \App\Enums\UnitLevel::Mabes)
@@ -116,6 +119,9 @@
                 @if (auth()->user()->unit?->level_unit === \App\Enums\UnitLevel::SatuanInduk)
                     <flux:sidebar.item icon="document-text" :href="route('grant-review.index')" :current="request()->routeIs('grant-review.*')" wire:navigate>
                         {{ __('component.navbar.nav-grant-review') }}
+                    </flux:sidebar.item>
+                    <flux:sidebar.item icon="clipboard-document-list" :href="route('agreement-review.index')" :current="request()->routeIs('agreement-review.*')" wire:navigate>
+                        {{ __('component.navbar.nav-agreement-review') }}
                     </flux:sidebar.item>
                 @endif
 
