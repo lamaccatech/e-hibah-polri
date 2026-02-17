@@ -61,9 +61,10 @@
             </flux:navlist.item>
 
             <flux:navlist.item
-                href="#"
+                :href="$grant ? route('grant-agreement.draft', $grant) : '#'"
                 :current="$currentStep === 7"
                 :icon="$currentStep > 7 ? 'check-circle' : ($currentStep === 7 ? 'pencil-square' : 'ellipsis-horizontal-circle')"
+                wire:navigate
             >
                 {{ __('component.grant-agreement-steps.step-7') }}
             </flux:navlist.item>

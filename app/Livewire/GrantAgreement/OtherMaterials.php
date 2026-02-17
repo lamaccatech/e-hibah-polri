@@ -78,14 +78,14 @@ class OtherMaterials extends Component
 
         $repository->saveOtherMaterials($this->grant, $this->customChapters);
 
-        $this->redirect(route('grant-agreement.index'), navigate: true);
+        $this->redirect(route('grant-agreement.draft', $this->grant), navigate: true);
     }
 
     public function skip(GrantAgreementRepository $repository): void
     {
         $repository->skipOtherMaterials($this->grant);
 
-        $this->redirect(route('grant-agreement.index'), navigate: true);
+        $this->redirect(route('grant-agreement.draft', $this->grant), navigate: true);
     }
 
     public function render()

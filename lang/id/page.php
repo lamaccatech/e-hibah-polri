@@ -474,6 +474,13 @@ return [
         'skip' => 'Lewati',
     ],
 
+    // Grant Agreement — Step 7: Draft Naskah Perjanjian
+    'grant-agreement-draft' => [
+        'title' => 'Draft Naskah Perjanjian Hibah',
+        'label-file' => 'File Draft Naskah Perjanjian',
+        'hint-file' => 'Unggah file PDF, maksimal 20MB.',
+    ],
+
     // Grant Document Generation
     'grant-document' => [
         'label-date' => 'Tanggal Dokumen',

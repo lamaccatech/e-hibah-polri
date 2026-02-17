@@ -2,6 +2,7 @@
 
 namespace App\Repositories;
 
+use App\Enums\FileType;
 use App\Enums\GrantStage;
 use App\Enums\GrantStatus;
 use App\Enums\GrantType;
@@ -11,6 +12,7 @@ use App\Models\Grant;
 use App\Models\GrantNumbering;
 use App\Models\OrgUnit;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Symfony\Component\HtmlSanitizer\HtmlSanitizer;
 use Symfony\Component\HtmlSanitizer\HtmlSanitizerConfig;
@@ -500,6 +502,19 @@ class GrantAgreementRepository
                 $info->contents()->forceDelete();
                 $info->forceDelete();
             });
+    }
+
+    public function saveDraftAgreement(Grant $grant, UploadedFile $draftFile): void
+    {
+        DB::transaction(function () use ($grant, $draftFile): void {
+            $statusHistory = $grant->statusHistory()->create([
+                'status_sebelum' => $this->getLatestStatus($grant)?->value,
+                'status_sesudah' => GrantStatus::UploadingDraftAgreement->value,
+                'keterangan' => "{$grant->orgUnit->nama_unit} mengupload draft naskah perjanjian hibah untuk kegiatan {$grant->nama_hibah}",
+            ]);
+
+            $statusHistory->attachFile($draftFile, FileType::DraftAgreement);
+        });
     }
 
     public function isEditable(Grant $grant): bool

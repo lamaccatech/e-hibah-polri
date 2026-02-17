@@ -1,6 +1,6 @@
 <?php
 
-// SPEC: Grant Agreement — Satker Steps 1-6
+// SPEC: Grant Agreement — Satker Steps 1-7
 // See specs/features/agreement-flow.md for full feature spec.
 
 use App\Enums\AssessmentAspect;
@@ -12,6 +12,7 @@ use App\Enums\ProposalChapter;
 use App\Livewire\GrantAgreement\AdditionalMaterials;
 use App\Livewire\GrantAgreement\Assessment;
 use App\Livewire\GrantAgreement\DonorInfo;
+use App\Livewire\GrantAgreement\DraftAgreement;
 use App\Livewire\GrantAgreement\Harmonization;
 use App\Livewire\GrantAgreement\Index;
 use App\Livewire\GrantAgreement\OtherMaterials;
@@ -1029,5 +1030,53 @@ describe('Step 6: Materi Tambahan Lainnya', function () {
         expect($chapters)->toHaveCount(1)
             ->and($chapters[0]['title'])->toBe('Aspek Lingkungan')
             ->and($chapters[0]['paragraphs'][0])->toBe('<p>Pengelolaan dampak lingkungan dilaksanakan sesuai regulasi.</p>');
+    });
+});
+
+// ============================================================
+// Step 7 — Draft Naskah Perjanjian
+// ============================================================
+
+describe('Step 7: Draft Naskah Perjanjian', function () {
+    it('uploads draft agreement file and creates status history', function () {
+        Storage::fake();
+        $user = createSatkerUserForAgreementTest();
+        $grant = createAgreementGrant($user);
+
+        Livewire::actingAs($user)
+            ->test(DraftAgreement::class, ['grant' => $grant])
+            ->set('draftFile', UploadedFile::fake()->create('draft-perjanjian.pdf', 5000, 'application/pdf'))
+            ->call('save')
+            ->assertHasNoErrors()
+            ->assertRedirect();
+
+        $latestHistory = $grant->statusHistory()->latest('id')->first();
+        expect($latestHistory->status_sesudah)->toBe(GrantStatus::UploadingDraftAgreement);
+
+        // Check file was attached
+        $file = $latestHistory->files()->first();
+        expect($file)->not->toBeNull()
+            ->and($file->file_type)->toBe(FileType::DraftAgreement);
+    });
+
+    it('requires a PDF file', function () {
+        $user = createSatkerUserForAgreementTest();
+        $grant = createAgreementGrant($user);
+
+        Livewire::actingAs($user)
+            ->test(DraftAgreement::class, ['grant' => $grant])
+            ->call('save')
+            ->assertHasErrors(['draftFile']);
+    });
+
+    it('rejects non-PDF files', function () {
+        $user = createSatkerUserForAgreementTest();
+        $grant = createAgreementGrant($user);
+
+        Livewire::actingAs($user)
+            ->test(DraftAgreement::class, ['grant' => $grant])
+            ->set('draftFile', UploadedFile::fake()->create('draft.docx', 1000, 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'))
+            ->call('save')
+            ->assertHasErrors(['draftFile']);
     });
 });
