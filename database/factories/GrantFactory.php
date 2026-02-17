@@ -2,7 +2,6 @@
 
 namespace Database\Factories;
 
-use App\Enums\GrantForm;
 use App\Enums\GrantStage;
 use App\Enums\GrantType;
 use App\Models\Donor;
@@ -25,7 +24,7 @@ class GrantFactory extends Factory
             'nama_hibah' => fake()->sentence(3),
             'jenis_hibah' => GrantType::Direct->value,
             'tahapan' => GrantStage::Planning->value,
-            'bentuk_hibah' => GrantForm::Money->value,
+            'bentuk_hibah' => 'UANG',
         ];
     }
 
@@ -57,6 +56,7 @@ class GrantFactory extends Factory
             'jenis_hibah' => GrantType::Direct->value,
             'tahapan' => GrantStage::Agreement->value,
             'ada_usulan' => false,
+            'bentuk_hibah' => null,
         ]);
     }
 }

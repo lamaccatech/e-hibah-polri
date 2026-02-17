@@ -1,6 +1,6 @@
 <?php
 
-// SPEC: Grant Agreement — Satker Steps 1-3
+// SPEC: Grant Agreement — Satker Steps 1-4
 // See specs/features/agreement-flow.md for full feature spec.
 
 use App\Enums\AssessmentAspect;
@@ -11,6 +11,7 @@ use App\Enums\GrantType;
 use App\Enums\ProposalChapter;
 use App\Livewire\GrantAgreement\Assessment;
 use App\Livewire\GrantAgreement\DonorInfo;
+use App\Livewire\GrantAgreement\Harmonization;
 use App\Livewire\GrantAgreement\Index;
 use App\Livewire\GrantAgreement\ReceptionBasis;
 use App\Models\Donor;
@@ -660,5 +661,193 @@ describe('Step 3: Kajian — From planning (pre-fill)', function () {
             ->get();
 
         expect($assessments)->toHaveCount(4);
+    });
+});
+
+// ============================================================
+// Step 4 — Harmonisasi Naskah
+// ============================================================
+
+function createAgreementGrantFromPlanningWithBudget(User $user): Grant
+{
+    $donor = Donor::factory()->create();
+    $grant = $user->unit->grants()->create(
+        Grant::factory()->raw([
+            'jenis_hibah' => GrantType::Direct->value,
+            'tahapan' => GrantStage::Agreement->value,
+            'ada_usulan' => true,
+            'id_pemberi_hibah' => $donor->id,
+            'mata_uang' => 'IDR',
+        ])
+    );
+
+    // Add planning budget items (pre-fill source)
+    $grant->budgetPlans()->create([
+        'nomor_urut' => 1,
+        'uraian' => 'Peralatan dari planning',
+        'nilai' => '50000000',
+    ]);
+    $grant->budgetPlans()->create([
+        'nomor_urut' => 2,
+        'uraian' => 'Transportasi dari planning',
+        'nilai' => '25000000',
+    ]);
+
+    $grant->statusHistory()->create([
+        'status_sesudah' => GrantStatus::FillingReceptionData->value,
+        'keterangan' => 'Transitioned from planning',
+    ]);
+
+    return $grant;
+}
+
+describe('Step 4: Harmonisasi Naskah — Direct agreement', function () {
+    beforeEach(function () {
+        $this->seed(\Database\Seeders\AutocompleteSeeder::class);
+    });
+
+    it('saves all harmonization data and creates status history', function () {
+        $user = createSatkerUserForAgreementTest();
+        $grant = createAgreementGrant($user);
+
+        Livewire::actingAs($user)
+            ->test(Harmonization::class, ['grant' => $grant])
+            ->set('grantForms', ['UANG', 'BARANG'])
+            ->set('currency', 'IDR')
+            ->set('budgetItems', [
+                ['uraian' => 'Peralatan kantor', 'nilai' => '10000000'],
+                ['uraian' => 'Transportasi', 'nilai' => '5000000'],
+            ])
+            ->set('withdrawalPlans', [
+                ['uraian' => 'Penarikan tahap 1', 'tanggal' => '2026-06-01', 'nilai' => '10000000'],
+                ['uraian' => 'Penarikan tahap 2', 'tanggal' => '2026-09-01', 'nilai' => '5000000'],
+            ])
+            ->set('supervisionParagraphs', [
+                '<p>Mekanisme pengawasan dilakukan secara berkala setiap bulan.</p>',
+            ])
+            ->call('save')
+            ->assertHasNoErrors()
+            ->assertRedirect();
+
+        $grant->refresh();
+
+        // Check grant forms stored as CSV
+        expect($grant->getRawOriginal('bentuk_hibah'))->toBe('UANG,BARANG')
+            ->and($grant->mata_uang)->toBe('IDR');
+
+        // Check auto-calculated nilai_hibah
+        expect($grant->nilai_hibah)->toBe('15000000.00');
+
+        // Check budget items
+        expect($grant->budgetPlans)->toHaveCount(2);
+
+        // Check withdrawal plans
+        expect($grant->withdrawalPlans)->toHaveCount(2);
+
+        // Check supervision mechanism
+        $supervision = $grant->information()
+            ->where('tahapan', GrantStage::Agreement)
+            ->where('judul', ProposalChapter::SupervisionMechanism->value)
+            ->first();
+        expect($supervision)->not->toBeNull()
+            ->and($supervision->contents)->toHaveCount(1);
+
+        // Check status history
+        $latestHistory = $grant->statusHistory()->latest('id')->first();
+        expect($latestHistory->status_sesudah)->toBe(GrantStatus::FillingHarmonization);
+    });
+
+    it('validates withdrawal total does not exceed budget total', function () {
+        $user = createSatkerUserForAgreementTest();
+        $grant = createAgreementGrant($user);
+
+        Livewire::actingAs($user)
+            ->test(Harmonization::class, ['grant' => $grant])
+            ->set('grantForms', ['UANG'])
+            ->set('currency', 'IDR')
+            ->set('budgetItems', [
+                ['uraian' => 'Peralatan', 'nilai' => '10000000'],
+            ])
+            ->set('withdrawalPlans', [
+                ['uraian' => 'Penarikan', 'tanggal' => '2026-06-01', 'nilai' => '20000000'],
+            ])
+            ->set('supervisionParagraphs', [
+                '<p>Mekanisme pengawasan dilakukan secara berkala.</p>',
+            ])
+            ->call('save')
+            ->assertHasErrors('withdrawalPlans');
+    });
+
+    it('validates required fields', function () {
+        $user = createSatkerUserForAgreementTest();
+        $grant = createAgreementGrant($user);
+
+        Livewire::actingAs($user)
+            ->test(Harmonization::class, ['grant' => $grant])
+            ->set('grantForms', [])
+            ->set('currency', '')
+            ->call('save')
+            ->assertHasErrors(['grantForms', 'currency']);
+    });
+
+    it('starts with empty form when ada_usulan is false', function () {
+        $user = createSatkerUserForAgreementTest();
+        $grant = createAgreementGrant($user);
+
+        Livewire::actingAs($user)
+            ->test(Harmonization::class, ['grant' => $grant])
+            ->assertSet('grantForms', [])
+            ->assertSet('currency', '')
+            ->assertSet('budgetItems', [['uraian' => '', 'nilai' => '']])
+            ->assertSet('withdrawalPlans', [['uraian' => '', 'tanggal' => '', 'nilai' => '']]);
+    });
+});
+
+describe('Step 4: Harmonisasi Naskah — From planning (pre-fill)', function () {
+    beforeEach(function () {
+        $this->seed(\Database\Seeders\AutocompleteSeeder::class);
+    });
+
+    it('pre-fills budget items from planning', function () {
+        $user = createSatkerUserForAgreementTest();
+        $grant = createAgreementGrantFromPlanningWithBudget($user);
+
+        $component = Livewire::actingAs($user)
+            ->test(Harmonization::class, ['grant' => $grant]);
+
+        $component->assertSet('currency', 'IDR');
+
+        $budgetItems = $component->get('budgetItems');
+        expect($budgetItems)->toHaveCount(2)
+            ->and($budgetItems[0]['uraian'])->toBe('Peralatan dari planning')
+            ->and($budgetItems[1]['uraian'])->toBe('Transportasi dari planning');
+    });
+
+    it('saves pre-filled data and overwrites planning budget items', function () {
+        $user = createSatkerUserForAgreementTest();
+        $grant = createAgreementGrantFromPlanningWithBudget($user);
+
+        Livewire::actingAs($user)
+            ->test(Harmonization::class, ['grant' => $grant])
+            ->set('grantForms', ['JASA'])
+            ->set('withdrawalPlans', [
+                ['uraian' => 'Penarikan', 'tanggal' => '2026-06-01', 'nilai' => '50000000'],
+            ])
+            ->set('supervisionParagraphs', [
+                '<p>Pengawasan dilakukan oleh tim independen secara berkala.</p>',
+            ])
+            ->call('save')
+            ->assertHasNoErrors()
+            ->assertRedirect();
+
+        $grant->refresh();
+
+        expect($grant->getRawOriginal('bentuk_hibah'))->toBe('JASA')
+            ->and($grant->nilai_hibah)->toBe('75000000.00')
+            ->and($grant->budgetPlans)->toHaveCount(2)
+            ->and($grant->withdrawalPlans)->toHaveCount(1);
+
+        $latestHistory = $grant->statusHistory()->latest('id')->first();
+        expect($latestHistory->status_sesudah)->toBe(GrantStatus::FillingHarmonization);
     });
 });

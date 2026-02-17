@@ -321,6 +321,86 @@ class GrantAgreementRepository
         });
     }
 
+    /**
+     * @param  list<string>  $grantForms
+     * @param  array<int, array{uraian: string, nilai: string}>  $budgetItems
+     * @param  array<int, array{uraian: string, tanggal: string, nilai: string}>  $withdrawalPlans
+     * @param  array<int, string>  $supervisionParagraphs
+     */
+    public function saveHarmonization(
+        Grant $grant,
+        array $grantForms,
+        string $currency,
+        array $budgetItems,
+        array $withdrawalPlans,
+        array $supervisionParagraphs,
+    ): void {
+        DB::transaction(function () use ($grant, $grantForms, $currency, $budgetItems, $withdrawalPlans, $supervisionParagraphs): void {
+            // Delete existing data for re-save
+            $grant->budgetPlans()->forceDelete();
+            $grant->withdrawalPlans()->forceDelete();
+            $grant->information()
+                ->where('tahapan', GrantStage::Agreement)
+                ->where('judul', ProposalChapter::SupervisionMechanism->value)
+                ->each(function ($info): void {
+                    $info->contents()->forceDelete();
+                    $info->forceDelete();
+                });
+
+            // Save budget items and calculate total
+            $totalValue = '0';
+            foreach ($budgetItems as $index => $item) {
+                $grant->budgetPlans()->create([
+                    'nomor_urut' => $index + 1,
+                    'uraian' => $item['uraian'],
+                    'nilai' => $item['nilai'],
+                ]);
+                $totalValue = bcadd($totalValue, $item['nilai'], 2);
+            }
+
+            // Save withdrawal plans
+            foreach ($withdrawalPlans as $index => $plan) {
+                $grant->withdrawalPlans()->create([
+                    'nomor_urut' => $index + 1,
+                    'uraian' => $plan['uraian'],
+                    'tanggal' => $plan['tanggal'],
+                    'nilai' => $plan['nilai'],
+                ]);
+            }
+
+            // Save supervision mechanism paragraphs
+            $info = $grant->information()->create([
+                'judul' => ProposalChapter::SupervisionMechanism->value,
+                'tahapan' => GrantStage::Agreement->value,
+            ]);
+
+            foreach ($supervisionParagraphs as $index => $paragraph) {
+                if (trim($paragraph) === '') {
+                    continue;
+                }
+
+                $info->contents()->create([
+                    'subjudul' => '',
+                    'isi' => $this->sanitizeHtml($paragraph),
+                    'nomor_urut' => $index + 1,
+                ]);
+            }
+
+            // Update grant
+            $grant->update([
+                'bentuk_hibah' => implode(',', $grantForms),
+                'mata_uang' => $currency,
+                'nilai_hibah' => $totalValue,
+            ]);
+
+            $grant->statusHistory()->create([
+                'status_sebelum' => $this->getLatestStatus($grant)?->value,
+                'status_sesudah' => GrantStatus::FillingHarmonization->value,
+                'keterangan' => "{$grant->orgUnit->nama_unit} mengisi data harmonisasi naskah perjanjian hibah untuk kegiatan {$grant->nama_hibah}",
+            ]);
+        });
+    }
+
     public function isEditable(Grant $grant): bool
     {
         $latestStatus = $this->getLatestStatus($grant);

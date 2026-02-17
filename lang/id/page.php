@@ -450,6 +450,19 @@ return [
         'title' => 'Dokumen Kajian Hibah',
     ],
 
+    // Grant Agreement — Step 4: Harmonisasi Naskah
+    'grant-agreement-harmonization' => [
+        'title' => 'Harmonisasi Naskah Perjanjian Hibah',
+        'label-grant-forms' => 'Bentuk Hibah',
+        'section-budget' => 'Rencana Anggaran Kebutuhan',
+        'section-withdrawal' => 'Rencana Penarikan Hibah',
+        'label-withdrawal-date' => 'Tanggal Penarikan',
+        'add-withdrawal' => 'Tambah Rencana Penarikan',
+        'section-supervision' => 'Mekanisme Pengawasan Hibah',
+        'label-supervision' => 'Mekanisme Pengawasan',
+        'error-withdrawal-exceeds-budget' => 'Total rencana penarikan tidak boleh melebihi total anggaran kebutuhan.',
+    ],
+
     // Grant Document Generation
     'grant-document' => [
         'label-date' => 'Tanggal Dokumen',

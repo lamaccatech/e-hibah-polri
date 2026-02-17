@@ -6,7 +6,6 @@ use App\Concerns\HasChangeHistory as HasChangeHistoryTrait;
 use App\Concerns\HasFiles as HasFilesTrait;
 use App\Contracts\HasChangeHistory;
 use App\Contracts\HasFiles;
-use App\Enums\GrantForm;
 use App\Enums\GrantStage;
 use App\Enums\GrantType;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -46,7 +45,7 @@ class Grant extends Model implements HasChangeHistory, HasFiles
         return [
             'jenis_hibah' => GrantType::class,
             'tahapan' => GrantStage::class,
-            'bentuk_hibah' => GrantForm::class,
+            // bentuk_hibah stored as CSV string (e.g. "UANG,BARANG") — no cast needed
             'ada_usulan' => 'boolean',
             'nilai_hibah' => 'decimal:2',
         ];

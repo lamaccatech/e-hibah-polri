@@ -124,7 +124,7 @@ class Assessment extends Component
 
         $repository->saveAssessment($this->grant, $aspects);
 
-        $this->redirect(route('grant-agreement.index'), navigate: true);
+        $this->redirect(route('grant-agreement.harmonization', $this->grant), navigate: true);
     }
 
     public function render()
