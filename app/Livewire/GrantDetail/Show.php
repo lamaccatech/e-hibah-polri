@@ -2,7 +2,10 @@
 
 namespace App\Livewire\GrantDetail;
 
+use App\Enums\GrantStage;
+use App\Enums\UnitLevel;
 use App\Models\Grant;
+use App\Repositories\GrantAgreementRepository;
 use App\Repositories\GrantDetailRepository;
 use App\Repositories\GrantDocumentRepository;
 use App\Repositories\GrantPlanningRepository;
@@ -13,6 +16,8 @@ class Show extends Component
     public Grant $grant;
 
     public string $activeTab = 'grant-info';
+
+    public bool $showProposal = false;
 
     public function mount(Grant $grant, GrantDetailRepository $repository): void
     {
@@ -26,9 +31,31 @@ class Show extends Component
         $this->activeTab = $tab;
     }
 
-    public function render(GrantDetailRepository $repository, GrantDocumentRepository $documentRepository, GrantPlanningRepository $planningRepository)
+    public function toggleShowProposal(): void
     {
-        $data = ['grant' => $this->grant];
+        $this->showProposal = ! $this->showProposal;
+
+        // Reset to a safe tab if current tab is a proposal-only tab that's being hidden
+        if (! $this->showProposal && in_array($this->activeTab, ['proposal-info', 'assessment-info', 'document-history'])) {
+            $this->activeTab = 'grant-info';
+        }
+    }
+
+    public function render(
+        GrantDetailRepository $repository,
+        GrantDocumentRepository $documentRepository,
+        GrantPlanningRepository $planningRepository,
+        GrantAgreementRepository $agreementRepository,
+    ) {
+        $isAgreementStage = $this->grant->tahapan === GrantStage::Agreement;
+        $hasProposal = (bool) $this->grant->ada_usulan;
+
+        $data = [
+            'grant' => $this->grant,
+            'isAgreementStage' => $isAgreementStage,
+            'hasProposal' => $hasProposal,
+            'showProposal' => $this->showProposal,
+        ];
 
         if ($this->activeTab === 'grant-info') {
             $data['statusHistory'] = $this->grant->statusHistory;
@@ -40,8 +67,18 @@ class Show extends Component
             $data['satkerAssessments'] = $repository->getSatkerAssessments($this->grant);
             $data['poldaResults'] = $repository->getPoldaAssessmentResults($this->grant);
             $data['mabesResults'] = $repository->getMabesAssessmentResults($this->grant);
-            $data['canEditAssessment'] = auth()->user()->unit->level_unit === \App\Enums\UnitLevel::SatuanKerja
+            $data['canEditAssessment'] = auth()->user()->unit->level_unit === UnitLevel::SatuanKerja
                 && $planningRepository->isEditable($this->grant);
+        } elseif ($this->activeTab === 'agreement-info') {
+            $data['agreementChapters'] = $repository->getAgreementChapters($this->grant);
+            $data['budgetPlans'] = $repository->getBudgetPlans($this->grant);
+            $data['activitySchedules'] = $repository->getActivitySchedules($this->grant);
+        } elseif ($this->activeTab === 'agreement-assessment') {
+            $data['satkerAgreementAssessments'] = $repository->getSatkerAgreementAssessments($this->grant);
+            $data['poldaAgreementResults'] = $repository->getPoldaAgreementAssessmentResults($this->grant);
+            $data['mabesAgreementResults'] = $repository->getMabesAgreementAssessmentResults($this->grant);
+            $data['canEditAssessment'] = auth()->user()->unit->level_unit === UnitLevel::SatuanKerja
+                && $agreementRepository->isEditable($this->grant);
         } elseif ($this->activeTab === 'document-history') {
             $data['documentHistory'] = $documentRepository->getDocumentHistory($this->grant);
         }

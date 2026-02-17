@@ -136,4 +136,89 @@ class GrantDetailRepository
             ->filter()
             ->all();
     }
+
+    /**
+     * @return Collection<int, \App\Models\GrantInformation>
+     */
+    public function getAgreementChapters(Grant $grant): Collection
+    {
+        return $grant->information()
+            ->where('tahapan', GrantStage::Agreement)
+            ->with(['contents' => fn ($q) => $q->orderBy('nomor_urut')])
+            ->get();
+    }
+
+    /**
+     * Get the Satker's agreement assessment contents, keyed by aspect value.
+     *
+     * @return array<string, Collection<int, \App\Models\GrantAssessmentContent>>
+     */
+    public function getSatkerAgreementAssessments(Grant $grant): array
+    {
+        $assessmentHistory = $grant->statusHistory()
+            ->where('status_sesudah', GrantStatus::CreatingAgreementAssessment)
+            ->latest('id')
+            ->first();
+
+        if (! $assessmentHistory) {
+            return [];
+        }
+
+        return $assessmentHistory->assessments()
+            ->with('contents')
+            ->get()
+            ->keyBy(fn (GrantAssessment $a) => $a->aspek->value)
+            ->map(fn (GrantAssessment $a) => $a->contents)
+            ->all();
+    }
+
+    /**
+     * Get Polda's agreement assessment results, keyed by aspect value.
+     *
+     * @return array<string, GrantAssessmentResult>
+     */
+    public function getPoldaAgreementAssessmentResults(Grant $grant): array
+    {
+        $poldaReviewHistory = $grant->statusHistory()
+            ->where('status_sesudah', GrantStatus::PoldaReviewingAgreement)
+            ->latest('id')
+            ->first();
+
+        if (! $poldaReviewHistory) {
+            return [];
+        }
+
+        return $poldaReviewHistory->assessments()
+            ->with(['result.orgUnit'])
+            ->get()
+            ->keyBy(fn (GrantAssessment $a) => $a->aspek->value)
+            ->map(fn (GrantAssessment $a) => $a->result)
+            ->filter()
+            ->all();
+    }
+
+    /**
+     * Get Mabes's agreement assessment results, keyed by aspect value.
+     *
+     * @return array<string, GrantAssessmentResult>
+     */
+    public function getMabesAgreementAssessmentResults(Grant $grant): array
+    {
+        $mabesReviewHistory = $grant->statusHistory()
+            ->where('status_sesudah', GrantStatus::MabesReviewingAgreement)
+            ->latest('id')
+            ->first();
+
+        if (! $mabesReviewHistory) {
+            return [];
+        }
+
+        return $mabesReviewHistory->assessments()
+            ->with(['result.orgUnit'])
+            ->get()
+            ->keyBy(fn (GrantAssessment $a) => $a->aspek->value)
+            ->map(fn (GrantAssessment $a) => $a->result)
+            ->filter()
+            ->all();
+    }
 }

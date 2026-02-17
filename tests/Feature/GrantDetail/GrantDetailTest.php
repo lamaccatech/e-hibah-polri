@@ -10,7 +10,9 @@ use App\Models\Donor;
 use App\Models\Grant;
 use App\Models\OrgUnit;
 use App\Models\User;
+use App\Repositories\AgreementReviewRepository;
 use App\Repositories\GrantReviewRepository;
+use App\Repositories\MabesAgreementReviewRepository;
 use App\Repositories\MabesGrantReviewRepository;
 use Livewire\Livewire;
 
@@ -163,6 +165,116 @@ function submitAndReviewGrantByMabes(Grant $grant, User $poldaUser, User $mabesU
 
     // Mabes review
     $mabesRepo = app(MabesGrantReviewRepository::class);
+    $mabesRepo->startReview($grant, $mabesUser->unit);
+
+    $assessments = $mabesRepo->getReviewAssessments($grant);
+    foreach ($assessments as $assessment) {
+        $mabesRepo->submitAspectResult($assessment, $mabesUser->unit, AssessmentResult::Fulfilled, 'Terpenuhi');
+    }
+}
+
+function createAgreementGrantForDetail(User $satkerUser, bool $withProposal = false): Grant
+{
+    $donor = Donor::factory()->create();
+
+    $grant = $satkerUser->unit->grants()->create(
+        Grant::factory()->directAgreement()->raw([
+            'id_pemberi_hibah' => $donor->id,
+            'nilai_hibah' => 200000000,
+            'mata_uang' => 'IDR',
+            'ada_usulan' => $withProposal,
+        ])
+    );
+
+    // Status history
+    $grant->statusHistory()->create([
+        'status_sesudah' => GrantStatus::FillingReceptionData->value,
+        'keterangan' => 'Agreement initialized',
+    ]);
+
+    // Agreement chapters (including ReceptionBasis and SupervisionMechanism)
+    $receptionChapter = $grant->information()->create([
+        'judul' => ProposalChapter::ReceptionBasis->value,
+        'tahapan' => GrantStage::Agreement->value,
+    ]);
+    $receptionChapter->contents()->create([
+        'subjudul' => 'Dasar penerimaan',
+        'isi' => 'Berdasarkan surat dari pemberi hibah...',
+        'nomor_urut' => 1,
+    ]);
+
+    $supervisionChapter = $grant->information()->create([
+        'judul' => ProposalChapter::SupervisionMechanism->value,
+        'tahapan' => GrantStage::Agreement->value,
+    ]);
+    $supervisionChapter->contents()->create([
+        'subjudul' => 'Mekanisme',
+        'isi' => 'Pengawasan dilakukan secara berkala...',
+        'nomor_urut' => 1,
+    ]);
+
+    $generalChapter = $grant->information()->create([
+        'judul' => ProposalChapter::General->value,
+        'tahapan' => GrantStage::Agreement->value,
+    ]);
+    $generalChapter->contents()->create([
+        'subjudul' => 'Umum',
+        'isi' => 'Informasi umum perjanjian hibah...',
+        'nomor_urut' => 1,
+    ]);
+
+    // Budget plans
+    $grant->budgetPlans()->create([
+        'nomor_urut' => 1,
+        'uraian' => 'Peralatan Perjanjian',
+        'nilai' => 120000000,
+    ]);
+
+    // Agreement assessment (Satker)
+    $assessmentHistory = $grant->statusHistory()->create([
+        'status_sebelum' => GrantStatus::FillingReceptionData->value,
+        'status_sesudah' => GrantStatus::CreatingAgreementAssessment->value,
+        'keterangan' => 'Creating agreement assessment',
+    ]);
+
+    foreach (AssessmentAspect::cases() as $aspect) {
+        $assessment = $assessmentHistory->assessments()->create([
+            'judul' => $aspect->label(),
+            'aspek' => $aspect->value,
+            'tahapan' => GrantStage::Agreement->value,
+        ]);
+        $assessment->contents()->create([
+            'subjudul' => $aspect->label(),
+            'isi' => "Kajian aspek {$aspect->label()} perjanjian oleh satker",
+            'nomor_urut' => 1,
+        ]);
+    }
+
+    return $grant;
+}
+
+function submitAndReviewAgreement(Grant $grant, User $poldaUser): void
+{
+    $grant->statusHistory()->create([
+        'status_sebelum' => GrantStatus::CreatingAgreementAssessment->value,
+        'status_sesudah' => GrantStatus::AgreementSubmittedToPolda->value,
+        'keterangan' => 'Agreement submitted to Polda',
+    ]);
+
+    $poldaRepo = app(AgreementReviewRepository::class);
+    $poldaRepo->startReview($grant, $poldaUser->unit);
+
+    $assessments = $poldaRepo->getReviewAssessments($grant);
+    foreach ($assessments as $assessment) {
+        $poldaRepo->submitAspectResult($assessment, $poldaUser->unit, AssessmentResult::Fulfilled, null);
+    }
+}
+
+function submitAndReviewAgreementByMabes(Grant $grant, User $poldaUser, User $mabesUser): void
+{
+    submitAndReviewAgreement($grant, $poldaUser);
+
+    $mabesRepo = app(MabesAgreementReviewRepository::class);
     $mabesRepo->startReview($grant, $mabesUser->unit);
 
     $assessments = $mabesRepo->getReviewAssessments($grant);
@@ -576,10 +688,10 @@ describe('Grant Detail — Edit Assessment Button', function () {
 });
 
 // -------------------------------------------------------------------
-// Tab Navigation
+// Tab Navigation — Planning Stage
 // -------------------------------------------------------------------
 
-describe('Grant Detail — Tab Navigation', function () {
+describe('Grant Detail — Tab Navigation (Planning)', function () {
     it('defaults to grant-info tab', function () {
         $satker = createSatkerUserForDetail();
         $grant = createGrantWithFullData($satker);
@@ -589,6 +701,20 @@ describe('Grant Detail — Tab Navigation', function () {
         Livewire::test(Show::class, ['grant' => $grant])
             ->assertSet('activeTab', 'grant-info')
             ->assertSeeText(__('page.grant-detail.grant-overview'));
+    });
+
+    it('shows planning tab labels for planning stage', function () {
+        $satker = createSatkerUserForDetail();
+        $grant = createGrantWithFullData($satker);
+
+        $this->actingAs($satker);
+
+        Livewire::test(Show::class, ['grant' => $grant])
+            ->assertSeeText(__('page.grant-detail.tab-proposal-info'))
+            ->assertSeeText(__('page.grant-detail.tab-assessment-info'))
+            ->assertSeeText(__('page.grant-detail.tab-document-history'))
+            ->assertDontSeeText(__('page.grant-detail.tab-agreement-info'))
+            ->assertDontSeeText(__('page.grant-detail.tab-agreement-assessment'));
     });
 
     it('switches to proposal-info tab', function () {
@@ -613,5 +739,216 @@ describe('Grant Detail — Tab Navigation', function () {
             ->call('switchTab', 'assessment-info')
             ->assertSet('activeTab', 'assessment-info')
             ->assertSeeText(AssessmentAspect::Technical->label());
+    });
+});
+
+// -------------------------------------------------------------------
+// Tab Navigation — Agreement Stage
+// -------------------------------------------------------------------
+
+describe('Grant Detail — Tab Navigation (Agreement)', function () {
+    it('shows agreement tabs for agreement-stage grant', function () {
+        $satker = createSatkerUserForDetail();
+        $grant = createAgreementGrantForDetail($satker);
+
+        $this->actingAs($satker);
+
+        Livewire::test(Show::class, ['grant' => $grant])
+            ->assertSeeText(__('page.grant-detail.tab-agreement-info'))
+            ->assertSeeText(__('page.grant-detail.tab-agreement-assessment'))
+            ->assertDontSeeHtml("switchTab('proposal-info')")
+            ->assertDontSeeHtml("switchTab('assessment-info')")
+            ->assertDontSeeHtml("switchTab('document-history')");
+    });
+
+    it('switches to agreement-info tab and shows agreement chapters', function () {
+        $satker = createSatkerUserForDetail();
+        $grant = createAgreementGrantForDetail($satker);
+
+        $this->actingAs($satker);
+
+        Livewire::test(Show::class, ['grant' => $grant])
+            ->call('switchTab', 'agreement-info')
+            ->assertSet('activeTab', 'agreement-info')
+            ->assertSeeText(ProposalChapter::ReceptionBasis->label())
+            ->assertSeeText('Berdasarkan surat dari pemberi hibah...')
+            ->assertSeeText(ProposalChapter::SupervisionMechanism->label());
+    });
+
+    it('switches to agreement-assessment tab and shows satker assessment', function () {
+        $satker = createSatkerUserForDetail();
+        $grant = createAgreementGrantForDetail($satker);
+
+        $this->actingAs($satker);
+
+        Livewire::test(Show::class, ['grant' => $grant])
+            ->call('switchTab', 'agreement-assessment')
+            ->assertSet('activeTab', 'agreement-assessment')
+            ->assertSeeText(AssessmentAspect::Technical->label())
+            ->assertSeeText('Kajian aspek Teknis perjanjian oleh satker');
+    });
+
+    it('shows empty state for agreement-info when no data', function () {
+        $satker = createSatkerUserForDetail();
+        $donor = Donor::factory()->create();
+
+        $grant = $satker->unit->grants()->create(
+            Grant::factory()->directAgreement()->raw([
+                'id_pemberi_hibah' => $donor->id,
+            ])
+        );
+        $grant->statusHistory()->create([
+            'status_sesudah' => GrantStatus::FillingReceptionData->value,
+            'keterangan' => 'Agreement initialized',
+        ]);
+
+        $this->actingAs($satker);
+
+        Livewire::test(Show::class, ['grant' => $grant])
+            ->call('switchTab', 'agreement-info')
+            ->assertSeeText(__('page.grant-detail.no-agreement-data'));
+    });
+
+    it('shows empty state for agreement-assessment when no data', function () {
+        $satker = createSatkerUserForDetail();
+        $donor = Donor::factory()->create();
+
+        $grant = $satker->unit->grants()->create(
+            Grant::factory()->directAgreement()->raw([
+                'id_pemberi_hibah' => $donor->id,
+            ])
+        );
+        $grant->statusHistory()->create([
+            'status_sesudah' => GrantStatus::FillingReceptionData->value,
+            'keterangan' => 'Agreement initialized',
+        ]);
+
+        $this->actingAs($satker);
+
+        Livewire::test(Show::class, ['grant' => $grant])
+            ->call('switchTab', 'agreement-assessment')
+            ->assertSeeText(__('page.grant-detail.no-agreement-assessment-data'));
+    });
+
+    it('shows polda agreement assessment results', function () {
+        $satker = createSatkerUserForDetail();
+        $polda = User::find($satker->unit->id_unit_atasan);
+        $grant = createAgreementGrantForDetail($satker);
+
+        submitAndReviewAgreement($grant, $polda);
+
+        $this->actingAs($satker);
+
+        Livewire::test(Show::class, ['grant' => $grant])
+            ->call('switchTab', 'agreement-assessment')
+            ->assertSeeText(__('page.grant-detail.polda-result'))
+            ->assertSeeText(__('page.agreement-review.result-fulfilled'));
+    });
+
+    it('shows mabes agreement assessment results', function () {
+        $satker = createSatkerUserForDetail();
+        $polda = User::find($satker->unit->id_unit_atasan);
+        $mabes = createMabesUserForDetail();
+        $grant = createAgreementGrantForDetail($satker);
+
+        submitAndReviewAgreementByMabes($grant, $polda, $mabes);
+
+        $this->actingAs($satker);
+
+        Livewire::test(Show::class, ['grant' => $grant])
+            ->call('switchTab', 'agreement-assessment')
+            ->assertSeeText(__('page.grant-detail.mabes-result'))
+            ->assertSeeText('Terpenuhi');
+    });
+});
+
+// -------------------------------------------------------------------
+// Toggle Show Proposal (Agreement Stage)
+// -------------------------------------------------------------------
+
+describe('Grant Detail — Toggle Show Proposal', function () {
+    it('shows toggle button for Satker with ada_usulan on agreement stage', function () {
+        $satker = createSatkerUserForDetail();
+        $grant = createAgreementGrantForDetail($satker, withProposal: true);
+
+        $this->actingAs($satker);
+
+        Livewire::test(Show::class, ['grant' => $grant])
+            ->assertSeeText(__('page.grant-detail.show-proposal-button'));
+    });
+
+    it('hides toggle button for Satker without ada_usulan', function () {
+        $satker = createSatkerUserForDetail();
+        $grant = createAgreementGrantForDetail($satker, withProposal: false);
+
+        $this->actingAs($satker);
+
+        Livewire::test(Show::class, ['grant' => $grant])
+            ->assertDontSeeText(__('page.grant-detail.show-proposal-button'));
+    });
+
+    it('hides toggle button for Polda user', function () {
+        $satker = createSatkerUserForDetail();
+        $polda = User::find($satker->unit->id_unit_atasan);
+        $grant = createAgreementGrantForDetail($satker, withProposal: true);
+
+        $this->actingAs($polda);
+
+        Livewire::test(Show::class, ['grant' => $grant])
+            ->assertDontSeeText(__('page.grant-detail.show-proposal-button'));
+    });
+
+    it('hides toggle button for Mabes user', function () {
+        $mabes = createMabesUserForDetail();
+        $satker = createSatkerUserForDetail();
+        $grant = createAgreementGrantForDetail($satker, withProposal: true);
+
+        $this->actingAs($mabes);
+
+        Livewire::test(Show::class, ['grant' => $grant])
+            ->assertDontSeeText(__('page.grant-detail.show-proposal-button'));
+    });
+
+    it('hides toggle button on planning stage', function () {
+        $satker = createSatkerUserForDetail();
+        $grant = createGrantWithFullData($satker);
+
+        $this->actingAs($satker);
+
+        Livewire::test(Show::class, ['grant' => $grant])
+            ->assertDontSeeText(__('page.grant-detail.show-proposal-button'));
+    });
+
+    it('toggles proposal tabs on and off', function () {
+        $satker = createSatkerUserForDetail();
+        $grant = createAgreementGrantForDetail($satker, withProposal: true);
+
+        $this->actingAs($satker);
+
+        Livewire::test(Show::class, ['grant' => $grant])
+            ->assertDontSeeHtml("switchTab('proposal-info')")
+            ->call('toggleShowProposal')
+            ->assertSet('showProposal', true)
+            ->assertSeeHtml("switchTab('proposal-info')")
+            ->assertSeeHtml("switchTab('assessment-info')")
+            ->assertSeeHtml("switchTab('document-history')")
+            ->assertSeeText(__('page.grant-detail.hide-proposal-button'))
+            ->call('toggleShowProposal')
+            ->assertSet('showProposal', false)
+            ->assertDontSeeHtml("switchTab('proposal-info')");
+    });
+
+    it('resets active tab when hiding proposal tabs while on a proposal tab', function () {
+        $satker = createSatkerUserForDetail();
+        $grant = createAgreementGrantForDetail($satker, withProposal: true);
+
+        $this->actingAs($satker);
+
+        Livewire::test(Show::class, ['grant' => $grant])
+            ->call('toggleShowProposal')
+            ->call('switchTab', 'proposal-info')
+            ->assertSet('activeTab', 'proposal-info')
+            ->call('toggleShowProposal')
+            ->assertSet('activeTab', 'grant-info');
     });
 });
