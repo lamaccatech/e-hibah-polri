@@ -7,6 +7,7 @@ use App\Enums\GrantStage;
 use App\Enums\GrantStatus;
 use App\Models\Grant;
 use App\Repositories\GrantAgreementRepository;
+use Illuminate\View\View;
 use Livewire\Component;
 
 class Assessment extends Component
@@ -127,7 +128,7 @@ class Assessment extends Component
         $this->redirect(route('grant-agreement.harmonization', $this->grant), navigate: true);
     }
 
-    public function render()
+    public function render(): View
     {
         return view('livewire.grant-agreement.assessment', [
             'aspectCases' => AssessmentAspect::cases(),

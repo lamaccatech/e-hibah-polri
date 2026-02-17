@@ -13,7 +13,7 @@
         <flux:file-upload wire:model="signature" :label="__('page.chief-create.label-signature')" accept="image/*">
             <flux:file-upload.dropzone
                 :heading="__('page.chief-create.label-signature')"
-                text="JPG, PNG"
+                :text="__('common.file-format-image')"
             />
         </flux:file-upload>
         <flux:error name="signature" />

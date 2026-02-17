@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('kepala_unit', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('id_unit');
+            $table->unsignedBigInteger('id_unit')->nullable();
             $table->string('nama_lengkap');
             $table->string('jabatan');
             $table->string('pangkat');
@@ -23,7 +23,7 @@ return new class extends Migration
             $table->softDeletesTz();
             $table->timestampsTz();
 
-            $table->foreign('id_unit')->references('id_user')->on('unit')->cascadeOnDelete();
+            $table->foreign('id_unit')->references('id_user')->on('unit')->nullOnDelete();
             $table->index('id_unit');
         });
     }

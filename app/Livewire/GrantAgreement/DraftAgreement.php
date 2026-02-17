@@ -4,6 +4,7 @@ namespace App\Livewire\GrantAgreement;
 
 use App\Models\Grant;
 use App\Repositories\GrantAgreementRepository;
+use Illuminate\View\View;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 
@@ -47,7 +48,7 @@ class DraftAgreement extends Component
         $this->redirect(route('grant-agreement.index'), navigate: true);
     }
 
-    public function render()
+    public function render(): View
     {
         return view('livewire.grant-agreement.draft-agreement');
     }

@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('jadwal_pelaksanaan_kegiatan', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('id_hibah')->constrained('hibah')->cascadeOnDelete();
+            $table->foreignId('id_hibah')->nullable()->constrained('hibah')->nullOnDelete();
             $table->text('uraian_kegiatan');
             $table->date('tanggal_mulai');
             $table->date('tanggal_selesai');

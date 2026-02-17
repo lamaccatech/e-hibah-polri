@@ -6,6 +6,7 @@ use App\Enums\GrantStage;
 use App\Enums\ProposalChapter;
 use App\Models\Grant;
 use App\Repositories\GrantAgreementRepository;
+use Illuminate\View\View;
 use Livewire\Component;
 
 class AdditionalMaterials extends Component
@@ -76,7 +77,7 @@ class AdditionalMaterials extends Component
         $this->redirect(route('grant-agreement.other', $this->grant), navigate: true);
     }
 
-    public function render()
+    public function render(): View
     {
         return view('livewire.grant-agreement.additional-materials', [
             'chapterCases' => $this->additionalChapters(),

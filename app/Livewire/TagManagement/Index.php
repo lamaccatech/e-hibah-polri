@@ -3,6 +3,7 @@
 namespace App\Livewire\TagManagement;
 
 use App\Models\Tag;
+use Illuminate\View\View;
 use Livewire\Component;
 
 class Index extends Component
@@ -48,7 +49,7 @@ class Index extends Component
         $this->reset('editingTagId', 'editingName');
     }
 
-    public function render()
+    public function render(): View
     {
         return view('livewire.tag-management.index', [
             'tags' => Tag::query()->orderBy('name')->get(),

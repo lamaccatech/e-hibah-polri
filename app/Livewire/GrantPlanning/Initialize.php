@@ -4,6 +4,7 @@ namespace App\Livewire\GrantPlanning;
 
 use App\Models\Grant;
 use App\Repositories\GrantPlanningRepository;
+use Illuminate\View\View;
 use Livewire\Component;
 
 class Initialize extends Component
@@ -53,7 +54,7 @@ class Initialize extends Component
         $this->redirect(route('grant-planning.donor', $grant), navigate: true);
     }
 
-    public function render()
+    public function render(): View
     {
         return view('livewire.grant-planning.create');
     }

@@ -27,6 +27,7 @@ return [
     // Labels
     'email' => 'Email',
     'password' => 'Password',
+    'file-format-image' => 'JPG, PNG',
 
     // Grant stages
     'planning' => 'Usulan',

@@ -5,6 +5,7 @@ namespace App\Livewire\GrantAgreement;
 use App\Enums\FileType;
 use App\Models\Grant;
 use App\Repositories\GrantAgreementRepository;
+use Illuminate\View\View;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 
@@ -135,7 +136,7 @@ class ReceptionBasis extends Component
         $this->redirect(route('grant-agreement.donor', $grant), navigate: true);
     }
 
-    public function render()
+    public function render(): View
     {
         return view('livewire.grant-agreement.reception-basis', [
             'purposeOptions' => config('options.grant_purposes'),

@@ -8,6 +8,7 @@ use App\Models\Grant;
 use App\Repositories\GrantAgreementRepository;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
+use Illuminate\View\View;
 use Livewire\Component;
 
 class DonorInfo extends Component
@@ -189,7 +190,7 @@ class DonorInfo extends Component
         $this->redirect(route('grant-agreement.assessment', $this->grant), navigate: true);
     }
 
-    public function render()
+    public function render(): View
     {
         $provinceOptions = [];
         $regencyOptions = [];

@@ -3,6 +3,7 @@
 namespace App\Livewire\DonorListing;
 
 use App\Models\Donor;
+use Illuminate\View\View;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -17,7 +18,7 @@ class Index extends Component
         $this->resetPage();
     }
 
-    public function render()
+    public function render(): View
     {
         $donors = Donor::query()
             ->withCount('grants')

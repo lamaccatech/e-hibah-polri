@@ -8,6 +8,7 @@ use App\Models\Autocomplete;
 use App\Models\Grant;
 use App\Repositories\GrantPlanningRepository;
 use Illuminate\Validation\Rule;
+use Illuminate\View\View;
 use Livewire\Component;
 
 class ProposalDocument extends Component
@@ -219,7 +220,7 @@ class ProposalDocument extends Component
         $this->redirect(route('grant-planning.assessment', $this->grant), navigate: true);
     }
 
-    public function render()
+    public function render(): View
     {
         return view('livewire.grant-planning.proposal-document', [
             'planningChapters' => $this->planningChapters(),

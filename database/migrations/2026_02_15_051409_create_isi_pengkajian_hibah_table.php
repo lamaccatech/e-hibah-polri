@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('isi_pengkajian_hibah', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('id_pengkajian_hibah')->constrained('pengkajian_hibah')->cascadeOnDelete();
+            $table->foreignId('id_pengkajian_hibah')->nullable()->constrained('pengkajian_hibah')->nullOnDelete();
             $table->string('subjudul');
             $table->text('isi');
             $table->unsignedSmallInteger('nomor_urut');

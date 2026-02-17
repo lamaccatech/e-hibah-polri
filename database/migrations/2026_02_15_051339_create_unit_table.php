@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('unit', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('id_user')->unique()->constrained('users')->cascadeOnDelete();
+            $table->foreignId('id_user')->nullable()->unique()->constrained('users')->nullOnDelete();
             $table->unsignedBigInteger('id_unit_atasan')->nullable();
             $table->string('kode');
             $table->string('nama_unit');

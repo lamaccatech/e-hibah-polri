@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('dokumen_hibah', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('id_hibah')->constrained('hibah')->cascadeOnDelete();
+            $table->foreignId('id_hibah')->nullable()->constrained('hibah')->nullOnDelete();
             $table->string('jenis_dokumen');
             $table->string('nomor')->nullable();
             $table->string('tanggal')->nullable();

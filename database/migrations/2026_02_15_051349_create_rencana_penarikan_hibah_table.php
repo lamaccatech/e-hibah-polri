@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('rencana_penarikan_hibah', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('id_hibah')->constrained('hibah')->cascadeOnDelete();
+            $table->foreignId('id_hibah')->nullable()->constrained('hibah')->nullOnDelete();
             $table->unsignedSmallInteger('nomor_urut');
             $table->text('uraian');
             $table->date('tanggal');

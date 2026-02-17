@@ -5,6 +5,7 @@ namespace App\Livewire\GrantAgreement;
 use App\Models\Autocomplete;
 use App\Models\Grant;
 use App\Repositories\GrantAgreementRepository;
+use Illuminate\View\View;
 use Livewire\Component;
 
 class SehatiSubmission extends Component
@@ -127,7 +128,7 @@ class SehatiSubmission extends Component
         $this->redirect(route('grant-detail.show', $this->grant), navigate: true);
     }
 
-    public function render()
+    public function render(): View
     {
         return view('livewire.grant-agreement.sehati-submission', [
             'grantRecipientOptions' => Autocomplete::where('identifier', 'penerima_hibah')->pluck('value'),

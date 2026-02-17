@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('lokasi_dan_alokasi_hibah', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('id_hibah')->constrained('hibah')->cascadeOnDelete();
+            $table->foreignId('id_hibah')->nullable()->constrained('hibah')->nullOnDelete();
             $table->string('lokasi');
             $table->decimal('alokasi', 20, 2);
             $table->softDeletesTz();

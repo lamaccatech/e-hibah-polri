@@ -8,6 +8,7 @@ use App\Enums\GrantStatus;
 use App\Models\Grant;
 use App\Models\GrantAssessment;
 use App\Repositories\GrantPlanningRepository;
+use Illuminate\View\View;
 use Livewire\Component;
 
 class Assessment extends Component
@@ -134,7 +135,7 @@ class Assessment extends Component
         $this->redirect(route('grant-planning.index'), navigate: true);
     }
 
-    public function render()
+    public function render(): View
     {
         return view('livewire.grant-planning.assessment', [
             'aspectCases' => AssessmentAspect::cases(),

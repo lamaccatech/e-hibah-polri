@@ -3,6 +3,7 @@
 namespace App\Livewire;
 
 use Illuminate\Notifications\DatabaseNotification;
+use Illuminate\View\View;
 use Livewire\Component;
 
 class NotificationBell extends Component
@@ -40,7 +41,7 @@ class NotificationBell extends Component
         return null;
     }
 
-    public function render()
+    public function render(): View
     {
         $notifications = auth()->user()->notifications()->latest()->limit(10)->get();
         $unreadCount = auth()->user()->unreadNotifications()->count();

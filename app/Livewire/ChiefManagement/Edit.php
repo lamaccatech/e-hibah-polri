@@ -4,6 +4,7 @@ namespace App\Livewire\ChiefManagement;
 
 use App\Models\OrgUnitChief;
 use App\Repositories\ChiefRepository;
+use Illuminate\View\View;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 
@@ -67,7 +68,7 @@ class Edit extends Component
         $this->redirect(route('chief.index'), navigate: true);
     }
 
-    public function render()
+    public function render(): View
     {
         return view('livewire.chief-management.edit');
     }

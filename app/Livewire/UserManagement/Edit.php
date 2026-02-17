@@ -5,6 +5,7 @@ namespace App\Livewire\UserManagement;
 use App\Models\User;
 use App\Repositories\UserRepository;
 use Illuminate\Validation\Rule;
+use Illuminate\View\View;
 use Livewire\Component;
 
 class Edit extends Component
@@ -50,7 +51,7 @@ class Edit extends Component
         $this->redirect(route('user.index'), navigate: true);
     }
 
-    public function render()
+    public function render(): View
     {
         return view('livewire.user-management.edit');
     }

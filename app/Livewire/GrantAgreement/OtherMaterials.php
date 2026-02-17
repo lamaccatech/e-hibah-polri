@@ -6,6 +6,7 @@ use App\Enums\GrantStage;
 use App\Enums\ProposalChapter;
 use App\Models\Grant;
 use App\Repositories\GrantAgreementRepository;
+use Illuminate\View\View;
 use Livewire\Component;
 
 class OtherMaterials extends Component
@@ -88,7 +89,7 @@ class OtherMaterials extends Component
         $this->redirect(route('grant-agreement.draft', $this->grant), navigate: true);
     }
 
-    public function render()
+    public function render(): View
     {
         return view('livewire.grant-agreement.other-materials');
     }

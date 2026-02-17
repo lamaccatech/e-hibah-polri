@@ -8,6 +8,7 @@ use App\Models\Autocomplete;
 use App\Models\Grant;
 use App\Repositories\GrantAgreementRepository;
 use Illuminate\Validation\Rule;
+use Illuminate\View\View;
 use Livewire\Component;
 
 class Harmonization extends Component
@@ -146,7 +147,7 @@ class Harmonization extends Component
         $this->redirect($nextRoute, navigate: true);
     }
 
-    public function render()
+    public function render(): View
     {
         return view('livewire.grant-agreement.harmonization', [
             'grantFormOptions' => ['UANG', 'BARANG', 'JASA'],

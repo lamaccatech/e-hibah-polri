@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('rencana_anggaran_biaya_hibah', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('id_hibah')->constrained('hibah')->cascadeOnDelete();
+            $table->foreignId('id_hibah')->nullable()->constrained('hibah')->nullOnDelete();
             $table->unsignedInteger('nomor_urut');
             $table->text('uraian');
             $table->decimal('nilai', 20, 2);

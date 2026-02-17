@@ -3,6 +3,7 @@
 namespace App\Livewire\DonorListing;
 
 use App\Models\Donor;
+use Illuminate\View\View;
 use Livewire\Component;
 
 class Show extends Component
@@ -14,7 +15,7 @@ class Show extends Component
         $this->donor = $donor->load(['grants.orgUnit', 'grants.statusHistory', 'tags']);
     }
 
-    public function render()
+    public function render(): View
     {
         return view('livewire.donor-listing.show');
     }

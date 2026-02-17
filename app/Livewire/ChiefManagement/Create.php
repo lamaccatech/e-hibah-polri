@@ -3,6 +3,7 @@
 namespace App\Livewire\ChiefManagement;
 
 use App\Repositories\ChiefRepository;
+use Illuminate\View\View;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 
@@ -48,7 +49,7 @@ class Create extends Component
         $this->redirect(route('chief.index'), navigate: true);
     }
 
-    public function render()
+    public function render(): View
     {
         return view('livewire.chief-management.create');
     }
