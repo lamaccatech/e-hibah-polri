@@ -43,14 +43,14 @@
                         </div>
                     </a>
 
-                    <div class="relative flex min-h-72 flex-col items-center justify-center gap-4 rounded-xl border border-zinc-200 px-10 py-16 text-center opacity-50 dark:border-zinc-700">
-                        <flux:badge size="sm" color="zinc" class="absolute top-3 right-3">{{ __('page.dashboard.agreement-badge') }}</flux:badge>
-                        <flux:icon.document-check class="size-20 text-zinc-400" />
+                    <a href="{{ route('grant-agreement.create') }}" wire:navigate
+                        class="group flex min-h-72 flex-col items-center justify-center gap-4 rounded-xl border border-zinc-200 px-10 py-16 text-center transition hover:border-zinc-400 hover:bg-zinc-50 dark:border-zinc-700 dark:hover:border-zinc-500 dark:hover:bg-zinc-800/50">
+                        <flux:icon.document-check class="size-20 text-zinc-400 group-hover:text-zinc-600 dark:group-hover:text-zinc-300" />
                         <div>
                             <flux:heading size="lg">{{ __('page.dashboard.agreement-title') }}</flux:heading>
                             <flux:text class="mt-1">{{ __('page.dashboard.agreement-description') }}</flux:text>
                         </div>
-                    </div>
+                    </a>
                 </div>
             </div>
         </div>

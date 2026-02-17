@@ -19,6 +19,9 @@
                     <flux:navbar.item icon="document-text" :href="route('grant-planning.index')" :current="request()->routeIs('grant-planning.*')" wire:navigate>
                         {{ __('component.navbar.nav-grant-planning') }}
                     </flux:navbar.item>
+                    <flux:navbar.item icon="clipboard-document-list" :href="route('grant-agreement.index')" :current="request()->routeIs('grant-agreement.*')" wire:navigate>
+                        {{ __('component.navbar.nav-grant-agreement') }}
+                    </flux:navbar.item>
                     <flux:navbar.item icon="user-circle" :href="route('chief.index')" :current="request()->routeIs('chief.*')" wire:navigate>
                         {{ __('component.navbar.nav-chief-management') }}
                     </flux:navbar.item>
@@ -101,6 +104,9 @@
                 @if (auth()->user()->unit?->level_unit === \App\Enums\UnitLevel::SatuanKerja)
                     <flux:sidebar.item icon="document-text" :href="route('grant-planning.index')" :current="request()->routeIs('grant-planning.*')" wire:navigate>
                         {{ __('component.navbar.nav-grant-planning') }}
+                    </flux:sidebar.item>
+                    <flux:sidebar.item icon="clipboard-document-list" :href="route('grant-agreement.index')" :current="request()->routeIs('grant-agreement.*')" wire:navigate>
+                        {{ __('component.navbar.nav-grant-agreement') }}
                     </flux:sidebar.item>
                     <flux:sidebar.item icon="user-circle" :href="route('chief.index')" :current="request()->routeIs('chief.*')" wire:navigate>
                         {{ __('component.navbar.nav-chief-management') }}

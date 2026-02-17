@@ -47,4 +47,16 @@ class GrantFactory extends Factory
             'ada_usulan' => true,
         ]);
     }
+
+    /**
+     * Direct agreement grant (no proposal).
+     */
+    public function directAgreement(): static
+    {
+        return $this->state(fn () => [
+            'jenis_hibah' => GrantType::Direct->value,
+            'tahapan' => GrantStage::Agreement->value,
+            'ada_usulan' => false,
+        ]);
+    }
 }

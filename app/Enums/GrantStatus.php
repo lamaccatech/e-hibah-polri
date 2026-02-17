@@ -74,6 +74,13 @@ enum GrantStatus: string
             self::MabesRejectedPlanning => __('page.mabes-grant-review.badge-rejected'),
             self::MabesRequestedPlanningRevision => __('page.mabes-grant-review.badge-revision-requested'),
             self::PlanningNumberIssued => __('page.mabes-grant-review.badge-number-issued'),
+            self::FillingReceptionData => __('page.grant-agreement.badge-filling-reception'),
+            self::FillingDonorInfo => __('page.grant-agreement.badge-filling-donor'),
+            self::CreatingAgreementAssessment => __('page.grant-agreement.badge-creating-assessment'),
+            self::FillingHarmonization => __('page.grant-agreement.badge-filling-harmonization'),
+            self::FillingAdditionalMaterials => __('page.grant-agreement.badge-filling-additional'),
+            self::FillingOtherMaterials => __('page.grant-agreement.badge-filling-other'),
+            self::UploadingDraftAgreement => __('page.grant-agreement.badge-uploading-draft'),
             default => $this->value,
         };
     }
@@ -117,6 +124,22 @@ enum GrantStatus: string
         return in_array($this, [
             self::PlanningSubmittedToPolda,
             self::PlanningRevisionResubmitted,
+        ]);
+    }
+
+    public function isEditableBySatkerAgreement(): bool
+    {
+        return in_array($this, [
+            self::FillingReceptionData,
+            self::FillingDonorInfo,
+            self::CreatingAgreementAssessment,
+            self::FillingHarmonization,
+            self::FillingAdditionalMaterials,
+            self::FillingOtherMaterials,
+            self::UploadingDraftAgreement,
+            self::RevisingAgreement,
+            self::PoldaRequestedAgreementRevision,
+            self::MabesRequestedAgreementRevision,
         ]);
     }
 

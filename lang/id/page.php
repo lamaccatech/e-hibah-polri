@@ -409,6 +409,35 @@ return [
         'no-document-generated' => 'Belum pernah dicetak.',
     ],
 
+    // Grant Agreement — Index
+    'grant-agreement' => [
+        'title' => 'Perjanjian Hibah',
+        'create-button' => 'Buat Perjanjian',
+        'column-name' => 'Nama Kegiatan',
+        'column-donor' => 'Pemberi Hibah',
+        'column-status' => 'Status',
+        'column-action' => 'Aksi',
+        'empty-state' => 'Belum ada perjanjian hibah.',
+        'badge-filling-reception' => 'Dasar Penerimaan',
+        'badge-filling-donor' => 'Data Pemberi Hibah',
+        'badge-creating-assessment' => 'Dokumen Kajian',
+        'badge-filling-harmonization' => 'Harmonisasi',
+        'badge-filling-additional' => 'Materi Tambahan',
+        'badge-filling-other' => 'Materi Lainnya',
+        'badge-uploading-draft' => 'Draft Perjanjian',
+    ],
+
+    // Grant Agreement — Step 1: Dasar Penerimaan
+    'grant-agreement-reception' => [
+        'title' => 'Dasar Penerimaan Hibah',
+        'label-activity-name' => 'Nama kegiatan yang akan dibiayai oleh hibah',
+        'label-letter-number' => 'Nomor Surat',
+        'label-donor-letter' => 'Surat dari Pemberi Hibah',
+        'donor-letter-hint' => 'PDF, JPG, atau PNG. Maksimal 10MB.',
+        'label-objective-detail' => 'Detail tujuan',
+        'linked-to-planning' => 'Nomor surat cocok dengan nomor usulan. Data usulan akan dimuat.',
+    ],
+
     // Grant Document Generation
     'grant-document' => [
         'label-date' => 'Tanggal Dokumen',

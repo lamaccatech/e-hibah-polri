@@ -9,6 +9,7 @@ return [
     'navbar' => [
         'nav-dashboard' => 'Dasbor',
         'nav-grant-planning' => 'Usulan Hibah',
+        'nav-grant-agreement' => 'Perjanjian Hibah',
         'nav-grant-review' => 'Usulan Hibah',
         'nav-chief-management' => 'Kepala Satker',
         'nav-mabes-grant-review' => 'Usulan Hibah',
@@ -20,6 +21,16 @@ return [
         'step-2' => 'Calon Pemberi Hibah',
         'step-3' => 'Naskah Usulan',
         'step-4' => 'Dokumen Kajian',
+    ],
+
+    'grant-agreement-steps' => [
+        'step-1' => 'Dasar Penerimaan',
+        'step-2' => 'Pemberi Hibah',
+        'step-3' => 'Kajian',
+        'step-4' => 'Harmonisasi',
+        'step-5' => 'Materi Tambahan',
+        'step-6' => 'Materi Lainnya',
+        'step-7' => 'Draft Perjanjian',
     ],
 
     'settings-nav' => [
