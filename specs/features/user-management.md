@@ -23,14 +23,16 @@ Mabes (headquarters) provisions and manages user accounts along with their organ
 
 ## Routes
 
-| Method | Path            | Name         | Description         | Auth  | Role  |
-|--------|-----------------|--------------|---------------------|-------|-------|
-| GET    | /user           | user.index   | List all users      | Yes   | Mabes |
-| GET    | /user/create    | user.create  | Show create form    | Yes   | Mabes |
-| POST   | /user           | user.store   | Create user + unit  | Yes   | Mabes |
-| GET    | /user/{id}/edit | user.edit    | Show edit form      | Yes   | Mabes |
-| PATCH  | /user/{id}      | user.update  | Update user + unit  | Yes   | Mabes |
-| DELETE | /user/{id}      | user.destroy | Soft-delete user + unit | Yes | Mabes |
+| Method | Path              | Name        | Description      | Auth  | Role  |
+|--------|-------------------|-------------|------------------|-------|-------|
+| GET    | /user             | user.index  | List all users   | Yes   | Mabes |
+| GET    | /user/create      | user.create | Show create form | Yes   | Mabes |
+| GET    | /user/{user}/edit | user.edit   | Show edit form   | Yes   | Mabes |
+
+Store, update, and delete are handled as Livewire component actions (not HTTP routes):
+- **Create:** `UserManagement\Create` component's `save()` action
+- **Update:** `UserManagement\Edit` component's `save()` action
+- **Delete:** `UserManagement\Edit` component's `delete()` action
 
 ---
 
@@ -50,7 +52,7 @@ sequenceDiagram
     M->>F: Click "Tambah User"
     F-->>M: Show create form
     M->>F: Fill email, password, unit name,<br/>unit code, level, parent unit
-    M->>S: Submit form (POST /user)
+    M->>S: Submit form (Livewire save action)
 
     alt Validation passes
         S->>S: Create users record (email, password)
@@ -102,7 +104,7 @@ sequenceDiagram
     M->>F: Click "Edit" on a user row
     F-->>M: Show edit form with current data
     M->>F: Modify email, unit code, unit name
-    M->>S: Submit form (PATCH /user/{id})
+    M->>S: Submit form (Livewire save action)
 
     alt Validation passes
         S->>S: Update users record (email)
@@ -143,7 +145,7 @@ sequenceDiagram
     UI-->>M: Show list of users + org units
     M->>D: Click "Hapus" on a user row
     D-->>M: Show confirmation dialog<br/>"Hapus user dan unit ini?"
-    M->>S: Confirm delete (DELETE /user/{id})
+    M->>S: Confirm delete (Livewire delete action)
 
     alt Can be deleted
         S->>S: Check for active grants

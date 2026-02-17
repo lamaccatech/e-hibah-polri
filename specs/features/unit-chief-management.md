@@ -22,14 +22,13 @@ Satker (work units) manage their unit chiefs (kepala unit). A unit chief represe
 
 ## Routes
 
-| Method | Path                      | Name                 | Description              | Auth  | Role   |
-|--------|---------------------------|----------------------|--------------------------|-------|--------|
-| GET    | /kepala-satker            | kepala-satker.index  | List unit chiefs         | Yes   | Satker |
-| GET    | /kepala-satker/create     | kepala-satker.create | Show create form         | Yes   | Satker |
-| POST   | /kepala-satker            | kepala-satker.store  | Create new chief         | Yes   | Satker |
-| GET    | /kepala-satker/{id}/edit  | kepala-satker.edit   | Show edit form           | Yes   | Satker |
-| PATCH  | /kepala-satker/{id}       | kepala-satker.update | Update chief data        | Yes   | Satker |
-| POST   | /kepala-satker/{id}/assign| kepala-satker.assign | Designate active chief   | Yes   | Satker |
+| Method | Path                        | Name          | Description        | Auth  | Role   |
+|--------|-----------------------------|---------------|--------------------|-------|--------|
+| GET    | /kepala-satker              | chief.index   | List unit chiefs   | Yes   | Satker |
+| GET    | /kepala-satker/create       | chief.create  | Show create form   | Yes   | Satker |
+| GET    | /kepala-satker/{chief}/edit | chief.edit    | Show edit form     | Yes   | Satker |
+
+Store, update, and designate-active are handled as Livewire component actions (not HTTP routes).
 
 ## Create Chief Form Fields
 
@@ -49,7 +48,7 @@ Same fields as create. Signature image is re-uploaded on update.
 
 ## Designate Active Chief
 
-POST to the assign route sets `sedang_menjabat = true` for the specified chief.
+Livewire action on the Index component sets `sedang_menjabat = true` for the specified chief and `false` for all others in the same unit.
 
 ---
 
