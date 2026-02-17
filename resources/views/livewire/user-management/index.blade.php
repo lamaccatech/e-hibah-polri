@@ -7,7 +7,7 @@
         </flux:button>
     </div>
 
-    <div class="mb-4">
+    <div class="mb-4 w-1/4">
         <flux:input wire:model.live.debounce.300ms="search" placeholder="{{ __('page.user-management.search-placeholder') }}" icon="magnifying-glass" clearable />
     </div>
 
