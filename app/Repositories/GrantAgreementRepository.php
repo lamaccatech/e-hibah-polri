@@ -267,6 +267,60 @@ class GrantAgreementRepository
         ]);
     }
 
+    /**
+     * @param  array<int, array{judul: string, aspek: ?string, paragraphs: array<int, array{subjudul: string, isi: string}>}>  $aspects
+     */
+    public function saveAssessment(Grant $grant, array $aspects): void
+    {
+        DB::transaction(function () use ($grant, $aspects): void {
+            // Delete existing agreement assessments
+            $grant->statusHistory()
+                ->get()
+                ->each(function ($history): void {
+                    $history->assessments()
+                        ->where('tahapan', GrantStage::Agreement)
+                        ->each(function ($assessment): void {
+                            $assessment->contents()->forceDelete();
+                            $assessment->forceDelete();
+                        });
+                });
+
+            $statusHistory = $grant->statusHistory()->create([
+                'status_sebelum' => $this->getLatestStatus($grant)?->value,
+                'status_sesudah' => GrantStatus::CreatingAgreementAssessment->value,
+                'keterangan' => "{$grant->orgUnit->nama_unit} membuat dokumen kajian hibah untuk kegiatan {$grant->nama_hibah}",
+            ]);
+
+            foreach ($aspects as $aspect) {
+                $assessment = $statusHistory->assessments()->create([
+                    'judul' => $aspect['judul'],
+                    'aspek' => $aspect['aspek'],
+                    'tahapan' => GrantStage::Agreement->value,
+                ]);
+
+                foreach ($aspect['paragraphs'] as $index => $content) {
+                    $subjudul = '';
+                    $isi = $content;
+
+                    if (is_array($content)) {
+                        $subjudul = $content['subjudul'] ?? '';
+                        $isi = $content['isi'] ?? '';
+                    }
+
+                    if (trim($isi) === '') {
+                        continue;
+                    }
+
+                    $assessment->contents()->create([
+                        'subjudul' => $subjudul,
+                        'isi' => $this->sanitizeHtml($isi),
+                        'nomor_urut' => $index + 1,
+                    ]);
+                }
+            }
+        });
+    }
+
     public function isEditable(Grant $grant): bool
     {
         $latestStatus = $this->getLatestStatus($grant);

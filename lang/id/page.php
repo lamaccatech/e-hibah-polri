@@ -445,6 +445,11 @@ return [
         'readonly-description' => 'Data pemberi hibah telah dimuat dari proses usulan dan tidak dapat diubah.',
     ],
 
+    // Grant Agreement — Step 3: Kajian
+    'grant-agreement-assessment' => [
+        'title' => 'Dokumen Kajian Hibah',
+    ],
+
     // Grant Document Generation
     'grant-document' => [
         'label-date' => 'Tanggal Dokumen',

@@ -1,13 +1,15 @@
 <?php
 
-// SPEC: Grant Agreement — Satker Step 1 (Dasar Penerimaan)
+// SPEC: Grant Agreement — Satker Steps 1-3
 // See specs/features/agreement-flow.md for full feature spec.
 
+use App\Enums\AssessmentAspect;
 use App\Enums\FileType;
 use App\Enums\GrantStage;
 use App\Enums\GrantStatus;
 use App\Enums\GrantType;
 use App\Enums\ProposalChapter;
+use App\Livewire\GrantAgreement\Assessment;
 use App\Livewire\GrantAgreement\DonorInfo;
 use App\Livewire\GrantAgreement\Index;
 use App\Livewire\GrantAgreement\ReceptionBasis;
@@ -503,5 +505,160 @@ describe('Step 2: Pemberi Hibah — Editable (direct agreement)', function () {
 
         expect($purposeInfo)->not->toBeNull()
             ->and($purposeInfo->contents)->toHaveCount(1);
+    });
+});
+
+function buildMandatoryAspects(): array
+{
+    $aspects = [];
+    foreach (AssessmentAspect::cases() as $aspect) {
+        $prompts = $aspect->prompts();
+        $aspects[$aspect->value] = array_fill(0, count($prompts), 'Assessment paragraph with enough content for validation.');
+    }
+
+    return $aspects;
+}
+
+function createAgreementGrantFromPlanningWithAssessment(User $user): Grant
+{
+    $donor = Donor::factory()->create();
+    $grant = $user->unit->grants()->create(
+        Grant::factory()->raw([
+            'jenis_hibah' => GrantType::Direct->value,
+            'tahapan' => GrantStage::Agreement->value,
+            'ada_usulan' => true,
+            'id_pemberi_hibah' => $donor->id,
+        ])
+    );
+
+    // Planning assessment status (created during planning, before agreement transition)
+    $assessmentHistory = $grant->statusHistory()->create([
+        'status_sesudah' => GrantStatus::CreatingPlanningAssessment->value,
+        'keterangan' => 'Planning assessment created',
+    ]);
+
+    foreach (AssessmentAspect::cases() as $aspect) {
+        $assessment = $assessmentHistory->assessments()->create([
+            'judul' => $aspect->label(),
+            'aspek' => $aspect->value,
+            'tahapan' => GrantStage::Planning->value,
+        ]);
+
+        foreach ($aspect->prompts() as $i => $prompt) {
+            $assessment->contents()->create([
+                'subjudul' => $prompt,
+                'isi' => "<p>Planning assessment content for {$aspect->label()} prompt {$i}</p>",
+                'nomor_urut' => $i + 1,
+            ]);
+        }
+    }
+
+    // Agreement transition status (latest — makes grant editable)
+    $grant->statusHistory()->create([
+        'status_sesudah' => GrantStatus::FillingReceptionData->value,
+        'keterangan' => 'Transitioned from planning',
+    ]);
+
+    return $grant;
+}
+
+describe('Step 3: Kajian — Direct agreement', function () {
+    it('saves 4 mandatory aspects with agreement stage', function () {
+        $user = createSatkerUserForAgreementTest();
+        $grant = createAgreementGrant($user);
+
+        Livewire::actingAs($user)
+            ->test(Assessment::class, ['grant' => $grant])
+            ->set('mandatoryAspects', buildMandatoryAspects())
+            ->call('save')
+            ->assertHasNoErrors()
+            ->assertRedirect();
+
+        $latestHistory = $grant->statusHistory()->latest('id')->first();
+        expect($latestHistory->status_sesudah)->toBe(GrantStatus::CreatingAgreementAssessment);
+
+        $assessments = $latestHistory->assessments()
+            ->where('tahapan', GrantStage::Agreement)
+            ->with('contents')
+            ->get();
+
+        expect($assessments)->toHaveCount(4);
+    });
+
+    it('saves custom aspects', function () {
+        $user = createSatkerUserForAgreementTest();
+        $grant = createAgreementGrant($user);
+
+        Livewire::actingAs($user)
+            ->test(Assessment::class, ['grant' => $grant])
+            ->set('mandatoryAspects', buildMandatoryAspects())
+            ->set('customAspects', [[
+                'title' => 'Aspek Tambahan',
+                'paragraphs' => ['Custom content paragraph with enough length for validation.'],
+            ]])
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $latestHistory = $grant->statusHistory()->latest('id')->first();
+        $assessments = $latestHistory->assessments()
+            ->where('tahapan', GrantStage::Agreement)
+            ->get();
+
+        expect($assessments)->toHaveCount(5)
+            ->and($assessments->whereNull('aspek'))->toHaveCount(1);
+    });
+
+    it('starts with empty form when ada_usulan is false', function () {
+        $user = createSatkerUserForAgreementTest();
+        $grant = createAgreementGrant($user);
+
+        $component = Livewire::actingAs($user)
+            ->test(Assessment::class, ['grant' => $grant]);
+
+        foreach (AssessmentAspect::cases() as $aspect) {
+            foreach ($aspect->prompts() as $i => $prompt) {
+                $component->assertSet("mandatoryAspects.{$aspect->value}.{$i}", '');
+            }
+        }
+    });
+});
+
+describe('Step 3: Kajian — From planning (pre-fill)', function () {
+    it('pre-fills assessment data from planning', function () {
+        $user = createSatkerUserForAgreementTest();
+        $grant = createAgreementGrantFromPlanningWithAssessment($user);
+
+        $component = Livewire::actingAs($user)
+            ->test(Assessment::class, ['grant' => $grant]);
+
+        // Verify planning data was loaded
+        foreach (AssessmentAspect::cases() as $aspect) {
+            foreach ($aspect->prompts() as $i => $prompt) {
+                $component->assertSet(
+                    "mandatoryAspects.{$aspect->value}.{$i}",
+                    "<p>Planning assessment content for {$aspect->label()} prompt {$i}</p>"
+                );
+            }
+        }
+    });
+
+    it('saves pre-filled data as agreement stage assessments', function () {
+        $user = createSatkerUserForAgreementTest();
+        $grant = createAgreementGrantFromPlanningWithAssessment($user);
+
+        Livewire::actingAs($user)
+            ->test(Assessment::class, ['grant' => $grant])
+            ->call('save')
+            ->assertHasNoErrors()
+            ->assertRedirect();
+
+        $latestHistory = $grant->statusHistory()->latest('id')->first();
+        expect($latestHistory->status_sesudah)->toBe(GrantStatus::CreatingAgreementAssessment);
+
+        $assessments = $latestHistory->assessments()
+            ->where('tahapan', GrantStage::Agreement)
+            ->get();
+
+        expect($assessments)->toHaveCount(4);
     });
 });

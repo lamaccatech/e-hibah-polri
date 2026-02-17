@@ -145,7 +145,7 @@ class DonorInfo extends Component
     {
         if ($this->isReadOnly) {
             $repository->advanceToFillingDonorInfo($this->grant);
-            $this->redirect(route('grant-agreement.index'), navigate: true);
+            $this->redirect(route('grant-agreement.assessment', $this->grant), navigate: true);
 
             return;
         }
@@ -186,7 +186,7 @@ class DonorInfo extends Component
 
         $repository->linkDonor($this->grant, $donorId);
 
-        $this->redirect(route('grant-agreement.index'), navigate: true);
+        $this->redirect(route('grant-agreement.assessment', $this->grant), navigate: true);
     }
 
     public function render()
