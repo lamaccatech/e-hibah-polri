@@ -185,7 +185,7 @@ Redirect to Step 2.
 - Required (at least one selected)
 
 #### 4.2 Rencana Anggaran Kebutuhan
-- **Mata Uang** (`currency`): combobox from `Autocomplete` where `identifier = mata_uang`
+- **Mata Uang** (`currency`): combobox from `Autocomplete` where `identifier = mata_uang` (has create option — user can type a new currency and it will be saved as a new `Autocomplete` record)
 - Maps to `grant.mata_uang`
 - **Budget Items** (`budgetItems`): array of `{ uraian, nilai }`
   - Same pattern as planning ProposalDocument budget items

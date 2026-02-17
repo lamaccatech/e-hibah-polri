@@ -214,6 +214,11 @@ return [
         'agreement-title' => 'Input Perjanjian',
         'agreement-description' => 'Kelola perjanjian hibah langsung yang diterima tanpa proses usulan.',
         'agreement-badge' => 'Segera Hadir',
+        'polda-title' => 'Dashboard Satuan Induk',
+        'polda-description' => 'Statistik dan ringkasan hibah akan ditampilkan di sini.',
+        'mabes-title' => 'Dashboard Mabes',
+        'mabes-description' => 'Statistik dan ringkasan hibah akan ditampilkan di sini.',
+        'coming-soon' => 'Segera Hadir',
     ],
 
     // Grant Planning — Index

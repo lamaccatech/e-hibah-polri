@@ -141,7 +141,7 @@ Satker fills in the proposal document, organized into 10 chapters with budget it
 - Each chapter creates a `GrantInformation` record with associated `GrantInformationContent` paragraphs
 - Budget items are stored in `GrantBudgetPlan` records
 - Activity timeline items are stored in `ActivitySchedule` records
-- Currency is specified (e.g., "IDR")
+- Currency is specified via combobox from `Autocomplete` where `identifier = mata_uang` (has create option — user can type a new currency and it will be saved as a new `Autocomplete` record)
 - **Total grant value is auto-calculated**: `nilai_hibah = SUM(budget_item.nilai)`
 - Status transitions to `GrantStatus::CreatingProposalDocument`
 
