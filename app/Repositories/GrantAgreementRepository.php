@@ -12,7 +12,7 @@ use App\Models\Grant;
 use App\Models\GrantNumbering;
 use App\Models\OrgUnit;
 use App\Notifications\AgreementSubmittedNotification;
-use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Symfony\Component\HtmlSanitizer\HtmlSanitizer;
@@ -52,14 +52,14 @@ class GrantAgreementRepository
         return $this->sanitizer()->sanitize($html);
     }
 
-    /** @return Collection<int, Grant> */
-    public function allForUnit(OrgUnit $unit): Collection
+    /** @return LengthAwarePaginator<int, Grant> */
+    public function allForUnit(OrgUnit $unit): LengthAwarePaginator
     {
         return $unit->grants()
             ->where('tahapan', GrantStage::Agreement)
             ->with(['donor', 'statusHistory'])
             ->orderByDesc('created_at')
-            ->get();
+            ->paginate(15);
     }
 
     public function findPlanningGrantByNumber(string $letterNumber, OrgUnit $unit): ?Grant

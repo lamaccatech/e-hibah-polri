@@ -8,7 +8,7 @@ use App\Models\OrgUnit;
 use App\Models\User;
 use Livewire\Livewire;
 
-function createMabesUser(): User
+function createMabesUserForDashboard(): User
 {
     $user = User::factory()->create();
     $user->unit()->create(OrgUnit::factory()->mabes()->raw());
@@ -16,7 +16,7 @@ function createMabesUser(): User
     return $user;
 }
 
-function createMabesPoldaUser(): User
+function createPoldaUserForDashboard(): User
 {
     $user = User::factory()->create();
     $user->unit()->create(OrgUnit::factory()->satuanInduk()->raw());
@@ -24,7 +24,7 @@ function createMabesPoldaUser(): User
     return $user;
 }
 
-function createMabesSatkerUser(User $poldaUser): User
+function createSatkerUserForDashboard(User $poldaUser): User
 {
     $user = User::factory()->create();
     $user->unit()->create(
@@ -36,7 +36,7 @@ function createMabesSatkerUser(User $poldaUser): User
     return $user;
 }
 
-function createMabesPlanningGrantAtStatus(User $satkerUser, GrantStatus $targetStatus): Grant
+function createPlanningGrantForDashboard(User $satkerUser, GrantStatus $targetStatus): Grant
 {
     $grant = $satkerUser->unit->grants()->create(
         Grant::factory()->planned()->raw()
@@ -56,7 +56,7 @@ function createMabesPlanningGrantAtStatus(User $satkerUser, GrantStatus $targetS
     return $grant;
 }
 
-function createMabesAgreementGrantAtStatus(User $satkerUser, GrantStatus $targetStatus): Grant
+function createAgreementGrantForDashboard(User $satkerUser, GrantStatus $targetStatus): Grant
 {
     $grant = $satkerUser->unit->grants()->create(
         Grant::factory()->directAgreement()->raw()
@@ -78,7 +78,7 @@ function createMabesAgreementGrantAtStatus(User $satkerUser, GrantStatus $target
 
 describe('Mabes Dashboard — Access Control', function () {
     it('shows mabes dashboard for Mabes users', function () {
-        $mabes = createMabesUser();
+        $mabes = createMabesUserForDashboard();
 
         $this->actingAs($mabes)
             ->get(route('dashboard'))
@@ -87,8 +87,8 @@ describe('Mabes Dashboard — Access Control', function () {
     });
 
     it('does not show mabes dashboard for Satker users', function () {
-        $polda = createMabesPoldaUser();
-        $satker = createMabesSatkerUser($polda);
+        $polda = createPoldaUserForDashboard();
+        $satker = createSatkerUserForDashboard($polda);
 
         $this->actingAs($satker)
             ->get(route('dashboard'))
@@ -97,7 +97,7 @@ describe('Mabes Dashboard — Access Control', function () {
     });
 
     it('does not show mabes dashboard for Polda users', function () {
-        $polda = createMabesPoldaUser();
+        $polda = createPoldaUserForDashboard();
 
         $this->actingAs($polda)
             ->get(route('dashboard'))
@@ -108,13 +108,13 @@ describe('Mabes Dashboard — Access Control', function () {
 
 describe('Mabes Dashboard — Planning Stats', function () {
     it('counts planning grants that reached Polda verification or beyond', function () {
-        $polda = createMabesPoldaUser();
-        $satker = createMabesSatkerUser($polda);
-        $mabes = createMabesUser();
+        $polda = createPoldaUserForDashboard();
+        $satker = createSatkerUserForDashboard($polda);
+        $mabes = createMabesUserForDashboard();
 
-        createMabesPlanningGrantAtStatus($satker, GrantStatus::PoldaVerifiedPlanning);
-        createMabesPlanningGrantAtStatus($satker, GrantStatus::MabesReviewingPlanning);
-        createMabesPlanningGrantAtStatus($satker, GrantStatus::MabesVerifiedPlanning);
+        createPlanningGrantForDashboard($satker, GrantStatus::PoldaVerifiedPlanning);
+        createPlanningGrantForDashboard($satker, GrantStatus::MabesReviewingPlanning);
+        createPlanningGrantForDashboard($satker, GrantStatus::MabesVerifiedPlanning);
 
         $this->actingAs($mabes);
 
@@ -123,13 +123,13 @@ describe('Mabes Dashboard — Planning Stats', function () {
     });
 
     it('does not count planning grants only at Polda review level', function () {
-        $polda = createMabesPoldaUser();
-        $satker = createMabesSatkerUser($polda);
-        $mabes = createMabesUser();
+        $polda = createPoldaUserForDashboard();
+        $satker = createSatkerUserForDashboard($polda);
+        $mabes = createMabesUserForDashboard();
 
         // Only submitted to Polda — not yet verified by Polda
-        createMabesPlanningGrantAtStatus($satker, GrantStatus::PlanningSubmittedToPolda);
-        createMabesPlanningGrantAtStatus($satker, GrantStatus::PoldaReviewingPlanning);
+        createPlanningGrantForDashboard($satker, GrantStatus::PlanningSubmittedToPolda);
+        createPlanningGrantForDashboard($satker, GrantStatus::PoldaReviewingPlanning);
 
         $this->actingAs($mabes);
 
@@ -138,13 +138,13 @@ describe('Mabes Dashboard — Planning Stats', function () {
     });
 
     it('counts planning unprocessed grants (latest status = PoldaVerifiedPlanning)', function () {
-        $polda = createMabesPoldaUser();
-        $satker = createMabesSatkerUser($polda);
-        $mabes = createMabesUser();
+        $polda = createPoldaUserForDashboard();
+        $satker = createSatkerUserForDashboard($polda);
+        $mabes = createMabesUserForDashboard();
 
-        createMabesPlanningGrantAtStatus($satker, GrantStatus::PoldaVerifiedPlanning);
+        createPlanningGrantForDashboard($satker, GrantStatus::PoldaVerifiedPlanning);
         // This one is being reviewed by Mabes, not unprocessed
-        createMabesPlanningGrantAtStatus($satker, GrantStatus::MabesReviewingPlanning);
+        createPlanningGrantForDashboard($satker, GrantStatus::MabesReviewingPlanning);
 
         $this->actingAs($mabes);
 
@@ -153,11 +153,11 @@ describe('Mabes Dashboard — Planning Stats', function () {
     });
 
     it('counts planning processing grants', function () {
-        $polda = createMabesPoldaUser();
-        $satker = createMabesSatkerUser($polda);
-        $mabes = createMabesUser();
+        $polda = createPoldaUserForDashboard();
+        $satker = createSatkerUserForDashboard($polda);
+        $mabes = createMabesUserForDashboard();
 
-        createMabesPlanningGrantAtStatus($satker, GrantStatus::MabesReviewingPlanning);
+        createPlanningGrantForDashboard($satker, GrantStatus::MabesReviewingPlanning);
 
         $this->actingAs($mabes);
 
@@ -166,11 +166,11 @@ describe('Mabes Dashboard — Planning Stats', function () {
     });
 
     it('counts planning rejected grants', function () {
-        $polda = createMabesPoldaUser();
-        $satker = createMabesSatkerUser($polda);
-        $mabes = createMabesUser();
+        $polda = createPoldaUserForDashboard();
+        $satker = createSatkerUserForDashboard($polda);
+        $mabes = createMabesUserForDashboard();
 
-        createMabesPlanningGrantAtStatus($satker, GrantStatus::MabesRejectedPlanning);
+        createPlanningGrantForDashboard($satker, GrantStatus::MabesRejectedPlanning);
 
         $this->actingAs($mabes);
 
@@ -181,12 +181,12 @@ describe('Mabes Dashboard — Planning Stats', function () {
 
 describe('Mabes Dashboard — Agreement Stats', function () {
     it('counts agreement grants that reached Polda verification or beyond', function () {
-        $polda = createMabesPoldaUser();
-        $satker = createMabesSatkerUser($polda);
-        $mabes = createMabesUser();
+        $polda = createPoldaUserForDashboard();
+        $satker = createSatkerUserForDashboard($polda);
+        $mabes = createMabesUserForDashboard();
 
-        createMabesAgreementGrantAtStatus($satker, GrantStatus::PoldaVerifiedAgreement);
-        createMabesAgreementGrantAtStatus($satker, GrantStatus::MabesReviewingAgreement);
+        createAgreementGrantForDashboard($satker, GrantStatus::PoldaVerifiedAgreement);
+        createAgreementGrantForDashboard($satker, GrantStatus::MabesReviewingAgreement);
 
         $this->actingAs($mabes);
 
@@ -195,12 +195,12 @@ describe('Mabes Dashboard — Agreement Stats', function () {
     });
 
     it('counts agreement unprocessed grants (latest status = PoldaVerifiedAgreement)', function () {
-        $polda = createMabesPoldaUser();
-        $satker = createMabesSatkerUser($polda);
-        $mabes = createMabesUser();
+        $polda = createPoldaUserForDashboard();
+        $satker = createSatkerUserForDashboard($polda);
+        $mabes = createMabesUserForDashboard();
 
-        createMabesAgreementGrantAtStatus($satker, GrantStatus::PoldaVerifiedAgreement);
-        createMabesAgreementGrantAtStatus($satker, GrantStatus::MabesReviewingAgreement);
+        createAgreementGrantForDashboard($satker, GrantStatus::PoldaVerifiedAgreement);
+        createAgreementGrantForDashboard($satker, GrantStatus::MabesReviewingAgreement);
 
         $this->actingAs($mabes);
 
@@ -209,11 +209,11 @@ describe('Mabes Dashboard — Agreement Stats', function () {
     });
 
     it('counts agreement processing grants', function () {
-        $polda = createMabesPoldaUser();
-        $satker = createMabesSatkerUser($polda);
-        $mabes = createMabesUser();
+        $polda = createPoldaUserForDashboard();
+        $satker = createSatkerUserForDashboard($polda);
+        $mabes = createMabesUserForDashboard();
 
-        createMabesAgreementGrantAtStatus($satker, GrantStatus::MabesReviewingAgreement);
+        createAgreementGrantForDashboard($satker, GrantStatus::MabesReviewingAgreement);
 
         $this->actingAs($mabes);
 
@@ -222,11 +222,11 @@ describe('Mabes Dashboard — Agreement Stats', function () {
     });
 
     it('counts agreement rejected grants', function () {
-        $polda = createMabesPoldaUser();
-        $satker = createMabesSatkerUser($polda);
-        $mabes = createMabesUser();
+        $polda = createPoldaUserForDashboard();
+        $satker = createSatkerUserForDashboard($polda);
+        $mabes = createMabesUserForDashboard();
 
-        createMabesAgreementGrantAtStatus($satker, GrantStatus::MabesRejectedAgreement);
+        createAgreementGrantForDashboard($satker, GrantStatus::MabesRejectedAgreement);
 
         $this->actingAs($mabes);
 
@@ -237,14 +237,14 @@ describe('Mabes Dashboard — Agreement Stats', function () {
 
 describe('Mabes Dashboard — System-wide Scope', function () {
     it('counts grants from all satkers across different poldas', function () {
-        $polda1 = createMabesPoldaUser();
-        $satker1 = createMabesSatkerUser($polda1);
-        $polda2 = createMabesPoldaUser();
-        $satker2 = createMabesSatkerUser($polda2);
-        $mabes = createMabesUser();
+        $polda1 = createPoldaUserForDashboard();
+        $satker1 = createSatkerUserForDashboard($polda1);
+        $polda2 = createPoldaUserForDashboard();
+        $satker2 = createSatkerUserForDashboard($polda2);
+        $mabes = createMabesUserForDashboard();
 
-        createMabesPlanningGrantAtStatus($satker1, GrantStatus::PoldaVerifiedPlanning);
-        createMabesPlanningGrantAtStatus($satker2, GrantStatus::PoldaVerifiedPlanning);
+        createPlanningGrantForDashboard($satker1, GrantStatus::PoldaVerifiedPlanning);
+        createPlanningGrantForDashboard($satker2, GrantStatus::PoldaVerifiedPlanning);
 
         $this->actingAs($mabes);
 
@@ -256,9 +256,9 @@ describe('Mabes Dashboard — System-wide Scope', function () {
 
 describe('Mabes Dashboard — Realization', function () {
     it('returns realization data with correct plan and realization sums', function () {
-        $polda = createMabesPoldaUser();
-        $satker = createMabesSatkerUser($polda);
-        $mabes = createMabesUser();
+        $polda = createPoldaUserForDashboard();
+        $satker = createSatkerUserForDashboard($polda);
+        $mabes = createMabesUserForDashboard();
 
         // Grant with budget plans — submitted to polda (plan scope)
         $planGrant = $satker->unit->grants()->create(
@@ -298,9 +298,9 @@ describe('Mabes Dashboard — Realization', function () {
     });
 
     it('filters realization by grant form type', function () {
-        $polda = createMabesPoldaUser();
-        $satker = createMabesSatkerUser($polda);
-        $mabes = createMabesUser();
+        $polda = createPoldaUserForDashboard();
+        $satker = createSatkerUserForDashboard($polda);
+        $mabes = createMabesUserForDashboard();
 
         // Goods grant
         $goodsGrant = $satker->unit->grants()->create(
@@ -338,9 +338,9 @@ describe('Mabes Dashboard — Realization', function () {
 
 describe('Mabes Dashboard — Yearly Trend', function () {
     it('returns yearly trend data grouped by year', function () {
-        $polda = createMabesPoldaUser();
-        $satker = createMabesSatkerUser($polda);
-        $mabes = createMabesUser();
+        $polda = createPoldaUserForDashboard();
+        $satker = createSatkerUserForDashboard($polda);
+        $mabes = createMabesUserForDashboard();
 
         $grant = $satker->unit->grants()->create(
             Grant::factory()->planned()->raw()
@@ -364,7 +364,7 @@ describe('Mabes Dashboard — Yearly Trend', function () {
     });
 
     it('returns empty trend when no grants exist', function () {
-        $mabes = createMabesUser();
+        $mabes = createMabesUserForDashboard();
 
         $this->actingAs($mabes);
 

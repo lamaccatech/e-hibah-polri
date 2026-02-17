@@ -13,13 +13,14 @@ use App\Models\OrgUnit;
 use App\Notifications\PlanningNumberIssuedNotification;
 use App\Notifications\PlanningRejectedNotification;
 use App\Notifications\PlanningRevisionRequestedNotification;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 
 class MabesGrantReviewRepository
 {
-    /** @return Collection<int, Grant> */
-    public function allPoldaVerifiedGrants(): Collection
+    /** @return LengthAwarePaginator<int, Grant> */
+    public function allPoldaVerifiedGrants(): LengthAwarePaginator
     {
         return Grant::query()
             ->where('tahapan', GrantStage::Planning)
@@ -33,7 +34,7 @@ class MabesGrantReviewRepository
             })
             ->with(['donor', 'statusHistory', 'orgUnit.parent'])
             ->orderByDesc('created_at')
-            ->get();
+            ->paginate(15);
     }
 
     public function getLatestStatus(Grant $grant): ?GrantStatus

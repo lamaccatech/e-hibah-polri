@@ -3,7 +3,7 @@
         <flux:heading size="xl">{{ __('page.mabes-agreement-review.title') }}</flux:heading>
     </div>
 
-    <flux:table>
+    <flux:table :paginate="$grants">
         <flux:table.columns>
             <flux:table.column>{{ __('page.mabes-agreement-review.column-unit') }}</flux:table.column>
             <flux:table.column>{{ __('page.mabes-agreement-review.column-polda') }}</flux:table.column>

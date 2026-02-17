@@ -9,7 +9,7 @@
         </div>
     @enderror
 
-    <flux:table>
+    <flux:table :paginate="$grants">
         <flux:table.columns>
             <flux:table.column>{{ __('page.grant-planning.column-name') }}</flux:table.column>
             <flux:table.column>{{ __('page.grant-planning.column-donor') }}</flux:table.column>

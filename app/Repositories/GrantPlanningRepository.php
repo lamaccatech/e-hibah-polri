@@ -9,6 +9,7 @@ use App\Models\Donor;
 use App\Models\Grant;
 use App\Models\OrgUnit;
 use App\Notifications\PlanningSubmittedNotification;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 use Symfony\Component\HtmlSanitizer\HtmlSanitizer;
@@ -48,14 +49,14 @@ class GrantPlanningRepository
         return $this->sanitizer()->sanitize($html);
     }
 
-    /** @return Collection<int, Grant> */
-    public function allForUnit(OrgUnit $unit): Collection
+    /** @return LengthAwarePaginator<int, Grant> */
+    public function allForUnit(OrgUnit $unit): LengthAwarePaginator
     {
         return $unit->grants()
             ->where('tahapan', GrantStage::Planning)
             ->with(['donor', 'statusHistory', 'numberings'])
             ->orderByDesc('created_at')
-            ->get();
+            ->paginate(15);
     }
 
     public function findForUnit(int $grantId, OrgUnit $unit): Grant

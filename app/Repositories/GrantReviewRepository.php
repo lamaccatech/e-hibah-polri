@@ -12,13 +12,14 @@ use App\Models\GrantAssessmentResult;
 use App\Models\OrgUnit;
 use App\Notifications\PlanningRejectedNotification;
 use App\Notifications\PlanningRevisionRequestedNotification;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 
 class GrantReviewRepository
 {
-    /** @return Collection<int, Grant> */
-    public function allSubmittedToUnit(OrgUnit $unit): Collection
+    /** @return LengthAwarePaginator<int, Grant> */
+    public function allSubmittedToUnit(OrgUnit $unit): LengthAwarePaginator
     {
         $childUnitUserIds = $unit->children()->pluck('id_user');
 
@@ -35,7 +36,7 @@ class GrantReviewRepository
             })
             ->with(['donor', 'statusHistory', 'orgUnit'])
             ->orderByDesc('created_at')
-            ->get();
+            ->paginate(15);
     }
 
     public function getLatestStatus(Grant $grant): ?GrantStatus

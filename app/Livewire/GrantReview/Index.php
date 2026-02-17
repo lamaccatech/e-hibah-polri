@@ -5,9 +5,12 @@ namespace App\Livewire\GrantReview;
 use App\Models\Grant;
 use App\Repositories\GrantReviewRepository;
 use Livewire\Component;
+use Livewire\WithPagination;
 
 class Index extends Component
 {
+    use WithPagination;
+
     public bool $showStartReviewModal = false;
 
     public ?int $grantToReviewId = null;
@@ -33,12 +36,12 @@ class Index extends Component
     {
         $grants = $repository->allSubmittedToUnit(auth()->user()->unit);
 
-        $reviewableIds = $grants
+        $reviewableIds = $grants->getCollection()
             ->filter(fn (Grant $grant) => $repository->canStartReview($grant))
             ->pluck('id')
             ->all();
 
-        $underReviewIds = $grants
+        $underReviewIds = $grants->getCollection()
             ->filter(fn (Grant $grant) => $repository->isUnderReview($grant))
             ->pluck('id')
             ->all();

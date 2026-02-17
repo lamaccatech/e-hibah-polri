@@ -3,7 +3,7 @@
         <flux:heading size="xl">{{ __('page.agreement-review.title') }}</flux:heading>
     </div>
 
-    <flux:table>
+    <flux:table :paginate="$grants">
         <flux:table.columns>
             <flux:table.column>{{ __('page.agreement-review.column-unit') }}</flux:table.column>
             <flux:table.column>{{ __('page.agreement-review.column-name') }}</flux:table.column>

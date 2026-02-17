@@ -4,9 +4,12 @@ namespace App\Livewire\GrantPlanning;
 
 use App\Repositories\GrantPlanningRepository;
 use Livewire\Component;
+use Livewire\WithPagination;
 
 class Index extends Component
 {
+    use WithPagination;
+
     public bool $showSubmitModal = false;
 
     public ?int $grantToSubmit = null;
@@ -38,8 +41,8 @@ class Index extends Component
     public function render(GrantPlanningRepository $repository)
     {
         $grants = $repository->allForUnit(auth()->user()->unit);
-        $submittableIds = $grants->filter(fn ($grant) => $repository->canSubmit($grant))->pluck('id')->all();
-        $editableIds = $grants->filter(fn ($grant) => $repository->isEditable($grant))->pluck('id')->all();
+        $submittableIds = $grants->getCollection()->filter(fn ($grant) => $repository->canSubmit($grant))->pluck('id')->all();
+        $editableIds = $grants->getCollection()->filter(fn ($grant) => $repository->isEditable($grant))->pluck('id')->all();
 
         return view('livewire.grant-planning.index', [
             'grants' => $grants,

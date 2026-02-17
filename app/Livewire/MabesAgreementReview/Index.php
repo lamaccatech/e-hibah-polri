@@ -6,9 +6,12 @@ use App\Models\Grant;
 use App\Models\Tag;
 use App\Repositories\MabesAgreementReviewRepository;
 use Livewire\Component;
+use Livewire\WithPagination;
 
 class Index extends Component
 {
+    use WithPagination;
+
     public bool $showStartReviewModal = false;
 
     public ?int $grantToReviewId = null;
@@ -45,12 +48,12 @@ class Index extends Component
     {
         $grants = $repository->allPoldaVerifiedAgreements();
 
-        $reviewableIds = $grants
+        $reviewableIds = $grants->getCollection()
             ->filter(fn (Grant $grant) => $repository->canStartReview($grant))
             ->pluck('id')
             ->all();
 
-        $underReviewIds = $grants
+        $underReviewIds = $grants->getCollection()
             ->filter(fn (Grant $grant) => $repository->isUnderReview($grant))
             ->pluck('id')
             ->all();
