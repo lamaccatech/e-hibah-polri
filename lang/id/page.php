@@ -593,4 +593,40 @@ return [
         'no-chief-description' => 'Tidak ada kepala satker yang sedang menjabat. Silakan tambahkan kepala satker terlebih dahulu untuk dapat mencetak dokumen.',
     ],
 
+    // Donor Listing
+    'donor-listing' => [
+        'title' => 'Daftar Pemberi Hibah',
+        'search-placeholder' => 'Cari nama pemberi hibah...',
+        'column-name' => 'Nama',
+        'column-origin' => 'Asal',
+        'column-category' => 'Kategori',
+        'column-country' => 'Negara',
+        'column-grant-count' => 'Jumlah Hibah',
+        'column-action' => 'Aksi',
+        'empty-state' => 'Belum ada pemberi hibah.',
+    ],
+
+    // Donor Detail
+    'donor-detail' => [
+        'title' => 'Detail Pemberi Hibah',
+        'section-donor-info' => 'Informasi Pemberi Hibah',
+        'label-name' => 'Nama',
+        'label-origin' => 'Asal',
+        'label-address' => 'Alamat',
+        'label-country' => 'Negara',
+        'label-province' => 'Provinsi',
+        'label-regency' => 'Kabupaten/Kota',
+        'label-phone' => 'Nomor Telp/Faks',
+        'label-email' => 'Email',
+        'label-category' => 'Kategori',
+        'section-grants' => 'Daftar Hibah',
+        'column-grant-name' => 'Nama Kegiatan',
+        'column-satker' => 'Satuan Kerja',
+        'column-status' => 'Status',
+        'column-action' => 'Aksi',
+        'empty-grants' => 'Belum ada hibah terkait.',
+        'section-tags' => 'Kategori',
+        'empty-tags' => 'Belum ada kategori.',
+    ],
+
 ];

@@ -17,6 +17,7 @@ return [
         'nav-mabes-agreement-review' => 'Perjanjian Hibah',
         'nav-user-management' => 'Manajemen User',
         'nav-tag-management' => 'Kategori Hibah',
+        'nav-donor-listing' => 'Pemberi Hibah',
     ],
 
     'grant-planning-steps' => [

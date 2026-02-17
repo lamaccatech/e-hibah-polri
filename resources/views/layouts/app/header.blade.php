@@ -43,11 +43,14 @@
                     <flux:navbar.item icon="clipboard-document-list" :href="route('mabes-agreement-review.index')" :current="request()->routeIs('mabes-agreement-review.*')" wire:navigate>
                         {{ __('component.navbar.nav-mabes-agreement-review') }}
                     </flux:navbar.item>
-                    <flux:navbar.item icon="users" :href="route('user.index')" :current="request()->routeIs('user.*')" wire:navigate>
-                        {{ __('component.navbar.nav-user-management') }}
+                    <flux:navbar.item icon="building-office-2" :href="route('donor.index')" :current="request()->routeIs('donor.*')" wire:navigate>
+                        {{ __('component.navbar.nav-donor-listing') }}
                     </flux:navbar.item>
                     <flux:navbar.item icon="tag" :href="route('tag.index')" :current="request()->routeIs('tag.*')" wire:navigate>
                         {{ __('component.navbar.nav-tag-management') }}
+                    </flux:navbar.item>
+                    <flux:navbar.item icon="users" :href="route('user.index')" :current="request()->routeIs('user.*')" wire:navigate>
+                        {{ __('component.navbar.nav-user-management') }}
                     </flux:navbar.item>
                 @endif
             </flux:navbar>
@@ -138,11 +141,14 @@
                     <flux:sidebar.item icon="clipboard-document-list" :href="route('mabes-agreement-review.index')" :current="request()->routeIs('mabes-agreement-review.*')" wire:navigate>
                         {{ __('component.navbar.nav-mabes-agreement-review') }}
                     </flux:sidebar.item>
-                    <flux:sidebar.item icon="users" :href="route('user.index')" :current="request()->routeIs('user.*')" wire:navigate>
-                        {{ __('component.navbar.nav-user-management') }}
+                    <flux:sidebar.item icon="building-office-2" :href="route('donor.index')" :current="request()->routeIs('donor.*')" wire:navigate>
+                        {{ __('component.navbar.nav-donor-listing') }}
                     </flux:sidebar.item>
                     <flux:sidebar.item icon="tag" :href="route('tag.index')" :current="request()->routeIs('tag.*')" wire:navigate>
                         {{ __('component.navbar.nav-tag-management') }}
+                    </flux:sidebar.item>
+                    <flux:sidebar.item icon="users" :href="route('user.index')" :current="request()->routeIs('user.*')" wire:navigate>
+                        {{ __('component.navbar.nav-user-management') }}
                     </flux:sidebar.item>
                 @endif
             </flux:sidebar.nav>
