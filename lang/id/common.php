@@ -28,4 +28,8 @@ return [
     'email' => 'Email',
     'password' => 'Password',
 
+    // Grant stages
+    'planning' => 'Usulan',
+    'agreement' => 'Perjanjian',
+
 ];

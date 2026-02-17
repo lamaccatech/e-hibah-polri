@@ -55,27 +55,7 @@
             </div>
         </div>
     @elseif (auth()->user()->unit?->level_unit === \App\Enums\UnitLevel::SatuanInduk)
-        <div class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-            <flux:heading size="xl" class="mb-6">{{ __('page.dashboard.polda-title') }}</flux:heading>
-
-            <div class="grid gap-6 md:grid-cols-3">
-                <div class="flex flex-col items-center justify-center rounded-xl border border-dashed border-zinc-300 p-10 text-center dark:border-zinc-600">
-                    <flux:icon.chart-bar class="mb-3 size-12 text-zinc-300 dark:text-zinc-600" />
-                    <flux:text class="text-zinc-400 dark:text-zinc-500">{{ __('page.dashboard.polda-description') }}</flux:text>
-                    <flux:badge size="sm" color="zinc" class="mt-3">{{ __('page.dashboard.coming-soon') }}</flux:badge>
-                </div>
-                <div class="flex flex-col items-center justify-center rounded-xl border border-dashed border-zinc-300 p-10 text-center dark:border-zinc-600">
-                    <flux:icon.document-text class="mb-3 size-12 text-zinc-300 dark:text-zinc-600" />
-                    <flux:text class="text-zinc-400 dark:text-zinc-500">{{ __('page.dashboard.polda-description') }}</flux:text>
-                    <flux:badge size="sm" color="zinc" class="mt-3">{{ __('page.dashboard.coming-soon') }}</flux:badge>
-                </div>
-                <div class="flex flex-col items-center justify-center rounded-xl border border-dashed border-zinc-300 p-10 text-center dark:border-zinc-600">
-                    <flux:icon.users class="mb-3 size-12 text-zinc-300 dark:text-zinc-600" />
-                    <flux:text class="text-zinc-400 dark:text-zinc-500">{{ __('page.dashboard.polda-description') }}</flux:text>
-                    <flux:badge size="sm" color="zinc" class="mt-3">{{ __('page.dashboard.coming-soon') }}</flux:badge>
-                </div>
-            </div>
-        </div>
+        @livewire('polda-dashboard')
     @elseif (auth()->user()->unit?->level_unit === \App\Enums\UnitLevel::Mabes)
         <div class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
             <flux:heading size="xl" class="mb-6">{{ __('page.dashboard.mabes-title') }}</flux:heading>
