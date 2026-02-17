@@ -463,6 +463,11 @@ return [
         'error-withdrawal-exceeds-budget' => 'Total rencana penarikan tidak boleh melebihi total anggaran kebutuhan.',
     ],
 
+    // Grant Agreement — Step 5: Materi Tambahan Kesiapan
+    'grant-agreement-additional' => [
+        'title' => 'Materi Tambahan Kesiapan Hibah',
+    ],
+
     // Grant Document Generation
     'grant-document' => [
         'label-date' => 'Tanggal Dokumen',

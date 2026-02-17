@@ -401,6 +401,50 @@ class GrantAgreementRepository
         });
     }
 
+    /**
+     * @param  array<string, array<int, array{subjudul: string, isi: string}>>  $chaptersData
+     */
+    public function saveAdditionalMaterials(Grant $grant, array $chaptersData): void
+    {
+        DB::transaction(function () use ($grant, $chaptersData): void {
+            // Delete existing agreement-stage chapters for re-save
+            $chapterKeys = array_keys($chaptersData);
+            $grant->information()
+                ->where('tahapan', GrantStage::Agreement)
+                ->whereIn('judul', $chapterKeys)
+                ->each(function ($info): void {
+                    $info->contents()->forceDelete();
+                    $info->forceDelete();
+                });
+
+            // Save each chapter
+            foreach ($chaptersData as $chapterKey => $contents) {
+                $info = $grant->information()->create([
+                    'judul' => $chapterKey,
+                    'tahapan' => GrantStage::Agreement->value,
+                ]);
+
+                foreach ($contents as $index => $content) {
+                    if (trim($content['isi']) === '') {
+                        continue;
+                    }
+
+                    $info->contents()->create([
+                        'subjudul' => $content['subjudul'],
+                        'isi' => $this->sanitizeHtml($content['isi']),
+                        'nomor_urut' => $index + 1,
+                    ]);
+                }
+            }
+
+            $grant->statusHistory()->create([
+                'status_sebelum' => $this->getLatestStatus($grant)?->value,
+                'status_sesudah' => GrantStatus::FillingAdditionalMaterials->value,
+                'keterangan' => "{$grant->orgUnit->nama_unit} mengisi materi tambahan kesiapan hibah untuk kegiatan {$grant->nama_hibah}",
+            ]);
+        });
+    }
+
     public function isEditable(Grant $grant): bool
     {
         $latestStatus = $this->getLatestStatus($grant);

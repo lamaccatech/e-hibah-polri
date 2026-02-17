@@ -138,7 +138,12 @@ class Harmonization extends Component
             $this->supervisionParagraphs,
         );
 
-        $this->redirect(route('grant-agreement.index'), navigate: true);
+        // ada_usulan=true skips Step 5 (planning chapters already copied at Step 1)
+        $nextRoute = $this->grant->ada_usulan
+            ? route('grant-agreement.index')
+            : route('grant-agreement.additional', $this->grant);
+
+        $this->redirect($nextRoute, navigate: true);
     }
 
     public function render()

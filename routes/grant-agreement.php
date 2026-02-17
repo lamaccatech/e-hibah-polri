@@ -1,5 +1,6 @@
 <?php
 
+use App\Livewire\GrantAgreement\AdditionalMaterials;
 use App\Livewire\GrantAgreement\Assessment;
 use App\Livewire\GrantAgreement\DonorInfo;
 use App\Livewire\GrantAgreement\Harmonization;
@@ -14,4 +15,5 @@ Route::middleware(['auth', 'verified', 'satker'])->group(function () {
     Route::livewire('grant-agreement/{grant}/donor', DonorInfo::class)->name('grant-agreement.donor');
     Route::livewire('grant-agreement/{grant}/assessment', Assessment::class)->name('grant-agreement.assessment');
     Route::livewire('grant-agreement/{grant}/harmonization', Harmonization::class)->name('grant-agreement.harmonization');
+    Route::livewire('grant-agreement/{grant}/additional', AdditionalMaterials::class)->name('grant-agreement.additional');
 });

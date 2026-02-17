@@ -1,6 +1,6 @@
 <?php
 
-// SPEC: Grant Agreement — Satker Steps 1-4
+// SPEC: Grant Agreement — Satker Steps 1-5
 // See specs/features/agreement-flow.md for full feature spec.
 
 use App\Enums\AssessmentAspect;
@@ -9,6 +9,7 @@ use App\Enums\GrantStage;
 use App\Enums\GrantStatus;
 use App\Enums\GrantType;
 use App\Enums\ProposalChapter;
+use App\Livewire\GrantAgreement\AdditionalMaterials;
 use App\Livewire\GrantAgreement\Assessment;
 use App\Livewire\GrantAgreement\DonorInfo;
 use App\Livewire\GrantAgreement\Harmonization;
@@ -849,5 +850,105 @@ describe('Step 4: Harmonisasi Naskah — From planning (pre-fill)', function () 
 
         $latestHistory = $grant->statusHistory()->latest('id')->first();
         expect($latestHistory->status_sesudah)->toBe(GrantStatus::FillingHarmonization);
+    });
+});
+
+// ============================================================
+// Step 5 — Materi Tambahan Kesiapan
+// ============================================================
+
+function buildAdditionalChapters(): array
+{
+    $chapters = [];
+    $additionalChapters = [
+        ProposalChapter::Target,
+        ProposalChapter::Benefit,
+        ProposalChapter::ImplementationPlan,
+        ProposalChapter::ReportingPlan,
+        ProposalChapter::EvaluationPlan,
+    ];
+
+    foreach ($additionalChapters as $chapter) {
+        $prompts = $chapter->prompts();
+        $paragraphCount = max(count($prompts), 1);
+        $chapters[$chapter->value] = array_fill(0, $paragraphCount, 'Isi paragraf yang cukup panjang untuk validasi minimal sepuluh karakter.');
+    }
+
+    return $chapters;
+}
+
+describe('Step 5: Materi Tambahan — Direct agreement', function () {
+    it('saves all 5 chapter data with agreement stage', function () {
+        $user = createSatkerUserForAgreementTest();
+        $grant = createAgreementGrant($user);
+
+        Livewire::actingAs($user)
+            ->test(AdditionalMaterials::class, ['grant' => $grant])
+            ->set('chapters', buildAdditionalChapters())
+            ->call('save')
+            ->assertHasNoErrors()
+            ->assertRedirect();
+
+        $latestHistory = $grant->statusHistory()->latest('id')->first();
+        expect($latestHistory->status_sesudah)->toBe(GrantStatus::FillingAdditionalMaterials);
+
+        $agreementInfo = $grant->information()
+            ->where('tahapan', GrantStage::Agreement)
+            ->whereIn('judul', [
+                ProposalChapter::Target->value,
+                ProposalChapter::Benefit->value,
+                ProposalChapter::ImplementationPlan->value,
+                ProposalChapter::ReportingPlan->value,
+                ProposalChapter::EvaluationPlan->value,
+            ])
+            ->get();
+
+        expect($agreementInfo)->toHaveCount(5);
+    });
+
+    it('starts with empty editors', function () {
+        $user = createSatkerUserForAgreementTest();
+        $grant = createAgreementGrant($user);
+
+        $component = Livewire::actingAs($user)
+            ->test(AdditionalMaterials::class, ['grant' => $grant]);
+
+        // All chapter paragraphs should be empty strings
+        foreach ([ProposalChapter::Target, ProposalChapter::Benefit, ProposalChapter::ImplementationPlan, ProposalChapter::ReportingPlan, ProposalChapter::EvaluationPlan] as $chapter) {
+            foreach ($chapter->prompts() as $i => $prompt) {
+                $component->assertSet("chapters.{$chapter->value}.{$i}", '');
+            }
+        }
+    });
+
+    it('returns 404 for grants with ada_usulan=true', function () {
+        $user = createSatkerUserForAgreementTest();
+        $grant = createAgreementGrantFromPlanning($user);
+
+        Livewire::actingAs($user)
+            ->test(AdditionalMaterials::class, ['grant' => $grant])
+            ->assertNotFound();
+    });
+
+    it('loads existing data for editing', function () {
+        $user = createSatkerUserForAgreementTest();
+        $grant = createAgreementGrant($user);
+
+        // Save some chapter data
+        $info = $grant->information()->create([
+            'judul' => ProposalChapter::Target->value,
+            'tahapan' => GrantStage::Agreement->value,
+        ]);
+        $info->contents()->create([
+            'subjudul' => 'Jelaskan tentang sasaran',
+            'isi' => '<p>Sasaran kegiatan yang sudah ada</p>',
+            'nomor_urut' => 1,
+        ]);
+
+        $component = Livewire::actingAs($user)
+            ->test(AdditionalMaterials::class, ['grant' => $grant]);
+
+        $chapters = $component->get('chapters');
+        expect($chapters[ProposalChapter::Target->value][0])->toBe('<p>Sasaran kegiatan yang sudah ada</p>');
     });
 });
