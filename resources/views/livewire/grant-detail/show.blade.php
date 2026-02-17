@@ -4,23 +4,40 @@
             <flux:heading size="xl">{{ __('page.grant-detail.title') }}</flux:heading>
             <flux:text class="mt-1">{{ $grant->nama_hibah }}</flux:text>
         </div>
-        @if (auth()->user()->unit->level_unit === \App\Enums\UnitLevel::SatuanKerja && !$grant->statusHistory->last()?->status_sesudah?->isRejected())
-            <flux:dropdown>
-                <flux:button variant="primary" size="sm" icon="document-text" icon-trailing="chevron-down">
-                    {{ __('page.grant-detail.generate-document') }}
+        <div class="flex items-center gap-2">
+            @if ($isAgreementStage && $hasProposal && auth()->user()->unit->level_unit === \App\Enums\UnitLevel::SatuanKerja)
+                <flux:button variant="ghost" size="sm" wire:click="toggleShowProposal">
+                    {{ $showProposal ? __('page.grant-detail.hide-proposal-button') : __('page.grant-detail.show-proposal-button') }}
                 </flux:button>
-                <flux:menu>
-                    @foreach (\App\Enums\GrantGeneratedDocumentType::cases() as $docType)
-                        <flux:menu.item :href="route('grant-document.generate', [$grant, $docType->slug()])" wire:navigate>
-                            {{ $docType->label() }}
-                        </flux:menu.item>
-                    @endforeach
-                </flux:menu>
-            </flux:dropdown>
-        @endif
+            @endif
+            @if ($canUploadSigned)
+                <flux:button variant="primary" size="sm" icon="arrow-up-tray" :href="route('grant-agreement.upload-signed', $grant)" wire:navigate>
+                    {{ __('page.grant-agreement.upload-signed-button') }}
+                </flux:button>
+            @endif
+            @if ($canSubmitSehati)
+                <flux:button variant="primary" size="sm" :href="route('grant-agreement.sehati', $grant)" wire:navigate>
+                    {{ __('page.grant-agreement.sehati-button') }}
+                </flux:button>
+            @endif
+            @if ((!$isAgreementStage || $showProposal) && auth()->user()->unit->level_unit === \App\Enums\UnitLevel::SatuanKerja && !$grant->statusHistory->last()?->status_sesudah?->isRejected())
+                <flux:dropdown>
+                    <flux:button variant="primary" size="sm" icon="document-text" icon-trailing="chevron-down">
+                        {{ __('page.grant-detail.generate-document') }}
+                    </flux:button>
+                    <flux:menu>
+                        @foreach (\App\Enums\GrantGeneratedDocumentType::cases() as $docType)
+                            <flux:menu.item :href="route('grant-document.generate', [$grant, $docType->slug()])" wire:navigate>
+                                {{ $docType->label() }}
+                            </flux:menu.item>
+                        @endforeach
+                    </flux:menu>
+                </flux:dropdown>
+            @endif
+        </div>
     </div>
 
-    <div class="mb-6 flex items-center gap-4">
+    <div class="mb-6">
         <flux:navbar>
             {{-- Always visible: Informasi Hibah --}}
             <flux:navbar.item
@@ -97,13 +114,6 @@
                 </flux:navbar.item>
             @endif
         </flux:navbar>
-
-        {{-- Toggle button: Satker + Agreement + ada_usulan only --}}
-        @if ($isAgreementStage && $hasProposal && auth()->user()->unit->level_unit === \App\Enums\UnitLevel::SatuanKerja)
-            <flux:button variant="ghost" size="sm" wire:click="toggleShowProposal">
-                {{ $showProposal ? __('page.grant-detail.hide-proposal-button') : __('page.grant-detail.show-proposal-button') }}
-            </flux:button>
-        @endif
     </div>
 
     @if ($activeTab === 'grant-info')

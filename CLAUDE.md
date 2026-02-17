@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-e-Hibah Polri — Grant management system (sistem hibah) for the Indonesian National Police. Manages the full lifecycle of grant proposals (usulan) and agreements (perjanjian) across three organizational levels: Satuan Kerja (work units), Satuan Induk/Polda (parent units), and Mabes (headquarters). Rewrite from Laravel 11 + Inertia.js + React to Laravel 12 + Livewire 4 + Flux UI Free.
+e-Hibah Polri — Grant management system (sistem hibah) for the Indonesian National Police. Manages the full lifecycle of grant proposals (usulan) and agreements (perjanjian) across three organizational levels: Satuan Kerja (work units), Satuan Induk/Polda (parent units), and Mabes (headquarters). Rewrite from Laravel 11 + Inertia.js + React to Laravel 12 + Livewire 4 + Flux UI Pro.
 
 ## Development Commands
 
@@ -340,9 +340,9 @@ protected function isAccessible(User $user, ?string $path = null): bool
 
 === fluxui-free/core rules ===
 
-# Flux UI Free
+# Flux UI Pro
 
-- Flux UI is the official Livewire component library. This project uses the free edition, which includes all free components and variants but not Pro components.
+- Flux UI is the official Livewire component library. This project uses the **Pro edition** — all components and variants (including combobox, listbox, date-picker, etc.) are available.
 - Use `<flux:*>` components when available; they are the recommended way to build Livewire interfaces.
 - IMPORTANT: Activate `fluxui-development` when working with Flux UI components.
 

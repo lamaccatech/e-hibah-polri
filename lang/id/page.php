@@ -490,6 +490,14 @@ return [
         'document-date-label' => 'Tanggal Dokumen',
         'generated-at' => 'Dicetak pada',
         'no-document-generated' => 'Belum pernah dicetak.',
+        'sehati-info' => 'Data SEHATI / Kemenkeu',
+        'label-sehati-grant-recipient' => 'Penerima Hibah',
+        'label-sehati-funding-source' => 'Sumber Pembiayaan',
+        'label-sehati-funding-type' => 'Jenis Pembiayaan',
+        'label-sehati-withdrawal-method' => 'Cara Penarikan',
+        'label-sehati-effective-date' => 'Tanggal Efektif',
+        'label-sehati-withdrawal-deadline' => 'Tanggal Batas Penarikan',
+        'label-sehati-account-closing-date' => 'Tanggal Penutupan Rekening',
     ],
 
     // Grant Agreement — Index
@@ -511,6 +519,10 @@ return [
         'badge-submitted' => 'Diajukan',
         'badge-revising' => 'Revisi',
         'badge-revision-resubmitted' => 'Revisi Diajukan',
+        'badge-signed-uploaded' => 'Naskah Perjanjian Diunggah',
+        'badge-sehati-submitted' => 'Data SEHATI Terisi',
+        'upload-signed-button' => 'Upload Naskah',
+        'sehati-button' => 'Isi Data SEHATI',
         'submit-button' => 'Ajukan ke Polda',
         'submit-incomplete' => 'Lengkapi semua langkah sebelum mengajukan.',
         'submit-confirm-title' => 'Ajukan Perjanjian Hibah',
@@ -569,6 +581,25 @@ return [
         'title' => 'Draft Naskah Perjanjian Hibah',
         'label-file' => 'File Draft Naskah Perjanjian',
         'hint-file' => 'Unggah file PDF, maksimal 20MB.',
+    ],
+
+    // Grant Agreement — Upload Signed Agreement (Post-Approval)
+    'grant-agreement-upload-signed' => [
+        'title' => 'Upload Naskah Perjanjian Hibah',
+        'label-file' => 'File Naskah Perjanjian',
+        'hint-file' => 'Unggah file PDF, maksimal 20MB.',
+    ],
+
+    // Grant Agreement — SEHATI Submission (Post-Approval)
+    'grant-agreement-sehati' => [
+        'title' => 'Data SEHATI / Kemenkeu',
+        'label-grant-recipient' => 'Penerima Hibah',
+        'label-funding-source' => 'Sumber Pembiayaan',
+        'label-funding-type' => 'Jenis Pembiayaan',
+        'label-withdrawal-method' => 'Cara Penarikan',
+        'label-effective-date' => 'Tanggal Efektif',
+        'label-withdrawal-deadline' => 'Tanggal Batas Penarikan',
+        'label-account-closing-date' => 'Tanggal Penutupan Rekening',
     ],
 
     // Tag Management

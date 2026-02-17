@@ -85,6 +85,44 @@
             </dl>
         </div>
 
+        {{-- SEHATI Data --}}
+        @if ($grant->financeMinistrySubmission)
+            <div class="rounded-lg border border-zinc-200 dark:border-zinc-700 p-6">
+                <flux:heading size="lg" class="mb-4">{{ __('page.grant-detail.sehati-info') }}</flux:heading>
+
+                <dl class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
+                    <div>
+                        <dt class="text-sm text-zinc-500 dark:text-zinc-400">{{ __('page.grant-detail.label-sehati-grant-recipient') }}</dt>
+                        <dd class="mt-1 font-medium">{{ $grant->financeMinistrySubmission->penerima_hibah }}</dd>
+                    </div>
+                    <div>
+                        <dt class="text-sm text-zinc-500 dark:text-zinc-400">{{ __('page.grant-detail.label-sehati-funding-source') }}</dt>
+                        <dd class="mt-1 font-medium">{{ $grant->financeMinistrySubmission->sumber_pembiayaan }}</dd>
+                    </div>
+                    <div>
+                        <dt class="text-sm text-zinc-500 dark:text-zinc-400">{{ __('page.grant-detail.label-sehati-funding-type') }}</dt>
+                        <dd class="mt-1 font-medium">{{ $grant->financeMinistrySubmission->jenis_pembiayaan }}</dd>
+                    </div>
+                    <div>
+                        <dt class="text-sm text-zinc-500 dark:text-zinc-400">{{ __('page.grant-detail.label-sehati-withdrawal-method') }}</dt>
+                        <dd class="mt-1 font-medium">{{ $grant->financeMinistrySubmission->cara_penarikan }}</dd>
+                    </div>
+                    <div>
+                        <dt class="text-sm text-zinc-500 dark:text-zinc-400">{{ __('page.grant-detail.label-sehati-effective-date') }}</dt>
+                        <dd class="mt-1 font-medium">{{ $grant->financeMinistrySubmission->tanggal_efektif->format('d M Y') }}</dd>
+                    </div>
+                    <div>
+                        <dt class="text-sm text-zinc-500 dark:text-zinc-400">{{ __('page.grant-detail.label-sehati-withdrawal-deadline') }}</dt>
+                        <dd class="mt-1 font-medium">{{ $grant->financeMinistrySubmission->tanggal_batas_penarikan->format('d M Y') }}</dd>
+                    </div>
+                    <div>
+                        <dt class="text-sm text-zinc-500 dark:text-zinc-400">{{ __('page.grant-detail.label-sehati-account-closing-date') }}</dt>
+                        <dd class="mt-1 font-medium">{{ $grant->financeMinistrySubmission->tanggal_penutupan_rekening->format('d M Y') }}</dd>
+                    </div>
+                </dl>
+            </div>
+        @endif
+
         {{-- Donor Info --}}
         @if ($grant->donor)
             <div class="rounded-lg border border-zinc-200 dark:border-zinc-700 p-6">

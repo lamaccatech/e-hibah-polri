@@ -21,6 +21,7 @@ class GrantDetailRepository
                 'donor',
                 'statusHistory' => fn ($q) => $q->orderBy('id'),
                 'numberings',
+                'financeMinistrySubmission',
             ])
             ->findOrFail($grantId);
     }

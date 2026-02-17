@@ -93,6 +93,8 @@ enum GrantStatus: string
             self::MabesRejectedAgreement => __('page.mabes-agreement-review.badge-rejected'),
             self::MabesRequestedAgreementRevision => __('page.mabes-agreement-review.badge-revision-requested'),
             self::AgreementNumberIssued => __('page.mabes-agreement-review.badge-number-issued'),
+            self::UploadingSignedAgreement => __('page.grant-agreement.badge-signed-uploaded'),
+            self::SubmittingToFinanceMinistry => __('page.grant-agreement.badge-sehati-submitted'),
             default => $this->value,
         };
     }

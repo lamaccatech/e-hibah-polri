@@ -11,6 +11,7 @@ return [
     'continue' => 'Lanjutkan',
     'confirm' => 'Konfirmasi',
     'close' => 'Tutup',
+    'create' => 'Buat',
     'logout' => 'Keluar',
 
     // Status

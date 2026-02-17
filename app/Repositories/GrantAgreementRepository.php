@@ -581,6 +581,42 @@ class GrantAgreementRepository
         return $latestStatus !== null && $latestStatus->isEditableBySatkerAgreement();
     }
 
+    public function canUploadSignedAgreement(Grant $grant): bool
+    {
+        return $this->getLatestStatus($grant) === GrantStatus::AgreementNumberIssued;
+    }
+
+    public function canSubmitSehati(Grant $grant): bool
+    {
+        return $this->getLatestStatus($grant) === GrantStatus::UploadingSignedAgreement;
+    }
+
+    public function saveSignedAgreement(Grant $grant, UploadedFile $signedFile): void
+    {
+        DB::transaction(function () use ($grant, $signedFile): void {
+            $statusHistory = $grant->statusHistory()->create([
+                'status_sebelum' => $this->getLatestStatus($grant)?->value,
+                'status_sesudah' => GrantStatus::UploadingSignedAgreement->value,
+                'keterangan' => "{$grant->orgUnit->nama_unit} mengupload naskah perjanjian hibah untuk kegiatan {$grant->nama_hibah}",
+            ]);
+
+            $statusHistory->attachFile($signedFile, FileType::Agreement);
+        });
+    }
+
+    public function saveSehatiSubmission(Grant $grant, array $validated): void
+    {
+        DB::transaction(function () use ($grant, $validated): void {
+            $grant->financeMinistrySubmission()->create($validated);
+
+            $grant->statusHistory()->create([
+                'status_sebelum' => $this->getLatestStatus($grant)?->value,
+                'status_sesudah' => GrantStatus::SubmittingToFinanceMinistry->value,
+                'keterangan' => "{$grant->orgUnit->nama_unit} mengisi data SEHATI/Kemenkeu untuk kegiatan {$grant->nama_hibah}",
+            ]);
+        });
+    }
+
     public function getLatestStatus(Grant $grant): ?GrantStatus
     {
         $latestHistory = $grant->statusHistory()

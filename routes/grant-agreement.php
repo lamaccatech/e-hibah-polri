@@ -8,6 +8,8 @@ use App\Livewire\GrantAgreement\Harmonization;
 use App\Livewire\GrantAgreement\Index;
 use App\Livewire\GrantAgreement\OtherMaterials;
 use App\Livewire\GrantAgreement\ReceptionBasis;
+use App\Livewire\GrantAgreement\SehatiSubmission;
+use App\Livewire\GrantAgreement\UploadSignedAgreement;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'verified', 'satker'])->group(function () {
@@ -20,4 +22,6 @@ Route::middleware(['auth', 'verified', 'satker'])->group(function () {
     Route::livewire('grant-agreement/{grant}/additional', AdditionalMaterials::class)->name('grant-agreement.additional');
     Route::livewire('grant-agreement/{grant}/other', OtherMaterials::class)->name('grant-agreement.other');
     Route::livewire('grant-agreement/{grant}/draft', DraftAgreement::class)->name('grant-agreement.draft');
+    Route::livewire('grant-agreement/{grant}/upload-signed', UploadSignedAgreement::class)->name('grant-agreement.upload-signed');
+    Route::livewire('grant-agreement/{grant}/sehati', SehatiSubmission::class)->name('grant-agreement.sehati');
 });
