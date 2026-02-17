@@ -192,15 +192,15 @@
     </div>
 
     {{-- Right: Status Timeline --}}
-    <div class="lg:col-span-1">
-        <div class="rounded-lg border border-zinc-200 dark:border-zinc-700 p-6">
-            <flux:heading size="lg" class="mb-4">{{ __('page.grant-detail.status-timeline') }}</flux:heading>
+    <div class="lg:col-span-1 lg:h-0 lg:min-h-full">
+        <div class="rounded-lg border border-zinc-200 dark:border-zinc-700 p-6 flex flex-col h-full max-h-full">
+            <flux:heading size="lg" class="mb-4 shrink-0">{{ __('page.grant-detail.status-timeline') }}</flux:heading>
 
             @if ($statusHistory->isNotEmpty())
-                <div class="relative space-y-6">
+                <div class="relative space-y-6 overflow-y-auto min-h-0">
                     <div class="absolute top-2 bottom-2 left-[7px] w-px bg-zinc-200 dark:bg-zinc-700"></div>
 
-                    @foreach ($statusHistory as $history)
+                    @foreach ($statusHistory->reverse() as $history)
                         <div class="relative flex gap-3">
                             <div class="mt-1.5 size-[15px] shrink-0 rounded-full border-2 border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 z-10"></div>
                             <div class="min-w-0">
