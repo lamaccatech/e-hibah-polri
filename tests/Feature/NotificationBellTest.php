@@ -3,6 +3,7 @@
 use App\Livewire\NotificationBell;
 use App\Models\OrgUnit;
 use App\Models\User;
+use App\Notifications\PlanningNumberIssuedNotification;
 use App\Notifications\PlanningRejectedNotification;
 use App\Notifications\PlanningRevisionRequestedNotification;
 use App\Notifications\PlanningSubmittedNotification;
@@ -113,6 +114,48 @@ describe('Notification Bell', function () {
         $url = $component->instance()->getUrl($notification);
 
         expect($url)->toBe(route('grant-planning.edit', $grant->id));
+    });
+
+    it('routes planning number issued notification to grant planning index', function () {
+        $satker = createUserWithUnit('satuan_kerja');
+
+        $grant = $satker->unit->grants()->create(
+            \App\Models\Grant::factory()->planned()->raw()
+        );
+
+        $satker->notify(new PlanningNumberIssuedNotification($grant, 'USL/001/2025'));
+
+        $notification = $satker->notifications()->latest()->first();
+
+        $this->actingAs($satker);
+
+        $component = Livewire::test(NotificationBell::class);
+        $url = $component->instance()->getUrl($notification);
+
+        expect($url)->toBe(route('grant-planning.index'));
+    });
+
+    it('routes submitted notification to grant review index', function () {
+        $polda = createUserWithUnit();
+        $satker = \App\Models\User::factory()->create();
+        $satker->unit()->create(\App\Models\OrgUnit::factory()->satuanKerja()->raw([
+            'id_unit_atasan' => $polda->id,
+        ]));
+
+        $grant = $satker->unit->grants()->create(
+            \App\Models\Grant::factory()->planned()->raw()
+        );
+
+        $polda->notify(new PlanningSubmittedNotification($grant));
+
+        $notification = $polda->notifications()->latest()->first();
+
+        $this->actingAs($polda);
+
+        $component = Livewire::test(NotificationBell::class);
+        $url = $component->instance()->getUrl($notification);
+
+        expect($url)->toBe(route('grant-review.index'));
     });
 
     it('marks all notifications as read', function () {

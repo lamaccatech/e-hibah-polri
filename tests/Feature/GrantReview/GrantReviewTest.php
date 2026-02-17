@@ -443,3 +443,84 @@ describe('Grant Review — Auto-Status Resolution', function () {
         expect($latestStatus->status_sesudah)->toBe(GrantStatus::PoldaRequestedPlanningRevision);
     });
 });
+
+describe('Grant Review — Validation', function () {
+    it('requires result to be selected', function () {
+        $polda = createPoldaUser();
+        $satker = createSatkerUserUnderPolda($polda);
+        $grant = createSubmittedGrantForReview($satker);
+        startReviewForGrant($grant);
+
+        $this->actingAs($polda);
+
+        $assessment = GrantAssessment::query()
+            ->whereHas('statusHistory', fn ($q) => $q->where('id_hibah', $grant->id))
+            ->where('aspek', AssessmentAspect::Technical)
+            ->first();
+
+        Livewire::test(Review::class, ['grant' => $grant])
+            ->call('openResultModal', $assessment->id, $assessment->aspek->label())
+            ->call('submitResult')
+            ->assertHasErrors(['result']);
+    });
+
+    it('requires remarks when result is not Fulfilled', function () {
+        $polda = createPoldaUser();
+        $satker = createSatkerUserUnderPolda($polda);
+        $grant = createSubmittedGrantForReview($satker);
+        startReviewForGrant($grant);
+
+        $this->actingAs($polda);
+
+        $assessment = GrantAssessment::query()
+            ->whereHas('statusHistory', fn ($q) => $q->where('id_hibah', $grant->id))
+            ->where('aspek', AssessmentAspect::Technical)
+            ->first();
+
+        Livewire::test(Review::class, ['grant' => $grant])
+            ->call('openResultModal', $assessment->id, $assessment->aspek->label())
+            ->set('result', AssessmentResult::Rejected->value)
+            ->call('submitResult')
+            ->assertHasErrors(['remarks']);
+    });
+
+    it('prevents re-submitting result for already evaluated aspect', function () {
+        $polda = createPoldaUser();
+        $satker = createSatkerUserUnderPolda($polda);
+        $grant = createSubmittedGrantForReview($satker);
+        startReviewForGrant($grant);
+
+        $repository = app(\App\Repositories\GrantReviewRepository::class);
+        $assessment = GrantAssessment::query()
+            ->whereHas('statusHistory', fn ($q) => $q->where('id_hibah', $grant->id))
+            ->where('aspek', AssessmentAspect::Technical)
+            ->first();
+
+        // Submit result via repository first
+        $repository->submitAspectResult($assessment, $polda->unit, AssessmentResult::Fulfilled, null);
+
+        $this->actingAs($polda);
+
+        // Try to submit again via Livewire
+        Livewire::test(Review::class, ['grant' => $grant])
+            ->call('openResultModal', $assessment->id, $assessment->aspek->label())
+            ->set('result', AssessmentResult::Rejected->value)
+            ->set('remarks', 'Try to override')
+            ->call('submitResult')
+            ->assertStatus(422);
+    });
+});
+
+describe('Grant Review — Mabes Access to Non-Verified', function () {
+    it('prevents accessing review page when grant is not under review', function () {
+        $polda = createPoldaUser();
+        $satker = createSatkerUserUnderPolda($polda);
+        $grant = createSubmittedGrantForReview($satker);
+
+        // Grant is submitted but NOT under review yet
+        $this->actingAs($polda);
+
+        $this->get(route('grant-review.review', $grant))
+            ->assertForbidden();
+    });
+});

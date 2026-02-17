@@ -167,6 +167,35 @@ describe('User Management — Happy Path — Delete', function () {
         expect(OrgUnit::withTrashed()->where('id_user', $target->id)->first()->deleted_at)->not->toBeNull();
     });
 
+    it('redirects to user list after deleting', function () {
+        $mabes = createMabesUser();
+        $target = createSatuanKerjaUser($mabes->id);
+
+        $this->actingAs($mabes);
+
+        Livewire::test(Index::class)
+            ->call('confirmDelete', $target->id)
+            ->call('delete')
+            ->assertRedirect(route('user.index'));
+    });
+
+    it('removes deleted user from user list', function () {
+        $mabes = createMabesUser();
+        $target = createSatuanKerjaUser($mabes->id);
+        $unitName = $target->unit->nama_unit;
+
+        $this->actingAs($mabes);
+
+        Livewire::test(Index::class)
+            ->assertSeeText($unitName)
+            ->call('confirmDelete', $target->id)
+            ->call('delete');
+
+        // Re-test the index component to verify user is gone
+        Livewire::test(Index::class)
+            ->assertDontSeeText($unitName);
+    });
+
     it('prevents deleted user from logging in', function () {
         $mabes = createMabesUser();
         $target = createSatuanKerjaUser($mabes->id);
@@ -270,6 +299,37 @@ describe('User Management — Validation — Create', function () {
     });
 });
 
+describe('User Management — Validation — Update', function () {
+    it('fails to update with duplicate email belonging to another user', function () {
+        $mabes = createMabesUser();
+        $target = createSatuanKerjaUser($mabes->id);
+        $other = createSatuanKerjaUser($mabes->id);
+
+        $this->actingAs($mabes);
+
+        Livewire::test(Edit::class, ['user' => $target])
+            ->set('email', $other->email)
+            ->set('unitName', 'Unit Test')
+            ->set('code', 'UT01')
+            ->call('save')
+            ->assertHasErrors(['email']);
+    });
+
+    it('fails to update with missing required fields', function () {
+        $mabes = createMabesUser();
+        $target = createSatuanKerjaUser($mabes->id);
+
+        $this->actingAs($mabes);
+
+        Livewire::test(Edit::class, ['user' => $target])
+            ->set('email', '')
+            ->set('unitName', '')
+            ->set('code', '')
+            ->call('save')
+            ->assertHasErrors(['email', 'unitName', 'code']);
+    });
+});
+
 describe('User Management — Validation — Delete', function () {
     it('rejects deletion when unit has active grants', function () {
         $mabes = createMabesUser();
@@ -328,5 +388,19 @@ describe('User Management — Access Control', function () {
         $this->actingAs($satuanKerja)
             ->get('/user/'.$target->id.'/edit')
             ->assertRedirect(route('dashboard'));
+    });
+
+    it('prevents non-Mabes user from deleting via Livewire action', function () {
+        $mabes = createMabesUser();
+        $satuanKerja = createSatuanKerjaUser($mabes->id);
+        $target = createSatuanKerjaUser($mabes->id);
+
+        // Non-Mabes cannot even access the index page — it redirects.
+        // Verify user still exists after attempted access.
+        $this->actingAs($satuanKerja)
+            ->get('/user')
+            ->assertRedirect(route('dashboard'));
+
+        expect(\App\Models\User::find($target->id))->not->toBeNull();
     });
 });

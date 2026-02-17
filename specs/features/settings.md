@@ -135,5 +135,5 @@ Authenticated users can manage their account settings: profile information, pass
 
 ### Access Control
 17. Unauthenticated user → redirected to login
-18. Unverified user can access profile page
-19. Unverified user cannot access password/appearance/2FA pages
+18. Unverified user can access all settings pages (User does not implement MustVerifyEmail)
+19. Two-factor page requires password confirmation

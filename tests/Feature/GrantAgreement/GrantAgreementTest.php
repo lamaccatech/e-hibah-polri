@@ -1261,3 +1261,28 @@ describe('Submit Agreement to Polda', function () {
         );
     });
 });
+
+describe('Grant Agreement — Access Control', function () {
+    it('redirects Polda user from agreement index to dashboard', function () {
+        $poldaUser = User::factory()->create();
+        $poldaUser->unit()->create(OrgUnit::factory()->satuanInduk()->raw());
+
+        $this->actingAs($poldaUser)
+            ->get(route('grant-agreement.index'))
+            ->assertRedirect(route('dashboard'));
+    });
+
+    it('redirects Mabes user from agreement create to dashboard', function () {
+        $mabesUser = User::factory()->create();
+        $mabesUser->unit()->create(OrgUnit::factory()->mabes()->raw());
+
+        $this->actingAs($mabesUser)
+            ->get(route('grant-agreement.create'))
+            ->assertRedirect(route('dashboard'));
+    });
+
+    it('redirects unauthenticated user from agreement routes to login', function () {
+        $this->get(route('grant-agreement.index'))
+            ->assertRedirect('/login');
+    });
+});
