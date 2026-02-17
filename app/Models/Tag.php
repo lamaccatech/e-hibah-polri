@@ -22,4 +22,9 @@ class Tag extends Model
     {
         return $this->morphedByMany(Donor::class, 'taggable');
     }
+
+    public function grants(): MorphToMany
+    {
+        return $this->morphedByMany(Grant::class, 'taggable');
+    }
 }

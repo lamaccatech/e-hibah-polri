@@ -35,6 +35,34 @@
                     </flux:table.cell>
                     <flux:table.cell align="end">
                         <div class="flex justify-end gap-2">
+                            <flux:dropdown position="bottom" align="end">
+                                <flux:button variant="ghost" size="sm" icon="tag" />
+
+                                <flux:menu>
+                                    @foreach ($allTags as $tag)
+                                        <flux:menu.radio
+                                            :checked="$grant->tags->contains('id', $tag->id)"
+                                            wire:click="assignTag({{ $grant->id }}, {{ $tag->id }})"
+                                        >
+                                            {{ $tag->name }}
+                                        </flux:menu.radio>
+                                    @endforeach
+
+                                    @if ($grant->tags->isNotEmpty())
+                                        <flux:menu.separator />
+                                        <flux:menu.item variant="danger" wire:click="assignTag({{ $grant->id }}, null)">
+                                            {{ __('page.mabes-agreement-review.clear-tag') }}
+                                        </flux:menu.item>
+                                    @endif
+
+                                    @if ($allTags->isEmpty())
+                                        <flux:menu.item disabled>
+                                            {{ __('page.mabes-agreement-review.no-tags') }}
+                                        </flux:menu.item>
+                                    @endif
+                                </flux:menu>
+                            </flux:dropdown>
+
                             <flux:button variant="ghost" size="sm" icon="eye" :href="route('grant-detail.show', $grant)" wire:navigate />
                             @if (in_array($grant->id, $reviewableIds))
                                 <flux:button variant="primary" size="sm" wire:click="confirmStartReview({{ $grant->id }})">

@@ -3,6 +3,7 @@
 namespace App\Livewire\MabesAgreementReview;
 
 use App\Models\Grant;
+use App\Models\Tag;
 use App\Repositories\MabesAgreementReviewRepository;
 use Livewire\Component;
 
@@ -11,6 +12,17 @@ class Index extends Component
     public bool $showStartReviewModal = false;
 
     public ?int $grantToReviewId = null;
+
+    public function assignTag(int $grantId, ?int $tagId): void
+    {
+        $grant = Grant::findOrFail($grantId);
+
+        if ($tagId) {
+            $grant->tags()->sync([$tagId]);
+        } else {
+            $grant->tags()->detach();
+        }
+    }
 
     public function confirmStartReview(int $grantId): void
     {
@@ -47,6 +59,7 @@ class Index extends Component
             'grants' => $grants,
             'reviewableIds' => $reviewableIds,
             'underReviewIds' => $underReviewIds,
+            'allTags' => Tag::query()->orderBy('name')->get(),
         ]);
     }
 }

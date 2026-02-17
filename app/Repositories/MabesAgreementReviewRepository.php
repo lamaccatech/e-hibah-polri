@@ -31,7 +31,7 @@ class MabesAgreementReviewRepository
                     ->orWhere('status_sesudah', GrantStatus::MabesRequestedAgreementRevision)
                     ->orWhere('status_sesudah', GrantStatus::AgreementNumberIssued);
             })
-            ->with(['donor', 'statusHistory', 'orgUnit.parent'])
+            ->with(['donor', 'statusHistory', 'orgUnit.parent', 'tags'])
             ->orderByDesc('created_at')
             ->get();
     }

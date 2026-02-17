@@ -432,6 +432,8 @@ return [
         'result-saved' => 'Penilaian berhasil disimpan.',
         'satker-assessment-heading' => 'Kajian Satuan Kerja',
         'polda-assessment-heading' => 'Kajian Satuan Induk',
+        'clear-tag' => 'Hapus Kategori',
+        'no-tags' => 'Belum ada kategori.',
     ],
 
     // Grant Detail
@@ -567,6 +569,18 @@ return [
         'title' => 'Draft Naskah Perjanjian Hibah',
         'label-file' => 'File Draft Naskah Perjanjian',
         'hint-file' => 'Unggah file PDF, maksimal 20MB.',
+    ],
+
+    // Tag Management
+    'tag-management' => [
+        'title' => 'Manajemen Kategori',
+        'label-name' => 'Nama Kategori',
+        'placeholder-name' => 'Masukkan nama kategori...',
+        'create-button' => 'Tambah Kategori',
+        'column-name' => 'Nama',
+        'column-action' => 'Aksi',
+        'empty-state' => 'Belum ada kategori.',
+        'edit-modal-title' => 'Edit Kategori',
     ],
 
     // Grant Document Generation

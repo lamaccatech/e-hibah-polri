@@ -46,6 +46,9 @@
                     <flux:navbar.item icon="users" :href="route('user.index')" :current="request()->routeIs('user.*')" wire:navigate>
                         {{ __('component.navbar.nav-user-management') }}
                     </flux:navbar.item>
+                    <flux:navbar.item icon="tag" :href="route('tag.index')" :current="request()->routeIs('tag.*')" wire:navigate>
+                        {{ __('component.navbar.nav-tag-management') }}
+                    </flux:navbar.item>
                 @endif
             </flux:navbar>
 
@@ -137,6 +140,9 @@
                     </flux:sidebar.item>
                     <flux:sidebar.item icon="users" :href="route('user.index')" :current="request()->routeIs('user.*')" wire:navigate>
                         {{ __('component.navbar.nav-user-management') }}
+                    </flux:sidebar.item>
+                    <flux:sidebar.item icon="tag" :href="route('tag.index')" :current="request()->routeIs('tag.*')" wire:navigate>
+                        {{ __('component.navbar.nav-tag-management') }}
                     </flux:sidebar.item>
                 @endif
             </flux:sidebar.nav>

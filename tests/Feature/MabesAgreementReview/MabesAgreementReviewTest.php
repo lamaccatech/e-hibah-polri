@@ -9,6 +9,7 @@ use App\Livewire\MabesAgreementReview\Review;
 use App\Models\Grant;
 use App\Models\GrantAssessment;
 use App\Models\OrgUnit;
+use App\Models\Tag;
 use App\Models\User;
 use App\Repositories\AgreementReviewRepository;
 use App\Repositories\MabesAgreementReviewRepository;
@@ -489,5 +490,59 @@ describe('Mabes Agreement Review — Auto-Status Resolution', function () {
 
         $latestStatus = $grant->statusHistory()->latest('id')->first();
         expect($latestStatus->status_sesudah)->toBe(GrantStatus::MabesRequestedAgreementRevision);
+    });
+});
+
+describe('Mabes Agreement Review — Tag Assignment', function () {
+    it('allows Mabes to assign a tag to a grant', function () {
+        $grant = createPoldaVerifiedAgreement();
+        $tag = Tag::factory()->create(['name' => 'Pendidikan']);
+
+        $mabes = User::factory()->create();
+        $mabes->unit()->create(OrgUnit::factory()->mabes()->raw());
+
+        $this->actingAs($mabes);
+
+        Livewire::test(Index::class)
+            ->call('assignTag', $grant->id, $tag->id);
+
+        expect($grant->fresh()->tags->pluck('id')->all())->toBe([$tag->id]);
+    });
+
+    it('replaces existing tag when assigning a new one', function () {
+        $grant = createPoldaVerifiedAgreement();
+        $oldTag = Tag::factory()->create(['name' => 'Lama']);
+        $newTag = Tag::factory()->create(['name' => 'Baru']);
+
+        $grant->tags()->sync([$oldTag->id]);
+
+        $mabes = User::factory()->create();
+        $mabes->unit()->create(OrgUnit::factory()->mabes()->raw());
+
+        $this->actingAs($mabes);
+
+        Livewire::test(Index::class)
+            ->call('assignTag', $grant->id, $newTag->id);
+
+        $tags = $grant->fresh()->tags;
+        expect($tags)->toHaveCount(1);
+        expect($tags->first()->id)->toBe($newTag->id);
+    });
+
+    it('allows Mabes to remove a tag from a grant', function () {
+        $grant = createPoldaVerifiedAgreement();
+        $tag = Tag::factory()->create(['name' => 'ToRemove']);
+
+        $grant->tags()->sync([$tag->id]);
+
+        $mabes = User::factory()->create();
+        $mabes->unit()->create(OrgUnit::factory()->mabes()->raw());
+
+        $this->actingAs($mabes);
+
+        Livewire::test(Index::class)
+            ->call('assignTag', $grant->id, null);
+
+        expect($grant->fresh()->tags)->toBeEmpty();
     });
 });
