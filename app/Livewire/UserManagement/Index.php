@@ -4,9 +4,12 @@ namespace App\Livewire\UserManagement;
 
 use App\Repositories\UserRepository;
 use Livewire\Component;
+use Livewire\WithPagination;
 
 class Index extends Component
 {
+    use WithPagination;
+
     public bool $showDeleteModal = false;
 
     public ?int $userToDelete = null;
@@ -49,7 +52,7 @@ class Index extends Component
     public function render(UserRepository $repository)
     {
         return view('livewire.user-management.index', [
-            'users' => $repository->allWithUnits(),
+            'users' => $repository->paginateWithUnits(),
         ]);
     }
 }

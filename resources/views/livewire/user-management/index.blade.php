@@ -13,7 +13,7 @@
         </flux:callout>
     @enderror
 
-    <flux:table>
+    <flux:table :paginate="$users">
         <flux:table.columns>
             <flux:table.column>{{ __('common.email') }}</flux:table.column>
             <flux:table.column>{{ __('page.user-management.column-unit-name') }}</flux:table.column>

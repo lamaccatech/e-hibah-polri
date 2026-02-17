@@ -4,14 +4,15 @@ namespace App\Repositories;
 
 use App\Models\OrgUnit;
 use App\Models\User;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
 
 class UserRepository
 {
-    /** @return Collection<int, User> */
-    public function allWithUnits(): Collection
+    /** @return LengthAwarePaginator<int, User> */
+    public function paginateWithUnits(int $perPage = 15): LengthAwarePaginator
     {
-        return User::with('unit')->whereHas('unit')->get();
+        return User::with('unit')->whereHas('unit')->paginate($perPage);
     }
 
     public function findWithUnit(int $id): User
