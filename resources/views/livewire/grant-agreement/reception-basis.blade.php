@@ -33,17 +33,19 @@
 
         {{-- Surat dari Pemberi Hibah (only for direct grants, not editing) --}}
         @if (!$hasProposal && !$grant)
-            <flux:field>
-                <flux:label>{{ __('page.grant-agreement-reception.label-donor-letter') }}</flux:label>
-                <input
-                    type="file"
-                    wire:model="donorLetter"
-                    accept=".pdf,.jpg,.png"
-                    class="block w-full text-sm text-zinc-500 file:mr-4 file:rounded-lg file:border-0 file:bg-zinc-100 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-zinc-700 hover:file:bg-zinc-200 dark:text-zinc-400 dark:file:bg-zinc-800 dark:file:text-zinc-300 dark:hover:file:bg-zinc-700"
-                />
-                <flux:text class="text-xs text-zinc-500">{{ __('page.grant-agreement-reception.donor-letter-hint') }}</flux:text>
+            <div class="space-y-2">
+                <flux:file-upload wire:model="donorLetter" :label="__('page.grant-agreement-reception.label-donor-letter')" accept=".pdf,.jpg,.png">
+                    <flux:file-upload.dropzone
+                        :heading="__('page.grant-agreement-reception.label-donor-letter')"
+                        :text="__('page.grant-agreement-reception.donor-letter-hint')"
+                    />
+                </flux:file-upload>
                 <flux:error name="donorLetter" />
-            </flux:field>
+
+                @if ($donorLetter)
+                    <flux:file-item :heading="$donorLetter->getClientOriginalName()" :size="rescue(fn () => $donorLetter->getSize())" />
+                @endif
+            </div>
         @endif
 
         {{-- Tujuan --}}

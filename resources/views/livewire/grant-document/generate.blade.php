@@ -13,7 +13,7 @@
         <div class="max-w-sm space-y-4">
             <flux:field>
                 <flux:label>{{ __('page.grant-document.label-date') }}</flux:label>
-                <flux:input type="date" wire:model="documentDate" />
+                <flux:date-picker wire:model="documentDate" />
                 <flux:error name="documentDate" />
             </flux:field>
 

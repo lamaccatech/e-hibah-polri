@@ -45,7 +45,6 @@ class Grant extends Model implements HasChangeHistory, HasFiles
         return [
             'jenis_hibah' => GrantType::class,
             'tahapan' => GrantStage::class,
-            // bentuk_hibah stored as CSV string (e.g. "UANG,BARANG") — no cast needed
             'ada_usulan' => 'boolean',
             'nilai_hibah' => 'decimal:2',
         ];

@@ -10,11 +10,13 @@
 
         <flux:input wire:model="nrp" :label="__('page.chief-create.label-nrp')" type="text" required />
 
-        <flux:field>
-            <flux:label>{{ __('page.chief-create.label-signature') }}</flux:label>
-            <input type="file" wire:model="signature" accept="image/*" required />
-            <flux:error name="signature" />
-        </flux:field>
+        <flux:file-upload wire:model="signature" :label="__('page.chief-create.label-signature')" accept="image/*">
+            <flux:file-upload.dropzone
+                :heading="__('page.chief-create.label-signature')"
+                text="JPG, PNG"
+            />
+        </flux:file-upload>
+        <flux:error name="signature" />
 
         @if ($signature)
             <img src="{{ $signature->temporaryUrl() }}" class="h-20" alt="{{ __('page.chief-create.signature-preview') }}">

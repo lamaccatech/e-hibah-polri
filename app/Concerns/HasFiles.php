@@ -57,7 +57,7 @@ trait HasFiles
             'path' => $path,
             'url' => $url,
             'mime_type' => $uploadedFile->getMimeType(),
-            'size_in_bytes' => $uploadedFile->getSize(),
+            'size_in_bytes' => rescue(fn () => $uploadedFile->getSize()),
             'description' => $description,
         ]);
     }

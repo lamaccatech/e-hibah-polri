@@ -3,14 +3,17 @@
 
     <form wire:submit="save" class="max-w-3xl space-y-8">
         <div class="space-y-2">
-            <flux:input
-                wire:model="draftFile"
-                :label="__('page.grant-agreement-draft.label-file')"
-                type="file"
-                accept=".pdf"
-            />
-            <flux:text class="text-sm text-zinc-500">{{ __('page.grant-agreement-draft.hint-file') }}</flux:text>
+            <flux:file-upload wire:model="draftFile" :label="__('page.grant-agreement-draft.label-file')" accept=".pdf">
+                <flux:file-upload.dropzone
+                    :heading="__('page.grant-agreement-draft.label-file')"
+                    :text="__('page.grant-agreement-draft.hint-file')"
+                />
+            </flux:file-upload>
             <flux:error name="draftFile" />
+
+            @if ($draftFile)
+                <flux:file-item :heading="$draftFile->getClientOriginalName()" :size="rescue(fn () => $draftFile->getSize())" />
+            @endif
         </div>
 
         <div class="flex items-center gap-4">

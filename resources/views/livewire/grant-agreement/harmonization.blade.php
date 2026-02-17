@@ -39,11 +39,15 @@
                             type="text"
                         />
                         <flux:input
-                            wire:model="budgetItems.{{ $index }}.nilai"
                             :label="__('page.grant-planning-proposal.label-value')"
-                            type="number"
-                            step="0.01"
-                            min="0"
+                            type="text"
+                            inputmode="numeric"
+                            value="{{ $item['nilai'] ? number_format((float) $item['nilai'], 0, ',', '.') : '' }}"
+                            x-on:input="
+                                let raw = $event.target.value.replace(/\D/g, '');
+                                $event.target.value = raw ? new Intl.NumberFormat('id-ID').format(Number(raw)) : '';
+                                $wire.set('budgetItems.{{ $index }}.nilai', raw);
+                            "
                         />
                     </div>
                     @if (count($budgetItems) > 1)
@@ -71,17 +75,20 @@
                             :label="__('page.grant-planning-proposal.label-description')"
                             type="text"
                         />
-                        <flux:input
+                        <flux:date-picker
                             wire:model="withdrawalPlans.{{ $index }}.tanggal"
                             :label="__('page.grant-agreement-harmonization.label-withdrawal-date')"
-                            type="date"
                         />
                         <flux:input
-                            wire:model="withdrawalPlans.{{ $index }}.nilai"
                             :label="__('page.grant-planning-proposal.label-value')"
-                            type="number"
-                            step="0.01"
-                            min="0"
+                            type="text"
+                            inputmode="numeric"
+                            value="{{ $plan['nilai'] ? number_format((float) $plan['nilai'], 0, ',', '.') : '' }}"
+                            x-on:input="
+                                let raw = $event.target.value.replace(/\D/g, '');
+                                $event.target.value = raw ? new Intl.NumberFormat('id-ID').format(Number(raw)) : '';
+                                $wire.set('withdrawalPlans.{{ $index }}.nilai', raw);
+                            "
                         />
                     </div>
                     @if (count($withdrawalPlans) > 1)

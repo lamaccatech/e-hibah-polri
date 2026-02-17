@@ -17,11 +17,13 @@
             </div>
         @endif
 
-        <flux:field>
-            <flux:label>{{ __('page.chief-edit.label-signature') }}</flux:label>
-            <input type="file" wire:model="signature" accept="image/*" />
-            <flux:error name="signature" />
-        </flux:field>
+        <flux:file-upload wire:model="signature" :label="__('page.chief-edit.label-signature')" accept="image/*">
+            <flux:file-upload.dropzone
+                :heading="__('page.chief-edit.label-signature')"
+                text="JPG, PNG"
+            />
+        </flux:file-upload>
+        <flux:error name="signature" />
 
         @if ($signature)
             <img src="{{ $signature->temporaryUrl() }}" class="h-20" alt="{{ __('page.chief-edit.signature-preview') }}">
