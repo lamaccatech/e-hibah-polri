@@ -22,9 +22,6 @@
                     <flux:navbar.item icon="clipboard-document-list" :href="route('grant-agreement.index')" :current="request()->routeIs('grant-agreement.*')" wire:navigate>
                         {{ __('component.navbar.nav-grant-agreement') }}
                     </flux:navbar.item>
-                    <flux:navbar.item icon="user-circle" :href="route('chief.index')" :current="request()->routeIs('chief.*')" wire:navigate>
-                        {{ __('component.navbar.nav-chief-management') }}
-                    </flux:navbar.item>
                 @endif
 
                 @if (auth()->user()->unit?->level_unit === \App\Enums\UnitLevel::SatuanInduk)
@@ -80,6 +77,16 @@
 
                     <flux:menu.separator />
 
+                    @if (auth()->user()->unit?->level_unit === \App\Enums\UnitLevel::SatuanKerja)
+                        <flux:menu.radio.group>
+                            <flux:menu.item :href="route('chief.index')" icon="user-circle" wire:navigate>
+                                {{ __('component.navbar.nav-chief-management') }}
+                            </flux:menu.item>
+                        </flux:menu.radio.group>
+
+                        <flux:menu.separator />
+                    @endif
+
                     @if (auth()->user()->unit?->level_unit === \App\Enums\UnitLevel::Mabes)
                         <flux:menu.radio.group>
                             <flux:menu.item :href="route('user.index')" icon="users" wire:navigate>
@@ -130,9 +137,6 @@
                     <flux:sidebar.item icon="clipboard-document-list" :href="route('grant-agreement.index')" :current="request()->routeIs('grant-agreement.*')" wire:navigate>
                         {{ __('component.navbar.nav-grant-agreement') }}
                     </flux:sidebar.item>
-                    <flux:sidebar.item icon="user-circle" :href="route('chief.index')" :current="request()->routeIs('chief.*')" wire:navigate>
-                        {{ __('component.navbar.nav-chief-management') }}
-                    </flux:sidebar.item>
                 @endif
 
                 @if (auth()->user()->unit?->level_unit === \App\Enums\UnitLevel::SatuanInduk)
@@ -163,6 +167,11 @@
             <flux:spacer />
 
             <flux:sidebar.nav>
+                @if (auth()->user()->unit?->level_unit === \App\Enums\UnitLevel::SatuanKerja)
+                    <flux:sidebar.item icon="user-circle" :href="route('chief.index')" :current="request()->routeIs('chief.*')" wire:navigate>
+                        {{ __('component.navbar.nav-chief-management') }}
+                    </flux:sidebar.item>
+                @endif
                 @if (auth()->user()->unit?->level_unit === \App\Enums\UnitLevel::Mabes)
                     <flux:sidebar.item icon="users" :href="route('user.index')" :current="request()->routeIs('user.*')" wire:navigate>
                         {{ __('component.navbar.nav-user-management') }}
