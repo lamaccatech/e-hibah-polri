@@ -2,6 +2,8 @@
 
 namespace Database\Factories;
 
+use App\Enums\LogAction;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -16,8 +18,12 @@ class ActivityLogFactory extends Factory
      */
     public function definition(): array
     {
+        $action = fake()->randomElement(LogAction::cases());
+
         return [
-            //
+            'user_id' => User::factory(),
+            'action' => $action,
+            'message' => "{$action->label()} data uji coba",
         ];
     }
 }

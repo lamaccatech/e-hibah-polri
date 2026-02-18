@@ -21,3 +21,4 @@ require __DIR__.'/grant-detail.php';
 require __DIR__.'/grant-document.php';
 require __DIR__.'/tag-management.php';
 require __DIR__.'/donor-listing.php';
+require __DIR__.'/activity-log.php';

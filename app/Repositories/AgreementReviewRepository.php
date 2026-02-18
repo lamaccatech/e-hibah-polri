@@ -6,6 +6,7 @@ use App\Enums\AssessmentAspect;
 use App\Enums\AssessmentResult;
 use App\Enums\GrantStage;
 use App\Enums\GrantStatus;
+use App\Enums\LogAction;
 use App\Models\Grant;
 use App\Models\GrantAssessment;
 use App\Models\GrantAssessmentResult;
@@ -78,6 +79,12 @@ class AgreementReviewRepository
                     'tahapan' => GrantStage::Agreement->value,
                 ]);
             }
+
+            auth()->user()?->activityLogs()->create([
+                'action' => LogAction::Review,
+                'message' => "Memulai kajian perjanjian hibah: {$grant->nama_hibah}",
+                'metadata' => ['model_type' => Grant::class, 'model_id' => $grant->id],
+            ]);
         });
     }
 
@@ -181,6 +188,18 @@ class AgreementReviewRepository
             'status_sebelum' => GrantStatus::PoldaReviewingAgreement->value,
             'status_sesudah' => $newStatus->value,
             'keterangan' => $keterangan,
+        ]);
+
+        $logAction = match ($newStatus) {
+            GrantStatus::PoldaVerifiedAgreement => LogAction::Verify,
+            GrantStatus::PoldaRejectedAgreement => LogAction::Reject,
+            GrantStatus::PoldaRequestedAgreementRevision => LogAction::RequestRevision,
+        };
+
+        auth()->user()?->activityLogs()->create([
+            'action' => $logAction,
+            'message' => "{$logAction->label()} perjanjian hibah: {$grant->nama_hibah}",
+            'metadata' => ['model_type' => Grant::class, 'model_id' => $grant->id],
         ]);
 
         if ($newStatus === GrantStatus::PoldaRejectedAgreement) {

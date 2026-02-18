@@ -690,4 +690,33 @@ return [
         'empty-tags' => 'Belum ada kategori.',
     ],
 
+    // Activity Log
+    'activity-log' => [
+        'title' => 'Log Aktivitas',
+        'search-placeholder' => 'Cari nama pengguna...',
+        'filter-action' => 'Jenis aksi',
+        'all-actions' => 'Semua aksi',
+        'date-from' => 'Dari tanggal',
+        'date-to' => 'Sampai tanggal',
+        'column-time' => 'Waktu',
+        'column-user' => 'Pengguna',
+        'column-action' => 'Aksi',
+        'column-message' => 'Keterangan',
+        'empty-state' => 'Belum ada log aktivitas.',
+    ],
+
+    // Grant Detail — Change History Tab
+    'grant-detail-change-history' => [
+        'tab-label' => 'Riwayat Perubahan',
+        'empty-state' => 'Belum ada riwayat perubahan.',
+        'label-user' => 'Oleh',
+        'label-system' => 'Sistem',
+        'label-reason' => 'Alasan',
+        'label-changes' => 'Perubahan',
+        'label-from' => 'Sebelum',
+        'label-to' => 'Sesudah',
+        'label-new' => 'Baru',
+        'label-removed' => 'Dihapus',
+    ],
+
 ];

@@ -132,6 +132,11 @@ class Show extends Component
                 && $agreementRepository->isEditable($this->grant);
         } elseif ($this->activeTab === 'document-history') {
             $data['documentHistory'] = $documentRepository->getDocumentHistory($this->grant);
+        } elseif ($this->activeTab === 'change-history') {
+            $data['changeHistory'] = $this->grant->changes()
+                ->with('user')
+                ->orderByDesc('created_at')
+                ->get();
         }
 
         return view('livewire.grant-detail.show', $data);

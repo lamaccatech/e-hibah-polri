@@ -5,6 +5,7 @@ namespace App\Repositories;
 use App\Enums\GrantStage;
 use App\Enums\GrantStatus;
 use App\Enums\GrantType;
+use App\Enums\LogAction;
 use App\Models\Donor;
 use App\Models\Grant;
 use App\Models\OrgUnit;
@@ -83,6 +84,8 @@ class GrantPlanningRepository
             'keterangan' => "{$unit->nama_unit} memulai pembuatan naskah usulan hibah dalam rangka kegiatan {$activityName}",
         ]);
 
+        auth()->user()?->recordCreation($grant, 'Membuat usulan hibah baru');
+
         return $grant;
     }
 
@@ -97,7 +100,11 @@ class GrantPlanningRepository
      */
     public function createDonor(array $data): Donor
     {
-        return Donor::create($data);
+        $donor = Donor::create($data);
+
+        auth()->user()?->recordCreation($donor, 'Membuat data pemberi hibah baru');
+
+        return $donor;
     }
 
     public function linkDonor(Grant $grant, int $donorId): void
@@ -293,6 +300,12 @@ class GrantPlanningRepository
             'status_sebelum' => $currentStatus?->value,
             'status_sesudah' => $newStatus->value,
             'keterangan' => "{$grant->orgUnit->nama_unit} mengajukan usulan hibah untuk kegiatan {$grant->nama_hibah}",
+        ]);
+
+        auth()->user()?->activityLogs()->create([
+            'action' => LogAction::Submit,
+            'message' => "Mengajukan usulan hibah: {$grant->nama_hibah}",
+            'metadata' => ['model_type' => Grant::class, 'model_id' => $grant->id],
         ]);
 
         $poldaUser = $grant->orgUnit->parent?->user;

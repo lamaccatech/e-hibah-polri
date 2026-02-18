@@ -2,16 +2,18 @@
 
 namespace App\Models;
 
+use App\Concerns\HasChangeHistory as HasChangeHistoryTrait;
+use App\Contracts\HasChangeHistory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class Donor extends Model
+class Donor extends Model implements HasChangeHistory
 {
     /** @use HasFactory<\Database\Factories\DonorFactory> */
-    use HasFactory, SoftDeletes;
+    use HasChangeHistoryTrait, HasFactory, SoftDeletes;
 
     protected $table = 'pemberi_hibah';
 

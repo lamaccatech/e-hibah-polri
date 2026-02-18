@@ -41,4 +41,45 @@ class ChangeHistory extends Model
     {
         return $this->morphTo();
     }
+
+    /**
+     * Compute a diff between state_before and state_after.
+     *
+     * @return array<string, array{from: mixed, to: mixed}>
+     */
+    public function getChanges(): array
+    {
+        $before = $this->state_before;
+        $after = $this->state_after;
+
+        if ($before === null && $after === null) {
+            return [];
+        }
+
+        if ($before === null) {
+            return collect($after)
+                ->map(fn (mixed $value) => ['from' => null, 'to' => $value])
+                ->all();
+        }
+
+        if ($after === null) {
+            return collect($before)
+                ->map(fn (mixed $value) => ['from' => $value, 'to' => null])
+                ->all();
+        }
+
+        $changes = [];
+        $allKeys = array_unique(array_merge(array_keys($before), array_keys($after)));
+
+        foreach ($allKeys as $key) {
+            $oldValue = $before[$key] ?? null;
+            $newValue = $after[$key] ?? null;
+
+            if ($oldValue !== $newValue) {
+                $changes[$key] = ['from' => $oldValue, 'to' => $newValue];
+            }
+        }
+
+        return $changes;
+    }
 }

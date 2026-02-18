@@ -52,6 +52,9 @@
                     <flux:navbar.item icon="users" :href="route('user.index')" :current="request()->routeIs('user.*')" wire:navigate>
                         {{ __('component.navbar.nav-user-management') }}
                     </flux:navbar.item>
+                    <flux:navbar.item icon="clipboard-document-check" :href="route('activity-log.index')" :current="request()->routeIs('activity-log.*')" wire:navigate>
+                        {{ __('component.navbar.nav-activity-log') }}
+                    </flux:navbar.item>
                 @endif
             </flux:navbar>
 
@@ -149,6 +152,9 @@
                     </flux:sidebar.item>
                     <flux:sidebar.item icon="users" :href="route('user.index')" :current="request()->routeIs('user.*')" wire:navigate>
                         {{ __('component.navbar.nav-user-management') }}
+                    </flux:sidebar.item>
+                    <flux:sidebar.item icon="clipboard-document-check" :href="route('activity-log.index')" :current="request()->routeIs('activity-log.*')" wire:navigate>
+                        {{ __('component.navbar.nav-activity-log') }}
                     </flux:sidebar.item>
                 @endif
             </flux:sidebar.nav>

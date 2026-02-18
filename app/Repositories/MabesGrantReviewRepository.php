@@ -6,6 +6,7 @@ use App\Enums\AssessmentAspect;
 use App\Enums\AssessmentResult;
 use App\Enums\GrantStage;
 use App\Enums\GrantStatus;
+use App\Enums\LogAction;
 use App\Models\Grant;
 use App\Models\GrantAssessment;
 use App\Models\GrantAssessmentResult;
@@ -76,6 +77,12 @@ class MabesGrantReviewRepository
                     'tahapan' => GrantStage::Planning->value,
                 ]);
             }
+
+            auth()->user()?->activityLogs()->create([
+                'action' => LogAction::Review,
+                'message' => "Memulai kajian usulan hibah: {$grant->nama_hibah}",
+                'metadata' => ['model_type' => Grant::class, 'model_id' => $grant->id],
+            ]);
         });
     }
 
@@ -204,6 +211,18 @@ class MabesGrantReviewRepository
             'status_sebelum' => GrantStatus::MabesReviewingPlanning->value,
             'status_sesudah' => $newStatus->value,
             'keterangan' => $keterangan,
+        ]);
+
+        $logAction = match ($newStatus) {
+            GrantStatus::MabesVerifiedPlanning => LogAction::Verify,
+            GrantStatus::MabesRejectedPlanning => LogAction::Reject,
+            GrantStatus::MabesRequestedPlanningRevision => LogAction::RequestRevision,
+        };
+
+        auth()->user()?->activityLogs()->create([
+            'action' => $logAction,
+            'message' => "{$logAction->label()} usulan hibah: {$grant->nama_hibah}",
+            'metadata' => ['model_type' => Grant::class, 'model_id' => $grant->id],
         ]);
 
         if ($newStatus === GrantStatus::MabesRejectedPlanning) {

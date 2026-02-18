@@ -113,6 +113,15 @@
                     {{ __('page.grant-detail.tab-document-history') }}
                 </flux:navbar.item>
             @endif
+
+            {{-- Always visible: Riwayat Perubahan --}}
+            <flux:navbar.item
+                wire:click.prevent="switchTab('change-history')"
+                :current="$activeTab === 'change-history'"
+                class="cursor-pointer"
+            >
+                {{ __('page.grant-detail-change-history.tab-label') }}
+            </flux:navbar.item>
         </flux:navbar>
     </div>
 
@@ -128,5 +137,7 @@
         @include('livewire.grant-detail._tab-agreement-assessment-info')
     @elseif ($activeTab === 'document-history')
         @include('livewire.grant-detail._tab-document-history')
+    @elseif ($activeTab === 'change-history')
+        @include('livewire.grant-detail._tab-change-history')
     @endif
 </div>

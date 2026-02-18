@@ -6,6 +6,7 @@ use App\Enums\FileType;
 use App\Enums\GrantStage;
 use App\Enums\GrantStatus;
 use App\Enums\GrantType;
+use App\Enums\LogAction;
 use App\Enums\ProposalChapter;
 use App\Models\Donor;
 use App\Models\Grant;
@@ -93,6 +94,8 @@ class GrantAgreementRepository
             ]);
 
             $this->saveObjectives($grant, $objectives);
+
+            auth()->user()?->recordCreation($grant, 'Membuat perjanjian hibah baru');
 
             return $grant;
         });
@@ -565,6 +568,12 @@ class GrantAgreementRepository
             'status_sebelum' => $currentStatus?->value,
             'status_sesudah' => $newStatus->value,
             'keterangan' => "{$grant->orgUnit->nama_unit} mengajukan perjanjian hibah untuk kegiatan {$grant->nama_hibah}",
+        ]);
+
+        auth()->user()?->activityLogs()->create([
+            'action' => LogAction::Submit,
+            'message' => "Mengajukan perjanjian hibah: {$grant->nama_hibah}",
+            'metadata' => ['model_type' => Grant::class, 'model_id' => $grant->id],
         ]);
 
         $poldaUser = $grant->orgUnit->parent?->user;

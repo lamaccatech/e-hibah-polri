@@ -18,6 +18,7 @@ return [
         'nav-user-management' => 'Manajemen User',
         'nav-tag-management' => 'Kategori Hibah',
         'nav-donor-listing' => 'Pemberi Hibah',
+        'nav-activity-log' => 'Log Aktivitas',
     ],
 
     'grant-planning-steps' => [
