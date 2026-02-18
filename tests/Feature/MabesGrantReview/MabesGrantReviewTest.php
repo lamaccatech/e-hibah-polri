@@ -490,3 +490,99 @@ describe('Mabes Grant Review — Auto-Status Resolution', function () {
         expect($latestStatus->status_sesudah)->toBe(GrantStatus::MabesRequestedPlanningRevision);
     });
 });
+
+describe('Mabes Grant Review — Validation', function () {
+    it('requires result to be selected', function () {
+        $grant = createPoldaVerifiedGrant();
+        startMabesReviewForGrant($grant);
+
+        $mabes = User::factory()->create();
+        $mabes->unit()->create(OrgUnit::factory()->mabes()->raw());
+
+        $this->actingAs($mabes);
+
+        $assessment = GrantAssessment::query()
+            ->whereHas('statusHistory', fn ($q) => $q->where('id_hibah', $grant->id)
+                ->where('status_sesudah', GrantStatus::MabesReviewingPlanning))
+            ->where('aspek', AssessmentAspect::Technical)
+            ->first();
+
+        Livewire::test(Review::class, ['grant' => $grant])
+            ->call('openResultModal', $assessment->id, $assessment->aspek->label())
+            ->call('submitResult')
+            ->assertHasErrors(['result']);
+    });
+
+    it('requires remarks when result is not Fulfilled', function () {
+        $grant = createPoldaVerifiedGrant();
+        startMabesReviewForGrant($grant);
+
+        $mabes = User::factory()->create();
+        $mabes->unit()->create(OrgUnit::factory()->mabes()->raw());
+
+        $this->actingAs($mabes);
+
+        $assessment = GrantAssessment::query()
+            ->whereHas('statusHistory', fn ($q) => $q->where('id_hibah', $grant->id)
+                ->where('status_sesudah', GrantStatus::MabesReviewingPlanning))
+            ->where('aspek', AssessmentAspect::Technical)
+            ->first();
+
+        Livewire::test(Review::class, ['grant' => $grant])
+            ->call('openResultModal', $assessment->id, $assessment->aspek->label())
+            ->set('result', AssessmentResult::Rejected->value)
+            ->call('submitResult')
+            ->assertHasErrors(['remarks']);
+    });
+
+    it('does not require remarks when result is Fulfilled', function () {
+        $grant = createPoldaVerifiedGrant();
+        startMabesReviewForGrant($grant);
+
+        $mabes = User::factory()->create();
+        $mabes->unit()->create(OrgUnit::factory()->mabes()->raw());
+
+        $this->actingAs($mabes);
+
+        $assessment = GrantAssessment::query()
+            ->whereHas('statusHistory', fn ($q) => $q->where('id_hibah', $grant->id)
+                ->where('status_sesudah', GrantStatus::MabesReviewingPlanning))
+            ->where('aspek', AssessmentAspect::Technical)
+            ->first();
+
+        Livewire::test(Review::class, ['grant' => $grant])
+            ->call('openResultModal', $assessment->id, $assessment->aspek->label())
+            ->set('result', AssessmentResult::Fulfilled->value)
+            ->call('submitResult')
+            ->assertHasNoErrors();
+    });
+
+    it('prevents re-submitting result for already evaluated aspect', function () {
+        $grant = createPoldaVerifiedGrant();
+        startMabesReviewForGrant($grant);
+
+        $mabesUnit = OrgUnit::where('level_unit', \App\Enums\UnitLevel::Mabes)->first();
+        $repository = app(MabesGrantReviewRepository::class);
+        $assessment = GrantAssessment::query()
+            ->whereHas('statusHistory', fn ($q) => $q->where('id_hibah', $grant->id)
+                ->where('status_sesudah', GrantStatus::MabesReviewingPlanning))
+            ->where('aspek', AssessmentAspect::Technical)
+            ->first();
+
+        // Submit result via repository first
+        $repository->submitAspectResult($assessment, $mabesUnit, AssessmentResult::Fulfilled, null);
+
+        $mabes = User::factory()->create();
+        $mabes->unit()->create(OrgUnit::factory()->mabes()->raw());
+
+        $this->actingAs($mabes);
+
+        // Try to submit again via Livewire
+        Livewire::test(Review::class, ['grant' => $grant])
+            ->call('openResultModal', $assessment->id, $assessment->aspek->label())
+            ->set('result', AssessmentResult::Rejected->value)
+            ->set('remarks', 'Try to override')
+            ->call('submitResult')
+            ->assertStatus(422);
+    });
+});

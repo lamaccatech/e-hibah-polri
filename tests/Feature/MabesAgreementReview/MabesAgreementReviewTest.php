@@ -493,6 +493,100 @@ describe('Mabes Agreement Review — Auto-Status Resolution', function () {
     });
 });
 
+describe('Mabes Agreement Review — Validation', function () {
+    it('requires result to be selected', function () {
+        $grant = createPoldaVerifiedAgreement();
+        startMabesAgreementReviewForGrant($grant);
+
+        $mabes = User::factory()->create();
+        $mabes->unit()->create(OrgUnit::factory()->mabes()->raw());
+
+        $this->actingAs($mabes);
+
+        $assessment = GrantAssessment::query()
+            ->whereHas('statusHistory', fn ($q) => $q->where('id_hibah', $grant->id)
+                ->where('status_sesudah', GrantStatus::MabesReviewingAgreement))
+            ->where('aspek', AssessmentAspect::Technical)
+            ->first();
+
+        Livewire::test(Review::class, ['grant' => $grant])
+            ->call('openResultModal', $assessment->id, $assessment->aspek->label())
+            ->call('submitResult')
+            ->assertHasErrors(['result']);
+    });
+
+    it('requires remarks when result is not Fulfilled', function () {
+        $grant = createPoldaVerifiedAgreement();
+        startMabesAgreementReviewForGrant($grant);
+
+        $mabes = User::factory()->create();
+        $mabes->unit()->create(OrgUnit::factory()->mabes()->raw());
+
+        $this->actingAs($mabes);
+
+        $assessment = GrantAssessment::query()
+            ->whereHas('statusHistory', fn ($q) => $q->where('id_hibah', $grant->id)
+                ->where('status_sesudah', GrantStatus::MabesReviewingAgreement))
+            ->where('aspek', AssessmentAspect::Technical)
+            ->first();
+
+        Livewire::test(Review::class, ['grant' => $grant])
+            ->call('openResultModal', $assessment->id, $assessment->aspek->label())
+            ->set('result', AssessmentResult::Rejected->value)
+            ->call('submitResult')
+            ->assertHasErrors(['remarks']);
+    });
+
+    it('does not require remarks when result is Fulfilled', function () {
+        $grant = createPoldaVerifiedAgreement();
+        startMabesAgreementReviewForGrant($grant);
+
+        $mabes = User::factory()->create();
+        $mabes->unit()->create(OrgUnit::factory()->mabes()->raw());
+
+        $this->actingAs($mabes);
+
+        $assessment = GrantAssessment::query()
+            ->whereHas('statusHistory', fn ($q) => $q->where('id_hibah', $grant->id)
+                ->where('status_sesudah', GrantStatus::MabesReviewingAgreement))
+            ->where('aspek', AssessmentAspect::Technical)
+            ->first();
+
+        Livewire::test(Review::class, ['grant' => $grant])
+            ->call('openResultModal', $assessment->id, $assessment->aspek->label())
+            ->set('result', AssessmentResult::Fulfilled->value)
+            ->call('submitResult')
+            ->assertHasNoErrors();
+    });
+
+    it('prevents re-submitting result for already evaluated aspect', function () {
+        $grant = createPoldaVerifiedAgreement();
+        startMabesAgreementReviewForGrant($grant);
+
+        $mabesUnit = OrgUnit::where('level_unit', \App\Enums\UnitLevel::Mabes)->first();
+        $repository = app(MabesAgreementReviewRepository::class);
+        $assessment = GrantAssessment::query()
+            ->whereHas('statusHistory', fn ($q) => $q->where('id_hibah', $grant->id)
+                ->where('status_sesudah', GrantStatus::MabesReviewingAgreement))
+            ->where('aspek', AssessmentAspect::Technical)
+            ->first();
+
+        $repository->submitAspectResult($assessment, $mabesUnit, AssessmentResult::Fulfilled, null);
+
+        $mabes = User::factory()->create();
+        $mabes->unit()->create(OrgUnit::factory()->mabes()->raw());
+
+        $this->actingAs($mabes);
+
+        Livewire::test(Review::class, ['grant' => $grant])
+            ->call('openResultModal', $assessment->id, $assessment->aspek->label())
+            ->set('result', AssessmentResult::Rejected->value)
+            ->set('remarks', 'Try to override')
+            ->call('submitResult')
+            ->assertStatus(422);
+    });
+});
+
 describe('Mabes Agreement Review — Tag Assignment', function () {
     it('allows Mabes to assign a tag to a grant', function () {
         $grant = createPoldaVerifiedAgreement();

@@ -229,6 +229,25 @@ describe('Step 1: Dasar Penerimaan — New Direct Agreement', function () {
             ->call('save')
             ->assertHasErrors(['activityName', 'letterNumber']);
     });
+
+    it('forces activity name to uppercase on save', function () {
+        Storage::fake();
+        $user = createSatkerUserForAgreementTest();
+
+        Livewire::actingAs($user)
+            ->test(ReceptionBasis::class)
+            ->set('letterNumber', 'SURAT-2026-UC')
+            ->set('activityName', 'kegiatan hibah lowercase')
+            ->set('donorLetter', UploadedFile::fake()->create('surat.pdf', 1024, 'application/pdf'))
+            ->set('objectives.0.purpose', 'PENINGKATAN KAPASITAS SDM')
+            ->set('objectives.0.detail', '<p>Detail tujuan kegiatan</p>')
+            ->call('save')
+            ->assertHasNoErrors()
+            ->assertRedirect();
+
+        $grant = Grant::where('nama_hibah', 'KEGIATAN HIBAH LOWERCASE')->first();
+        expect($grant)->not->toBeNull();
+    });
 });
 
 describe('Step 1: Dasar Penerimaan — From Planning', function () {
@@ -1077,6 +1096,17 @@ describe('Step 7: Draft Naskah Perjanjian', function () {
         Livewire::actingAs($user)
             ->test(DraftAgreement::class, ['grant' => $grant])
             ->set('draftFile', UploadedFile::fake()->create('draft.docx', 1000, 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'))
+            ->call('save')
+            ->assertHasErrors(['draftFile']);
+    });
+
+    it('rejects draft files exceeding 20MB', function () {
+        $user = createSatkerUserForAgreementTest();
+        $grant = createAgreementGrant($user);
+
+        Livewire::actingAs($user)
+            ->test(DraftAgreement::class, ['grant' => $grant])
+            ->set('draftFile', UploadedFile::fake()->create('draft.pdf', 20481, 'application/pdf'))
             ->call('save')
             ->assertHasErrors(['draftFile']);
     });

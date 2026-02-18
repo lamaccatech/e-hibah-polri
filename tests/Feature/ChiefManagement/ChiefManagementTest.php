@@ -165,6 +165,54 @@ describe('Chief Management — Happy Path — Update', function () {
     });
 });
 
+describe('Chief Management — Validation', function () {
+    it('fails to create a chief with missing required fields', function () {
+        $satker = createSatkerUser();
+
+        $this->actingAs($satker);
+
+        Livewire::test(Create::class)
+            ->call('save')
+            ->assertHasErrors(['fullName', 'position', 'rank', 'nrp', 'signature']);
+    });
+
+    it('fails to create a chief with oversized signature', function () {
+        Storage::fake();
+        $satker = createSatkerUser();
+
+        $this->actingAs($satker);
+
+        // Create a file larger than the 2048KB limit
+        $file = UploadedFile::fake()->image('signature.png')->size(3000);
+
+        Livewire::test(Create::class)
+            ->set('fullName', 'Test Chief')
+            ->set('position', 'Kepala')
+            ->set('rank', 'Komisaris')
+            ->set('nrp', '11111111')
+            ->set('signature', $file)
+            ->call('save')
+            ->assertHasErrors(['signature']);
+    });
+
+    it('correctly handles sedang_menjabat with 3+ chiefs', function () {
+        $satker = createSatkerUser();
+        $chief1 = $satker->unit->chiefs()->save(OrgUnitChief::factory()->active()->make());
+        $chief2 = $satker->unit->chiefs()->save(OrgUnitChief::factory()->make());
+        $chief3 = $satker->unit->chiefs()->save(OrgUnitChief::factory()->make());
+
+        $this->actingAs($satker);
+
+        Livewire::test(Index::class)
+            ->call('assign', $chief3->id)
+            ->assertHasNoErrors();
+
+        expect($chief1->fresh()->sedang_menjabat)->toBeFalse();
+        expect($chief2->fresh()->sedang_menjabat)->toBeFalse();
+        expect($chief3->fresh()->sedang_menjabat)->toBeTrue();
+    });
+});
+
 describe('Chief Management — Access Control', function () {
     it('redirects non-Satker user from chief list to dashboard', function () {
         $mabes = createMabesUserForChiefTest();

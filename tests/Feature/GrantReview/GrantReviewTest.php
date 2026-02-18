@@ -511,13 +511,26 @@ describe('Grant Review — Validation', function () {
     });
 });
 
-describe('Grant Review — Mabes Access to Non-Verified', function () {
+describe('Grant Review — Access Control', function () {
     it('prevents accessing review page when grant is not under review', function () {
         $polda = createPoldaUser();
         $satker = createSatkerUserUnderPolda($polda);
         $grant = createSubmittedGrantForReview($satker);
 
         // Grant is submitted but NOT under review yet
+        $this->actingAs($polda);
+
+        $this->get(route('grant-review.review', $grant))
+            ->assertForbidden();
+    });
+
+    it('prevents Polda from reviewing grants from non-child Satker', function () {
+        $polda = createPoldaUser();
+        $otherPolda = createPoldaUser();
+        $unrelatedSatker = createSatkerUserUnderPolda($otherPolda);
+        $grant = createSubmittedGrantForReview($unrelatedSatker);
+        startReviewForGrant($grant);
+
         $this->actingAs($polda);
 
         $this->get(route('grant-review.review', $grant))

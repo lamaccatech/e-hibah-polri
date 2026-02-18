@@ -116,6 +116,26 @@ describe('User Management — Happy Path — Create', function () {
         expect($newUser->unit->level_unit)->toBe(UnitLevel::SatuanKerja);
         expect($newUser->unit->id_unit_atasan)->toBe($mabes->id);
     });
+
+    it('sets user name to unit name on create', function () {
+        $mabes = createMabesUser();
+
+        $this->actingAs($mabes);
+
+        Livewire::test(Create::class)
+            ->set('email', 'nametest@example.com')
+            ->set('password', 'password')
+            ->set('passwordConfirmation', 'password')
+            ->set('unitName', 'Polres Jakarta Pusat')
+            ->set('code', 'PJP01')
+            ->set('unitLevel', UnitLevel::SatuanKerja->value)
+            ->set('parentUnitId', $mabes->id)
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $newUser = User::where('email', 'nametest@example.com')->first();
+        expect($newUser->name)->toBe('Polres Jakarta Pusat');
+    });
 });
 
 describe('User Management — Happy Path — Update', function () {
@@ -264,6 +284,23 @@ describe('User Management — Validation — Create', function () {
             ->assertHasErrors(['password']);
     });
 
+    it('fails with password shorter than 8 characters', function () {
+        $mabes = createMabesUser();
+
+        $this->actingAs($mabes);
+
+        Livewire::test(Create::class)
+            ->set('email', 'test@example.com')
+            ->set('password', 'short')
+            ->set('passwordConfirmation', 'short')
+            ->set('unitName', 'Unit Test')
+            ->set('code', 'UT01')
+            ->set('unitLevel', UnitLevel::SatuanKerja->value)
+            ->set('parentUnitId', $mabes->id)
+            ->call('save')
+            ->assertHasErrors(['password']);
+    });
+
     it('fails with invalid parent unit reference', function () {
         $mabes = createMabesUser();
 
@@ -360,6 +397,55 @@ describe('User Management — Validation — Delete', function () {
             ->assertHasErrors(['delete']);
 
         expect(User::find($parent->id))->not->toBeNull();
+    });
+
+    it('shows specific error message for active grants on delete', function () {
+        $mabes = createMabesUser();
+        $target = createSatuanKerjaUser($mabes->id);
+
+        $target->unit->grants()->save(Grant::factory()->make());
+
+        $this->actingAs($mabes);
+
+        Livewire::test(Index::class)
+            ->call('confirmDelete', $target->id)
+            ->call('delete')
+            ->assertHasErrors(['delete' => __('page.user-management.error-has-grants')]);
+    });
+
+    it('shows specific error message for child units on delete', function () {
+        $mabes = createMabesUser();
+        $parent = createSatuanKerjaUser($mabes->id);
+        createSatuanKerjaUser($parent->id);
+
+        $this->actingAs($mabes);
+
+        Livewire::test(Index::class)
+            ->call('confirmDelete', $parent->id)
+            ->call('delete')
+            ->assertHasErrors(['delete' => __('page.user-management.error-has-subordinates')]);
+    });
+
+    it('preserves kepala_unit records when soft-deleting user', function () {
+        $mabes = createMabesUser();
+        $target = createSatuanKerjaUser($mabes->id);
+
+        $target->unit->chiefs()->save(
+            \App\Models\OrgUnitChief::factory()->make()
+        );
+
+        $chiefCount = $target->unit->chiefs()->count();
+        expect($chiefCount)->toBe(1);
+
+        $this->actingAs($mabes);
+
+        Livewire::test(Index::class)
+            ->call('confirmDelete', $target->id)
+            ->call('delete')
+            ->assertHasNoErrors();
+
+        // Chiefs should still exist (not cascade deleted)
+        expect(\App\Models\OrgUnitChief::where('id_unit', $target->id)->count())->toBe(1);
     });
 });
 

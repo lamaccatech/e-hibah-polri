@@ -257,6 +257,24 @@ describe('Sensitive field exclusion', function () {
         expect($stateAfter)->not->toHaveKey('created_at');
         expect($stateAfter)->not->toHaveKey('updated_at');
     });
+
+    it('excludes two_factor_secret and two_factor_recovery_codes from User snapshots', function () {
+        $admin = createMabesUserForActivityLog();
+        $user = User::factory()->create([
+            'two_factor_secret' => encrypt('testsecret'),
+            'two_factor_recovery_codes' => encrypt(json_encode(['code1', 'code2'])),
+        ]);
+
+        $admin->recordCreation($user, 'Membuat pengguna');
+
+        $log = ActivityLog::where('user_id', $admin->id)->first();
+        expect($log)->not->toBeNull();
+
+        // User doesn't implement HasChangeHistory, so no ChangeHistory is created
+        // But the ActivityLog should exist without leaking 2FA secrets in metadata
+        expect($log->metadata)->not->toHaveKey('two_factor_secret');
+        expect($log->metadata)->not->toHaveKey('two_factor_recovery_codes');
+    });
 });
 
 // ==========================================
@@ -329,7 +347,7 @@ describe('Activity Log Index', function () {
             ->assertDontSee('User A action');
     });
 
-    it('filters by date range', function () {
+    it('filters by date range with dateFrom', function () {
         $user = createMabesUserForActivityLog();
         $oldLog = ActivityLog::factory()->create([
             'user_id' => $user->id,
@@ -347,6 +365,44 @@ describe('Activity Log Index', function () {
             ->set('dateFrom', now()->subDay()->format('Y-m-d'))
             ->assertSee('Recent log')
             ->assertDontSee('Old log');
+    });
+
+    it('filters by date range with dateTo', function () {
+        $user = createMabesUserForActivityLog();
+        ActivityLog::factory()->create([
+            'user_id' => $user->id,
+            'message' => 'Old log',
+            'created_at' => now()->subDays(10),
+        ]);
+        ActivityLog::factory()->create([
+            'user_id' => $user->id,
+            'message' => 'Recent log',
+            'created_at' => now(),
+        ]);
+
+        Livewire::actingAs($user)
+            ->test(Index::class)
+            ->set('dateTo', now()->subDays(5)->format('Y-m-d'))
+            ->assertSee('Old log')
+            ->assertDontSee('Recent log');
+    });
+
+    it('shows activity logs sorted by newest first', function () {
+        $user = createMabesUserForActivityLog();
+        ActivityLog::factory()->create([
+            'user_id' => $user->id,
+            'message' => 'First created',
+            'created_at' => now()->subMinutes(10),
+        ]);
+        ActivityLog::factory()->create([
+            'user_id' => $user->id,
+            'message' => 'Second created',
+            'created_at' => now(),
+        ]);
+
+        Livewire::actingAs($user)
+            ->test(Index::class)
+            ->assertSeeInOrder(['Second created', 'First created']);
     });
 
     it('shows Sistem when user_id is null', function () {

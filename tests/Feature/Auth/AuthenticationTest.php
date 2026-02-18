@@ -132,4 +132,33 @@ describe('Authentication - Edge Cases', function () {
         ])
             ->assertStatus(429);
     });
+
+    it('regenerates session on login to prevent session fixation', function () {
+        $user = User::factory()->create();
+        $oldSessionId = session()->getId();
+
+        $this->post('/login', [
+            'email' => $user->email,
+            'password' => 'password',
+        ]);
+
+        expect(session()->getId())->not->toBe($oldSessionId);
+    });
+
+    it('supports remember me functionality', function () {
+        $user = User::factory()->create();
+
+        $this->post('/login', [
+            'email' => $user->email,
+            'password' => 'password',
+            'remember' => true,
+        ])
+            ->assertRedirect('/dashboard');
+
+        $this->assertAuthenticatedAs($user);
+
+        // The remember token should be set on the user
+        $user->refresh();
+        expect($user->remember_token)->not->toBeNull();
+    });
 });

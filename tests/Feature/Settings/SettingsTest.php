@@ -160,6 +160,17 @@ describe('Settings — Appearance', function () {
             ->get('/settings/appearance')
             ->assertSuccessful();
     });
+
+    it('displays Light, Dark, and System theme options', function () {
+        $user = createVerifiedUser();
+
+        $this->actingAs($user);
+
+        Livewire::test(Appearance::class)
+            ->assertSeeText(__('page.appearance.light'))
+            ->assertSeeText(__('page.appearance.dark'))
+            ->assertSeeText(__('page.appearance.system'));
+    });
 });
 
 describe('Settings — Two-Factor Authentication', function () {
@@ -183,6 +194,19 @@ describe('Settings — Two-Factor Authentication', function () {
             ->call('enable')
             ->assertSet('showModal', true)
             ->assertNotSet('qrCodeSvg', '');
+    });
+
+    it('displays QR code and manual setup key when enabling 2FA', function () {
+        $user = createVerifiedUser();
+
+        $this->actingAs($user);
+
+        $component = Livewire::test(TwoFactor::class)
+            ->call('enable')
+            ->assertSet('showModal', true);
+
+        expect($component->get('qrCodeSvg'))->not->toBeEmpty();
+        expect($component->get('manualSetupKey'))->not->toBeEmpty();
     });
 
     it('allows user to confirm 2FA with valid code', function () {
@@ -262,6 +286,28 @@ describe('Settings — Two-Factor Authentication', function () {
         expect($component->get('recoveryCodes'))->not->toBeEmpty();
     });
 
+    it('loads recovery codes from encrypted storage', function () {
+        $user = createVerifiedUser();
+
+        app(\Laravel\Fortify\Actions\EnableTwoFactorAuthentication::class)($user);
+
+        $user->refresh();
+        $secret = decrypt($user->two_factor_secret);
+        $google2fa = app(\PragmaRX\Google2FA\Google2FA::class);
+        $code = $google2fa->getCurrentOtp($secret);
+
+        app(\Laravel\Fortify\Actions\ConfirmTwoFactorAuthentication::class)($user, $code);
+
+        $this->actingAs($user);
+
+        $component = Livewire::test(\App\Livewire\Settings\TwoFactor\RecoveryCodes::class);
+        $codes = $component->get('recoveryCodes');
+
+        expect($codes)->toBeArray();
+        expect($codes)->not->toBeEmpty();
+        expect(count($codes))->toBe(8);
+    });
+
     it('allows user to regenerate recovery codes', function () {
         $user = createVerifiedUser();
 
@@ -288,6 +334,14 @@ describe('Settings — Two-Factor Authentication', function () {
 });
 
 describe('Settings — Access Control', function () {
+    it('redirects /settings to /settings/profile', function () {
+        $user = createVerifiedUser();
+
+        $this->actingAs($user)
+            ->get('/settings')
+            ->assertRedirect('/settings/profile');
+    });
+
     it('redirects unauthenticated user to login', function () {
         $this->get('/settings/profile')
             ->assertRedirect('/login');
