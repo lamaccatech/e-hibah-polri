@@ -11,9 +11,9 @@ enum UnitLevel: string
     public function label(): string
     {
         return match ($this) {
-            self::Mabes => 'Mabes',
-            self::SatuanInduk => 'Satuan Induk',
-            self::SatuanKerja => 'Satuan Kerja',
+            self::Mabes => __('common.unit-level.mabes'),
+            self::SatuanInduk => __('common.unit-level.satuan-induk'),
+            self::SatuanKerja => __('common.unit-level.satuan-kerja'),
         };
     }
 

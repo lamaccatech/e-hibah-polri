@@ -69,7 +69,7 @@ class GrantReviewRepository
             $statusHistory = $grant->statusHistory()->create([
                 'status_sebelum' => $previousStatus?->value,
                 'status_sesudah' => GrantStatus::PoldaReviewingPlanning->value,
-                'keterangan' => "{$unit->nama_unit} memulai kajian usulan hibah untuk kegiatan {$grant->nama_hibah}",
+                'keterangan' => __('message.status-history.start-planning-review', ['unit' => $unit->nama_unit, 'activity' => $grant->nama_hibah]),
             ]);
 
             foreach (AssessmentAspect::cases() as $aspect) {
@@ -82,7 +82,7 @@ class GrantReviewRepository
 
             auth()->user()?->activityLogs()->create([
                 'action' => LogAction::Review,
-                'message' => "Memulai kajian usulan hibah: {$grant->nama_hibah}",
+                'message' => __('message.activity-log.start-planning-review', ['activity' => $grant->nama_hibah]),
                 'metadata' => ['model_type' => Grant::class, 'model_id' => $grant->id],
             ]);
         });
@@ -175,13 +175,13 @@ class GrantReviewRepository
 
         if ($results->contains(AssessmentResult::Rejected)) {
             $newStatus = GrantStatus::PoldaRejectedPlanning;
-            $keterangan = "Usulan hibah untuk kegiatan {$grant->nama_hibah} ditolak oleh Polda";
+            $keterangan = __('message.status-history.planning-rejected', ['activity' => $grant->nama_hibah, 'reviewer' => 'Polda']);
         } elseif ($results->contains(AssessmentResult::Revision)) {
             $newStatus = GrantStatus::PoldaRequestedPlanningRevision;
-            $keterangan = "Polda meminta revisi untuk usulan hibah kegiatan {$grant->nama_hibah}";
+            $keterangan = __('message.status-history.planning-revision-requested', ['activity' => $grant->nama_hibah, 'reviewer' => 'Polda']);
         } else {
             $newStatus = GrantStatus::PoldaVerifiedPlanning;
-            $keterangan = "Usulan hibah untuk kegiatan {$grant->nama_hibah} disetujui oleh Polda";
+            $keterangan = __('message.status-history.planning-verified', ['activity' => $grant->nama_hibah, 'reviewer' => 'Polda']);
         }
 
         $grant->statusHistory()->create([
@@ -198,7 +198,7 @@ class GrantReviewRepository
 
         auth()->user()?->activityLogs()->create([
             'action' => $logAction,
-            'message' => "{$logAction->label()} usulan hibah: {$grant->nama_hibah}",
+            'message' => __('message.activity-log.resolve-planning', ['action' => $logAction->label(), 'activity' => $grant->nama_hibah]),
             'metadata' => ['model_type' => Grant::class, 'model_id' => $grant->id],
         ]);
 

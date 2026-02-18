@@ -12,10 +12,10 @@ enum AssessmentAspect: string
     public function label(): string
     {
         return match ($this) {
-            self::Technical => 'Teknis',
-            self::Economic => 'Ekonomis',
-            self::Political => 'Politis',
-            self::Strategic => 'Strategis',
+            self::Technical => __('common.assessment-aspect.technical'),
+            self::Economic => __('common.assessment-aspect.economic'),
+            self::Political => __('common.assessment-aspect.political'),
+            self::Strategic => __('common.assessment-aspect.strategic'),
         };
     }
 
@@ -26,20 +26,20 @@ enum AssessmentAspect: string
     {
         return match ($this) {
             self::Technical => [
-                'Kesesuaian dengan kebutuhan dan dapat digunakan untuk kepentingan keamanan dalam negeri',
-                'Kepastian bahwa objek hasil dari hibah sesuai dengan standar dan ketentuan yang berlaku di lingkungan Polri',
+                __('common.assessment-aspect.prompt-technical-1'),
+                __('common.assessment-aspect.prompt-technical-2'),
             ],
             self::Economic => [
-                'Kemanfaatan yang diperoleh akan lebih besar daripada potensi beban penyelenggaraan, operasional, pemeliharaan dan perawatan yang akan timbul',
-                'Sinergi antara hibah dengan DIPA Polri',
+                __('common.assessment-aspect.prompt-economic-1'),
+                __('common.assessment-aspect.prompt-economic-2'),
             ],
             self::Political => [
-                'Dampak terhadap kemandirian serta kredibilitas Polri',
-                'Potensi atas peningkatan kualitas hubungan bilateral antara Polri dan pemberi hibah',
+                __('common.assessment-aspect.prompt-political-1'),
+                __('common.assessment-aspect.prompt-political-2'),
             ],
             self::Strategic => [
-                'Keselarasan dengan visi dan misi Polri',
-                'Kapasitas untuk meningkatkan kemampuan dalam melaksanakan tugas dan fungsi kepolisian',
+                __('common.assessment-aspect.prompt-strategic-1'),
+                __('common.assessment-aspect.prompt-strategic-2'),
             ],
         };
     }

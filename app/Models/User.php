@@ -86,7 +86,7 @@ class User extends Authenticatable
         try {
             $this->activityLogs()->create([
                 'action' => LogAction::Create,
-                'message' => $this->buildMessage('Membuat', $model),
+                'message' => $this->buildMessage(__('message.action.create'), $model),
                 'metadata' => [
                     'model_type' => $model::class,
                     'model_id' => $model->getKey(),
@@ -117,7 +117,7 @@ class User extends Authenticatable
 
             $this->activityLogs()->create([
                 'action' => LogAction::Update,
-                'message' => $this->buildMessage('Mengubah', $model),
+                'message' => $this->buildMessage(__('message.action.update'), $model),
                 'metadata' => [
                     'model_type' => $model::class,
                     'model_id' => $model->getKey(),
@@ -154,7 +154,7 @@ class User extends Authenticatable
         try {
             $this->activityLogs()->create([
                 'action' => LogAction::Delete,
-                'message' => $this->buildMessage('Menghapus', $model),
+                'message' => $this->buildMessage(__('message.action.delete'), $model),
                 'metadata' => [
                     'model_type' => $model::class,
                     'model_id' => $model->getKey(),
@@ -178,11 +178,11 @@ class User extends Authenticatable
     private function buildMessage(string $action, Model $model): string
     {
         $label = match ($model::class) {
-            Grant::class => 'hibah',
-            Donor::class => 'pemberi hibah',
-            OrgUnit::class => 'unit',
-            OrgUnitChief::class => 'kepala unit',
-            self::class => 'pengguna',
+            Grant::class => __('message.model-label.grant'),
+            Donor::class => __('message.model-label.donor'),
+            OrgUnit::class => __('message.model-label.org-unit'),
+            OrgUnitChief::class => __('message.model-label.org-unit-chief'),
+            self::class => __('message.model-label.user'),
             default => Str::lower(class_basename($model)),
         };
 

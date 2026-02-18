@@ -81,10 +81,10 @@ class GrantPlanningRepository
 
         $grant->statusHistory()->create([
             'status_sesudah' => GrantStatus::PlanningInitialized->value,
-            'keterangan' => "{$unit->nama_unit} memulai pembuatan naskah usulan hibah dalam rangka kegiatan {$activityName}",
+            'keterangan' => __('message.status-history.planning-initialized', ['unit' => $unit->nama_unit, 'activity' => $activityName]),
         ]);
 
-        auth()->user()?->recordCreation($grant, 'Membuat usulan hibah baru');
+        auth()->user()?->recordCreation($grant, __('message.activity-log.create-planning'));
 
         return $grant;
     }
@@ -102,7 +102,7 @@ class GrantPlanningRepository
     {
         $donor = Donor::create($data);
 
-        auth()->user()?->recordCreation($donor, 'Membuat data pemberi hibah baru');
+        auth()->user()?->recordCreation($donor, __('message.activity-log.create-donor'));
 
         return $donor;
     }
@@ -116,7 +116,7 @@ class GrantPlanningRepository
         $grant->statusHistory()->create([
             'status_sebelum' => $this->getLatestStatus($grant)?->value,
             'status_sesudah' => GrantStatus::FillingDonorCandidate->value,
-            'keterangan' => "{$grant->orgUnit->nama_unit} mengisi data calon pemberi hibah {$donor?->nama} untuk kegiatan {$grant->nama_hibah}",
+            'keterangan' => __('message.status-history.filling-donor-candidate', ['unit' => $grant->orgUnit->nama_unit, 'donor' => $donor?->nama, 'activity' => $grant->nama_hibah]),
         ]);
     }
 
@@ -215,7 +215,7 @@ class GrantPlanningRepository
             $grant->statusHistory()->create([
                 'status_sebelum' => $this->getLatestStatus($grant)?->value,
                 'status_sesudah' => GrantStatus::CreatingProposalDocument->value,
-                'keterangan' => "{$grant->orgUnit->nama_unit} membuat naskah usulan hibah untuk kegiatan {$grant->nama_hibah}",
+                'keterangan' => __('message.status-history.creating-proposal-document', ['unit' => $grant->orgUnit->nama_unit, 'activity' => $grant->nama_hibah]),
             ]);
         });
     }
@@ -247,7 +247,7 @@ class GrantPlanningRepository
             $statusHistory = $grant->statusHistory()->create([
                 'status_sebelum' => $this->getLatestStatus($grant)?->value,
                 'status_sesudah' => GrantStatus::CreatingPlanningAssessment->value,
-                'keterangan' => "{$grant->orgUnit->nama_unit} membuat dokumen kajian usulan hibah untuk kegiatan {$grant->nama_hibah}",
+                'keterangan' => __('message.status-history.creating-planning-assessment', ['unit' => $grant->orgUnit->nama_unit, 'activity' => $grant->nama_hibah]),
             ]);
 
             // Create assessments with contents
@@ -299,12 +299,12 @@ class GrantPlanningRepository
         $grant->statusHistory()->create([
             'status_sebelum' => $currentStatus?->value,
             'status_sesudah' => $newStatus->value,
-            'keterangan' => "{$grant->orgUnit->nama_unit} mengajukan usulan hibah untuk kegiatan {$grant->nama_hibah}",
+            'keterangan' => __('message.status-history.planning-submitted', ['unit' => $grant->orgUnit->nama_unit, 'activity' => $grant->nama_hibah]),
         ]);
 
         auth()->user()?->activityLogs()->create([
             'action' => LogAction::Submit,
-            'message' => "Mengajukan usulan hibah: {$grant->nama_hibah}",
+            'message' => __('message.activity-log.submit-planning', ['activity' => $grant->nama_hibah]),
             'metadata' => ['model_type' => Grant::class, 'model_id' => $grant->id],
         ]);
 

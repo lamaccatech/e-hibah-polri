@@ -69,7 +69,7 @@ class AgreementReviewRepository
             $statusHistory = $grant->statusHistory()->create([
                 'status_sebelum' => $previousStatus?->value,
                 'status_sesudah' => GrantStatus::PoldaReviewingAgreement->value,
-                'keterangan' => "{$unit->nama_unit} memulai kajian perjanjian hibah untuk kegiatan {$grant->nama_hibah}",
+                'keterangan' => __('message.status-history.start-agreement-review', ['unit' => $unit->nama_unit, 'activity' => $grant->nama_hibah]),
             ]);
 
             foreach (AssessmentAspect::cases() as $aspect) {
@@ -82,7 +82,7 @@ class AgreementReviewRepository
 
             auth()->user()?->activityLogs()->create([
                 'action' => LogAction::Review,
-                'message' => "Memulai kajian perjanjian hibah: {$grant->nama_hibah}",
+                'message' => __('message.activity-log.start-agreement-review', ['activity' => $grant->nama_hibah]),
                 'metadata' => ['model_type' => Grant::class, 'model_id' => $grant->id],
             ]);
         });
@@ -175,13 +175,13 @@ class AgreementReviewRepository
 
         if ($results->contains(AssessmentResult::Rejected)) {
             $newStatus = GrantStatus::PoldaRejectedAgreement;
-            $keterangan = "Perjanjian hibah untuk kegiatan {$grant->nama_hibah} ditolak oleh Polda";
+            $keterangan = __('message.status-history.agreement-rejected', ['activity' => $grant->nama_hibah, 'reviewer' => 'Polda']);
         } elseif ($results->contains(AssessmentResult::Revision)) {
             $newStatus = GrantStatus::PoldaRequestedAgreementRevision;
-            $keterangan = "Polda meminta revisi untuk perjanjian hibah kegiatan {$grant->nama_hibah}";
+            $keterangan = __('message.status-history.agreement-revision-requested', ['activity' => $grant->nama_hibah, 'reviewer' => 'Polda']);
         } else {
             $newStatus = GrantStatus::PoldaVerifiedAgreement;
-            $keterangan = "Perjanjian hibah untuk kegiatan {$grant->nama_hibah} disetujui oleh Polda";
+            $keterangan = __('message.status-history.agreement-verified', ['activity' => $grant->nama_hibah, 'reviewer' => 'Polda']);
         }
 
         $grant->statusHistory()->create([
@@ -198,7 +198,7 @@ class AgreementReviewRepository
 
         auth()->user()?->activityLogs()->create([
             'action' => $logAction,
-            'message' => "{$logAction->label()} perjanjian hibah: {$grant->nama_hibah}",
+            'message' => __('message.activity-log.resolve-agreement', ['action' => $logAction->label(), 'activity' => $grant->nama_hibah]),
             'metadata' => ['model_type' => Grant::class, 'model_id' => $grant->id],
         ]);
 

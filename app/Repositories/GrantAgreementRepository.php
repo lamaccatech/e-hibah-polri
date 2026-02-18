@@ -90,12 +90,12 @@ class GrantAgreementRepository
 
             $grant->statusHistory()->create([
                 'status_sesudah' => GrantStatus::FillingReceptionData->value,
-                'keterangan' => "{$unit->nama_unit} mengisi data dasar penerimaan hibah dalam rangka kegiatan {$activityName}",
+                'keterangan' => __('message.status-history.filling-reception-data', ['unit' => $unit->nama_unit, 'activity' => $activityName]),
             ]);
 
             $this->saveObjectives($grant, $objectives);
 
-            auth()->user()?->recordCreation($grant, 'Membuat perjanjian hibah baru');
+            auth()->user()?->recordCreation($grant, __('message.activity-log.create-agreement'));
 
             return $grant;
         });
@@ -114,7 +114,7 @@ class GrantAgreementRepository
             $grant->statusHistory()->create([
                 'status_sebelum' => GrantStatus::PlanningNumberIssued->value,
                 'status_sesudah' => GrantStatus::FillingReceptionData->value,
-                'keterangan' => "{$grant->orgUnit->nama_unit} mengisi data dasar penerimaan hibah dalam rangka kegiatan {$grant->nama_hibah}",
+                'keterangan' => __('message.status-history.filling-reception-data', ['unit' => $grant->orgUnit->nama_unit, 'activity' => $grant->nama_hibah]),
             ]);
 
             $this->saveObjectives($grant, $objectives);
@@ -211,7 +211,7 @@ class GrantAgreementRepository
             $grant->statusHistory()->create([
                 'status_sebelum' => $this->getLatestStatus($grant)?->value,
                 'status_sesudah' => GrantStatus::FillingDonorInfo->value,
-                'keterangan' => "{$grant->orgUnit->nama_unit} mengisi data pemberi hibah {$donor?->nama} untuk kegiatan {$grant->nama_hibah}",
+                'keterangan' => __('message.status-history.filling-donor-info', ['unit' => $grant->orgUnit->nama_unit, 'donor' => $donor?->nama, 'activity' => $grant->nama_hibah]),
             ]);
 
             // Auto-generate Purpose for direct grants (ada_usulan = false)
@@ -226,7 +226,7 @@ class GrantAgreementRepository
         $grant->statusHistory()->create([
             'status_sebelum' => $this->getLatestStatus($grant)?->value,
             'status_sesudah' => GrantStatus::FillingDonorInfo->value,
-            'keterangan' => "{$grant->orgUnit->nama_unit} melanjutkan ke langkah data pemberi hibah untuk kegiatan {$grant->nama_hibah}",
+            'keterangan' => __('message.status-history.advance-to-donor-info', ['unit' => $grant->orgUnit->nama_unit, 'activity' => $grant->nama_hibah]),
         ]);
     }
 
@@ -248,7 +248,7 @@ class GrantAgreementRepository
             ->with('contents')
             ->first();
 
-        $purposeText = "<p>Kegiatan {$grant->nama_hibah}";
+        $purposeText = '<p>'.__('message.generated-content.purpose-prefix', ['activity' => $grant->nama_hibah]);
         if ($objectives && $objectives->contents->isNotEmpty()) {
             $objectiveNames = $objectives->contents
                 ->sortBy('nomor_urut')
@@ -256,7 +256,7 @@ class GrantAgreementRepository
                 ->filter()
                 ->implode(', ');
             if ($objectiveNames) {
-                $purposeText .= " bertujuan untuk {$objectiveNames}";
+                $purposeText .= __('message.generated-content.purpose-objective', ['objectives' => $objectiveNames]);
             }
         }
         $purposeText .= '.</p>';
@@ -294,7 +294,7 @@ class GrantAgreementRepository
             $statusHistory = $grant->statusHistory()->create([
                 'status_sebelum' => $this->getLatestStatus($grant)?->value,
                 'status_sesudah' => GrantStatus::CreatingAgreementAssessment->value,
-                'keterangan' => "{$grant->orgUnit->nama_unit} membuat dokumen kajian hibah untuk kegiatan {$grant->nama_hibah}",
+                'keterangan' => __('message.status-history.creating-agreement-assessment', ['unit' => $grant->orgUnit->nama_unit, 'activity' => $grant->nama_hibah]),
             ]);
 
             foreach ($aspects as $aspect) {
@@ -402,7 +402,7 @@ class GrantAgreementRepository
             $grant->statusHistory()->create([
                 'status_sebelum' => $this->getLatestStatus($grant)?->value,
                 'status_sesudah' => GrantStatus::FillingHarmonization->value,
-                'keterangan' => "{$grant->orgUnit->nama_unit} mengisi data harmonisasi naskah perjanjian hibah untuk kegiatan {$grant->nama_hibah}",
+                'keterangan' => __('message.status-history.filling-harmonization', ['unit' => $grant->orgUnit->nama_unit, 'activity' => $grant->nama_hibah]),
             ]);
         });
     }
@@ -446,7 +446,7 @@ class GrantAgreementRepository
             $grant->statusHistory()->create([
                 'status_sebelum' => $this->getLatestStatus($grant)?->value,
                 'status_sesudah' => GrantStatus::FillingAdditionalMaterials->value,
-                'keterangan' => "{$grant->orgUnit->nama_unit} mengisi materi tambahan kesiapan hibah untuk kegiatan {$grant->nama_hibah}",
+                'keterangan' => __('message.status-history.filling-additional-materials', ['unit' => $grant->orgUnit->nama_unit, 'activity' => $grant->nama_hibah]),
             ]);
         });
     }
@@ -481,7 +481,7 @@ class GrantAgreementRepository
             $grant->statusHistory()->create([
                 'status_sebelum' => $this->getLatestStatus($grant)?->value,
                 'status_sesudah' => GrantStatus::FillingOtherMaterials->value,
-                'keterangan' => "{$grant->orgUnit->nama_unit} mengisi materi kesiapan hibah lainnya untuk kegiatan {$grant->nama_hibah}",
+                'keterangan' => __('message.status-history.filling-other-materials', ['unit' => $grant->orgUnit->nama_unit, 'activity' => $grant->nama_hibah]),
             ]);
         });
     }
@@ -491,7 +491,7 @@ class GrantAgreementRepository
         $grant->statusHistory()->create([
             'status_sebelum' => $this->getLatestStatus($grant)?->value,
             'status_sesudah' => GrantStatus::FillingOtherMaterials->value,
-            'keterangan' => "{$grant->orgUnit->nama_unit} melewati langkah materi kesiapan hibah lainnya untuk kegiatan {$grant->nama_hibah}",
+            'keterangan' => __('message.status-history.skipping-other-materials', ['unit' => $grant->orgUnit->nama_unit, 'activity' => $grant->nama_hibah]),
         ]);
     }
 
@@ -514,7 +514,7 @@ class GrantAgreementRepository
             $statusHistory = $grant->statusHistory()->create([
                 'status_sebelum' => $this->getLatestStatus($grant)?->value,
                 'status_sesudah' => GrantStatus::UploadingDraftAgreement->value,
-                'keterangan' => "{$grant->orgUnit->nama_unit} mengupload draft naskah perjanjian hibah untuk kegiatan {$grant->nama_hibah}",
+                'keterangan' => __('message.status-history.uploading-draft-agreement', ['unit' => $grant->orgUnit->nama_unit, 'activity' => $grant->nama_hibah]),
             ]);
 
             $statusHistory->attachFile($draftFile, FileType::DraftAgreement);
@@ -567,12 +567,12 @@ class GrantAgreementRepository
         $grant->statusHistory()->create([
             'status_sebelum' => $currentStatus?->value,
             'status_sesudah' => $newStatus->value,
-            'keterangan' => "{$grant->orgUnit->nama_unit} mengajukan perjanjian hibah untuk kegiatan {$grant->nama_hibah}",
+            'keterangan' => __('message.status-history.agreement-submitted', ['unit' => $grant->orgUnit->nama_unit, 'activity' => $grant->nama_hibah]),
         ]);
 
         auth()->user()?->activityLogs()->create([
             'action' => LogAction::Submit,
-            'message' => "Mengajukan perjanjian hibah: {$grant->nama_hibah}",
+            'message' => __('message.activity-log.submit-agreement', ['activity' => $grant->nama_hibah]),
             'metadata' => ['model_type' => Grant::class, 'model_id' => $grant->id],
         ]);
 
@@ -606,7 +606,7 @@ class GrantAgreementRepository
             $statusHistory = $grant->statusHistory()->create([
                 'status_sebelum' => $this->getLatestStatus($grant)?->value,
                 'status_sesudah' => GrantStatus::UploadingSignedAgreement->value,
-                'keterangan' => "{$grant->orgUnit->nama_unit} mengupload naskah perjanjian hibah untuk kegiatan {$grant->nama_hibah}",
+                'keterangan' => __('message.status-history.uploading-signed-agreement', ['unit' => $grant->orgUnit->nama_unit, 'activity' => $grant->nama_hibah]),
             ]);
 
             $statusHistory->attachFile($signedFile, FileType::Agreement);
@@ -621,7 +621,7 @@ class GrantAgreementRepository
             $grant->statusHistory()->create([
                 'status_sebelum' => $this->getLatestStatus($grant)?->value,
                 'status_sesudah' => GrantStatus::SubmittingToFinanceMinistry->value,
-                'keterangan' => "{$grant->orgUnit->nama_unit} mengisi data SEHATI/Kemenkeu untuk kegiatan {$grant->nama_hibah}",
+                'keterangan' => __('message.status-history.sehati-submitted', ['unit' => $grant->orgUnit->nama_unit, 'activity' => $grant->nama_hibah]),
             ]);
         });
     }

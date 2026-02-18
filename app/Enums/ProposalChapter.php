@@ -20,18 +20,18 @@ enum ProposalChapter: string
     public function label(): string
     {
         return match ($this) {
-            self::General => 'Umum',
-            self::Purpose => 'Maksud',
-            self::Objective => 'Tujuan',
-            self::Target => 'Sasaran Kegiatan',
-            self::Benefit => 'Manfaat Kegiatan',
-            self::ImplementationPlan => 'Rencana Pelaksanaan Kegiatan',
-            self::BudgetPlan => 'Rencana Kebutuhan Anggaran Kegiatan',
-            self::ReportingPlan => 'Rencana Pelaporan',
-            self::EvaluationPlan => 'Rencana Evaluasi',
-            self::Closing => 'Penutup',
-            self::ReceptionBasis => 'Dasar Penerimaan Hibah',
-            self::SupervisionMechanism => 'Mekanisme Pengawasan Hibah',
+            self::General => __('common.proposal-chapter.general'),
+            self::Purpose => __('common.proposal-chapter.purpose'),
+            self::Objective => __('common.proposal-chapter.objective'),
+            self::Target => __('common.proposal-chapter.target'),
+            self::Benefit => __('common.proposal-chapter.benefit'),
+            self::ImplementationPlan => __('common.proposal-chapter.implementation-plan'),
+            self::BudgetPlan => __('common.proposal-chapter.budget-plan'),
+            self::ReportingPlan => __('common.proposal-chapter.reporting-plan'),
+            self::EvaluationPlan => __('common.proposal-chapter.evaluation-plan'),
+            self::Closing => __('common.proposal-chapter.closing'),
+            self::ReceptionBasis => __('common.proposal-chapter.reception-basis'),
+            self::SupervisionMechanism => __('common.proposal-chapter.supervision-mechanism'),
         };
     }
 
@@ -42,25 +42,25 @@ enum ProposalChapter: string
     {
         return match ($this) {
             self::General => [
-                'Jelaskan latar belakang kebutuhan',
-                'Jelaskan informasi relevan untuk mendukung urgensi kegiatan',
-                'Uraikan bagaimana kegiatan dapat memberikan solusi',
+                __('common.proposal-chapter.prompt-general-1'),
+                __('common.proposal-chapter.prompt-general-2'),
+                __('common.proposal-chapter.prompt-general-3'),
             ],
             self::Target => [
-                'Jelaskan tentang sasaran atas indikator-indikator yang dapat ditingkatkan untuk pencapaian tujuan',
+                __('common.proposal-chapter.prompt-target-1'),
             ],
             self::Benefit => [
-                'Jelaskan manfaat kegiatan yang dapat mendukung tugas Polri dan Masyarakat',
-                'Jelaskan dampak, baik langsung maupun tidak langsung, kepada calon pemberi hibah',
+                __('common.proposal-chapter.prompt-benefit-1'),
+                __('common.proposal-chapter.prompt-benefit-2'),
             ],
             self::ImplementationPlan => [
-                'Jelaskan langkah-langkah yang akan dilaksanakan',
+                __('common.proposal-chapter.prompt-implementation-1'),
             ],
             self::ReportingPlan => [
-                'Jelaskan rencana pelaporan kepada calon pemberi hibah',
+                __('common.proposal-chapter.prompt-reporting-1'),
             ],
             self::EvaluationPlan => [
-                'Jelaskan rencana evaluasi yang akan dilakukan oleh Polri',
+                __('common.proposal-chapter.prompt-evaluation-1'),
             ],
             default => [],
         };

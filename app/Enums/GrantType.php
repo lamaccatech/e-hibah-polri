@@ -13,4 +13,12 @@ enum GrantType: string
 {
     case Direct = 'LANGSUNG';
     case Planned = 'TERENCANA';
+
+    public function label(): string
+    {
+        return match ($this) {
+            self::Direct => __('common.grant-type.direct'),
+            self::Planned => __('common.grant-type.planned'),
+        };
+    }
 }

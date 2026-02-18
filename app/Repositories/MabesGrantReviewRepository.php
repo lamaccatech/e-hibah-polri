@@ -67,7 +67,7 @@ class MabesGrantReviewRepository
             $statusHistory = $grant->statusHistory()->create([
                 'status_sebelum' => $previousStatus?->value,
                 'status_sesudah' => GrantStatus::MabesReviewingPlanning->value,
-                'keterangan' => "{$unit->nama_unit} memulai kajian usulan hibah untuk kegiatan {$grant->nama_hibah}",
+                'keterangan' => __('message.status-history.start-planning-review', ['unit' => $unit->nama_unit, 'activity' => $grant->nama_hibah]),
             ]);
 
             foreach (AssessmentAspect::cases() as $aspect) {
@@ -80,7 +80,7 @@ class MabesGrantReviewRepository
 
             auth()->user()?->activityLogs()->create([
                 'action' => LogAction::Review,
-                'message' => "Memulai kajian usulan hibah: {$grant->nama_hibah}",
+                'message' => __('message.activity-log.start-planning-review', ['activity' => $grant->nama_hibah]),
                 'metadata' => ['model_type' => Grant::class, 'model_id' => $grant->id],
             ]);
         });
@@ -198,13 +198,13 @@ class MabesGrantReviewRepository
 
         if ($results->contains(AssessmentResult::Rejected)) {
             $newStatus = GrantStatus::MabesRejectedPlanning;
-            $keterangan = "Usulan hibah untuk kegiatan {$grant->nama_hibah} ditolak oleh Mabes";
+            $keterangan = __('message.status-history.planning-rejected', ['activity' => $grant->nama_hibah, 'reviewer' => 'Mabes']);
         } elseif ($results->contains(AssessmentResult::Revision)) {
             $newStatus = GrantStatus::MabesRequestedPlanningRevision;
-            $keterangan = "Mabes meminta revisi untuk usulan hibah kegiatan {$grant->nama_hibah}";
+            $keterangan = __('message.status-history.planning-revision-requested', ['activity' => $grant->nama_hibah, 'reviewer' => 'Mabes']);
         } else {
             $newStatus = GrantStatus::MabesVerifiedPlanning;
-            $keterangan = "Usulan hibah untuk kegiatan {$grant->nama_hibah} disetujui oleh Mabes";
+            $keterangan = __('message.status-history.planning-verified', ['activity' => $grant->nama_hibah, 'reviewer' => 'Mabes']);
         }
 
         $grant->statusHistory()->create([
@@ -221,7 +221,7 @@ class MabesGrantReviewRepository
 
         auth()->user()?->activityLogs()->create([
             'action' => $logAction,
-            'message' => "{$logAction->label()} usulan hibah: {$grant->nama_hibah}",
+            'message' => __('message.activity-log.resolve-planning', ['action' => $logAction->label(), 'activity' => $grant->nama_hibah]),
             'metadata' => ['model_type' => Grant::class, 'model_id' => $grant->id],
         ]);
 
@@ -246,7 +246,7 @@ class MabesGrantReviewRepository
         $grant->statusHistory()->create([
             'status_sebelum' => GrantStatus::MabesVerifiedPlanning->value,
             'status_sesudah' => GrantStatus::PlanningNumberIssued->value,
-            'keterangan' => "Nomor usulan hibah terbit untuk kegiatan {$grant->nama_hibah}",
+            'keterangan' => __('message.status-history.planning-number-issued', ['activity' => $grant->nama_hibah]),
         ]);
 
         $satkerUser = $grant->orgUnit->user;

@@ -18,16 +18,16 @@ enum LogAction: string
     public function label(): string
     {
         return match ($this) {
-            self::Create => 'Membuat',
-            self::Update => 'Mengubah',
-            self::Delete => 'Menghapus',
-            self::Login => 'Masuk',
-            self::Logout => 'Keluar',
-            self::Submit => 'Mengajukan',
-            self::Review => 'Mengkaji',
-            self::Verify => 'Memverifikasi',
-            self::Reject => 'Menolak',
-            self::RequestRevision => 'Meminta Revisi',
+            self::Create => __('common.log-action.create'),
+            self::Update => __('common.log-action.update'),
+            self::Delete => __('common.log-action.delete'),
+            self::Login => __('common.log-action.login'),
+            self::Logout => __('common.log-action.logout'),
+            self::Submit => __('common.log-action.submit'),
+            self::Review => __('common.log-action.review'),
+            self::Verify => __('common.log-action.verify'),
+            self::Reject => __('common.log-action.reject'),
+            self::RequestRevision => __('common.log-action.request-revision'),
         };
     }
 }
