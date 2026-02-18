@@ -49,12 +49,6 @@
                     <flux:navbar.item icon="tag" :href="route('tag.index')" :current="request()->routeIs('tag.*')" wire:navigate>
                         {{ __('component.navbar.nav-tag-management') }}
                     </flux:navbar.item>
-                    <flux:navbar.item icon="users" :href="route('user.index')" :current="request()->routeIs('user.*')" wire:navigate>
-                        {{ __('component.navbar.nav-user-management') }}
-                    </flux:navbar.item>
-                    <flux:navbar.item icon="clipboard-document-check" :href="route('activity-log.index')" :current="request()->routeIs('activity-log.*')" wire:navigate>
-                        {{ __('component.navbar.nav-activity-log') }}
-                    </flux:navbar.item>
                 @endif
             </flux:navbar>
 
@@ -85,6 +79,19 @@
                     </flux:menu.radio.group>
 
                     <flux:menu.separator />
+
+                    @if (auth()->user()->unit?->level_unit === \App\Enums\UnitLevel::Mabes)
+                        <flux:menu.radio.group>
+                            <flux:menu.item :href="route('user.index')" icon="users" wire:navigate>
+                                {{ __('component.navbar.nav-user-management') }}
+                            </flux:menu.item>
+                            <flux:menu.item :href="route('activity-log.index')" icon="clipboard-document-check" wire:navigate>
+                                {{ __('component.navbar.nav-activity-log') }}
+                            </flux:menu.item>
+                        </flux:menu.radio.group>
+
+                        <flux:menu.separator />
+                    @endif
 
                     <flux:menu.radio.group>
                         <flux:menu.item :href="route('profile.edit')" icon="cog-6-tooth" wire:navigate>
@@ -150,6 +157,13 @@
                     <flux:sidebar.item icon="tag" :href="route('tag.index')" :current="request()->routeIs('tag.*')" wire:navigate>
                         {{ __('component.navbar.nav-tag-management') }}
                     </flux:sidebar.item>
+                @endif
+            </flux:sidebar.nav>
+
+            <flux:spacer />
+
+            <flux:sidebar.nav>
+                @if (auth()->user()->unit?->level_unit === \App\Enums\UnitLevel::Mabes)
                     <flux:sidebar.item icon="users" :href="route('user.index')" :current="request()->routeIs('user.*')" wire:navigate>
                         {{ __('component.navbar.nav-user-management') }}
                     </flux:sidebar.item>
@@ -157,11 +171,6 @@
                         {{ __('component.navbar.nav-activity-log') }}
                     </flux:sidebar.item>
                 @endif
-            </flux:sidebar.nav>
-
-            <flux:spacer />
-
-            <flux:sidebar.nav>
                 <flux:sidebar.item icon="cog-6-tooth" :href="route('profile.edit')" wire:navigate>
                     {{ __('common.settings') }}
                 </flux:sidebar.item>
