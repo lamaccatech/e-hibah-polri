@@ -107,6 +107,17 @@ describe('Upload Signed Agreement', function () {
             ->call('save')
             ->assertHasErrors(['signedAgreementFile']);
     });
+
+    it('rejects signed agreement files exceeding 20MB', function () {
+        $user = createSatkerUserForPostApproval();
+        $grant = createGrantWithAgreementNumberIssued($user);
+
+        Livewire::actingAs($user)
+            ->test(UploadSignedAgreement::class, ['grant' => $grant])
+            ->set('signedAgreementFile', UploadedFile::fake()->create('naskah.pdf', 20481, 'application/pdf'))
+            ->call('save')
+            ->assertHasErrors(['signedAgreementFile']);
+    });
 });
 
 // ============================================================

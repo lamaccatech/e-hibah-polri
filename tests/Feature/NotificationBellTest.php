@@ -158,6 +158,136 @@ describe('Notification Bell', function () {
         expect($url)->toBe(route('grant-review.index'));
     });
 
+    it('limits display to 10 most recent notifications', function () {
+        $polda = createUserWithUnit();
+        $satker = User::factory()->create();
+        $satker->unit()->create(OrgUnit::factory()->satuanKerja()->raw([
+            'id_unit_atasan' => $polda->id,
+        ]));
+
+        // Create 12 grants and notifications
+        for ($i = 0; $i < 12; $i++) {
+            $grant = $satker->unit->grants()->create(
+                \App\Models\Grant::factory()->planned()->raw()
+            );
+            $polda->notify(new PlanningSubmittedNotification($grant));
+        }
+
+        expect($polda->unreadNotifications()->count())->toBe(12);
+
+        $this->actingAs($polda);
+
+        $component = Livewire::test(NotificationBell::class);
+        $notifications = $component->viewData('notifications');
+        expect($notifications->count())->toBeLessThanOrEqual(10);
+    });
+
+    it('routes agreement rejection notification to grant detail page', function () {
+        $satker = createUserWithUnit('satuan_kerja');
+
+        $grant = $satker->unit->grants()->create(
+            \App\Models\Grant::factory()->directAgreement()->raw()
+        );
+
+        $satker->notify(new \App\Notifications\AgreementRejectedNotification($grant, 'Polda'));
+
+        $notification = $satker->notifications()->latest()->first();
+
+        $this->actingAs($satker);
+
+        $component = Livewire::test(NotificationBell::class);
+        $url = $component->instance()->getUrl($notification);
+
+        expect($url)->toBe(route('grant-detail.show', $grant->id));
+    });
+
+    // Known limitation: agreement revision routes to grant-planning.edit (see spec)
+    it('routes agreement revision notification to grant planning edit page', function () {
+        $satker = createUserWithUnit('satuan_kerja');
+
+        $grant = $satker->unit->grants()->create(
+            \App\Models\Grant::factory()->directAgreement()->raw()
+        );
+
+        $satker->notify(new \App\Notifications\AgreementRevisionRequestedNotification($grant, 'Polda'));
+
+        $notification = $satker->notifications()->latest()->first();
+
+        $this->actingAs($satker);
+
+        $component = Livewire::test(NotificationBell::class);
+        $url = $component->instance()->getUrl($notification);
+
+        expect($url)->toBe(route('grant-planning.edit', $grant->id));
+    });
+
+    // Known limitation: agreement number issued falls to grant_id catch-all
+    it('routes agreement number issued notification to grant review index', function () {
+        $satker = createUserWithUnit('satuan_kerja');
+
+        $grant = $satker->unit->grants()->create(
+            \App\Models\Grant::factory()->directAgreement()->raw()
+        );
+
+        $satker->notify(new \App\Notifications\AgreementNumberIssuedNotification($grant, 'NPH/001/2025'));
+
+        $notification = $satker->notifications()->latest()->first();
+
+        $this->actingAs($satker);
+
+        $component = Livewire::test(NotificationBell::class);
+        $url = $component->instance()->getUrl($notification);
+
+        expect($url)->toBe(route('grant-review.index'));
+    });
+
+    // Known limitation: agreement submitted falls to grant_id catch-all
+    it('routes agreement submitted notification to grant review index', function () {
+        $polda = createUserWithUnit();
+        $satker = User::factory()->create();
+        $satker->unit()->create(OrgUnit::factory()->satuanKerja()->raw([
+            'id_unit_atasan' => $polda->id,
+        ]));
+
+        $grant = $satker->unit->grants()->create(
+            \App\Models\Grant::factory()->directAgreement()->raw()
+        );
+
+        $polda->notify(new \App\Notifications\AgreementSubmittedNotification($grant));
+
+        $notification = $polda->notifications()->latest()->first();
+
+        $this->actingAs($polda);
+
+        $component = Livewire::test(NotificationBell::class);
+        $url = $component->instance()->getUrl($notification);
+
+        expect($url)->toBe(route('grant-review.index'));
+    });
+
+    it('stores correct data schema for agreement notifications', function () {
+        $grant = createUserWithUnit('satuan_kerja')->unit->grants()->create(
+            \App\Models\Grant::factory()->directAgreement()->raw()
+        );
+
+        // Each notification tested on a fresh user to avoid ordering ambiguity
+        $user1 = createUserWithUnit();
+        $user1->notify(new \App\Notifications\AgreementSubmittedNotification($grant));
+        expect($user1->notifications()->first()->data)->toHaveKeys(['grant_id', 'grant_name', 'unit_name']);
+
+        $user2 = User::factory()->create();
+        $user2->notify(new \App\Notifications\AgreementRejectedNotification($grant, 'Polda'));
+        expect($user2->notifications()->first()->data)->toHaveKeys(['grant_id', 'grant_name', 'rejected_by']);
+
+        $user3 = User::factory()->create();
+        $user3->notify(new \App\Notifications\AgreementRevisionRequestedNotification($grant, 'Polda'));
+        expect($user3->notifications()->first()->data)->toHaveKeys(['grant_id', 'grant_name', 'revision_requested_by']);
+
+        $user4 = User::factory()->create();
+        $user4->notify(new \App\Notifications\AgreementNumberIssuedNotification($grant, 'NPH/001/2025'));
+        expect($user4->notifications()->first()->data)->toHaveKeys(['grant_id', 'grant_name', 'agreement_number']);
+    });
+
     it('marks all notifications as read', function () {
         $polda = createUserWithUnit();
         $satker = User::factory()->create();

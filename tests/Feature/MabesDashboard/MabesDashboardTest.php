@@ -371,4 +371,42 @@ describe('Mabes Dashboard — Yearly Trend', function () {
         Livewire::test(MabesDashboard::class)
             ->assertViewHas('yearlyTrend', fn (array $trend) => count($trend) === 0);
     });
+
+    it('groups trend data by multiple years', function () {
+        $polda = createPoldaUserForDashboard();
+        $satker = createSatkerUserForDashboard($polda);
+        $mabes = createMabesUserForDashboard();
+
+        // Grant from current year
+        $currentYearGrant = $satker->unit->grants()->create(
+            Grant::factory()->planned()->raw()
+        );
+        $currentYearGrant->statusHistory()->create([
+            'status_sesudah' => GrantStatus::PlanningSubmittedToPolda->value,
+            'keterangan' => 'Submitted',
+        ]);
+        $currentYearGrant->budgetPlans()->create(
+            GrantBudgetPlan::factory()->raw(['nilai' => 1000000])
+        );
+
+        // Grant from previous year — set created_at via query builder
+        $lastYearGrant = $satker->unit->grants()->create(
+            Grant::factory()->planned()->raw()
+        );
+        Grant::withoutTimestamps(fn () => $lastYearGrant->forceFill(['created_at' => now()->subYear()])->save());
+        $lastYearGrant->statusHistory()->create([
+            'status_sesudah' => GrantStatus::PlanningSubmittedToPolda->value,
+            'keterangan' => 'Submitted',
+        ]);
+        $lastYearGrant->budgetPlans()->create(
+            GrantBudgetPlan::factory()->raw(['nilai' => 2000000])
+        );
+
+        $this->actingAs($mabes);
+
+        Livewire::test(MabesDashboard::class)
+            ->assertViewHas('yearlyTrend', function (array $trend) {
+                return count($trend) >= 2;
+            });
+    });
 });

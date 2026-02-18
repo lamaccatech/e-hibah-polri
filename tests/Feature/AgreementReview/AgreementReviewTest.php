@@ -465,3 +465,114 @@ describe('Agreement Review — Auto-Status Resolution', function () {
         expect($latestStatus->status_sesudah)->toBe(GrantStatus::PoldaRequestedAgreementRevision);
     });
 });
+
+describe('Agreement Review — Validation', function () {
+    it('requires result to be selected', function () {
+        $polda = createPoldaUserForAgreementReview();
+        $satker = createSatkerUserUnderPoldaForAgreementReview($polda);
+        $grant = createSubmittedAgreementForReview($satker);
+        startAgreementReviewForGrant($grant);
+
+        $this->actingAs($polda);
+
+        $assessment = GrantAssessment::query()
+            ->whereHas('statusHistory', fn ($q) => $q->where('id_hibah', $grant->id))
+            ->where('aspek', AssessmentAspect::Technical)
+            ->first();
+
+        Livewire::test(Review::class, ['grant' => $grant])
+            ->call('openResultModal', $assessment->id, $assessment->aspek->label())
+            ->call('submitResult')
+            ->assertHasErrors(['result']);
+    });
+
+    it('requires remarks when result is not Fulfilled', function () {
+        $polda = createPoldaUserForAgreementReview();
+        $satker = createSatkerUserUnderPoldaForAgreementReview($polda);
+        $grant = createSubmittedAgreementForReview($satker);
+        startAgreementReviewForGrant($grant);
+
+        $this->actingAs($polda);
+
+        $assessment = GrantAssessment::query()
+            ->whereHas('statusHistory', fn ($q) => $q->where('id_hibah', $grant->id))
+            ->where('aspek', AssessmentAspect::Technical)
+            ->first();
+
+        Livewire::test(Review::class, ['grant' => $grant])
+            ->call('openResultModal', $assessment->id, $assessment->aspek->label())
+            ->set('result', AssessmentResult::Rejected->value)
+            ->call('submitResult')
+            ->assertHasErrors(['remarks']);
+    });
+
+    it('does not require remarks when result is Fulfilled', function () {
+        $polda = createPoldaUserForAgreementReview();
+        $satker = createSatkerUserUnderPoldaForAgreementReview($polda);
+        $grant = createSubmittedAgreementForReview($satker);
+        startAgreementReviewForGrant($grant);
+
+        $this->actingAs($polda);
+
+        $assessment = GrantAssessment::query()
+            ->whereHas('statusHistory', fn ($q) => $q->where('id_hibah', $grant->id))
+            ->where('aspek', AssessmentAspect::Technical)
+            ->first();
+
+        Livewire::test(Review::class, ['grant' => $grant])
+            ->call('openResultModal', $assessment->id, $assessment->aspek->label())
+            ->set('result', AssessmentResult::Fulfilled->value)
+            ->call('submitResult')
+            ->assertHasNoErrors();
+    });
+
+    it('prevents re-submitting result for already evaluated aspect', function () {
+        $polda = createPoldaUserForAgreementReview();
+        $satker = createSatkerUserUnderPoldaForAgreementReview($polda);
+        $grant = createSubmittedAgreementForReview($satker);
+        startAgreementReviewForGrant($grant);
+
+        $repository = app(\App\Repositories\AgreementReviewRepository::class);
+        $assessment = GrantAssessment::query()
+            ->whereHas('statusHistory', fn ($q) => $q->where('id_hibah', $grant->id))
+            ->where('aspek', AssessmentAspect::Technical)
+            ->first();
+
+        $repository->submitAspectResult($assessment, $polda->unit, AssessmentResult::Fulfilled, null);
+
+        $this->actingAs($polda);
+
+        Livewire::test(Review::class, ['grant' => $grant])
+            ->call('openResultModal', $assessment->id, $assessment->aspek->label())
+            ->set('result', AssessmentResult::Rejected->value)
+            ->set('remarks', 'Try to override')
+            ->call('submitResult')
+            ->assertStatus(422);
+    });
+});
+
+describe('Agreement Review — Access Control', function () {
+    it('prevents accessing review page when agreement is not under review', function () {
+        $polda = createPoldaUserForAgreementReview();
+        $satker = createSatkerUserUnderPoldaForAgreementReview($polda);
+        $grant = createSubmittedAgreementForReview($satker);
+
+        $this->actingAs($polda);
+
+        $this->get(route('agreement-review.review', $grant))
+            ->assertForbidden();
+    });
+
+    it('prevents Polda from reviewing agreements from non-child Satker', function () {
+        $polda = createPoldaUserForAgreementReview();
+        $otherPolda = createPoldaUserForAgreementReview();
+        $unrelatedSatker = createSatkerUserUnderPoldaForAgreementReview($otherPolda);
+        $grant = createSubmittedAgreementForReview($unrelatedSatker);
+        startAgreementReviewForGrant($grant);
+
+        $this->actingAs($polda);
+
+        $this->get(route('agreement-review.review', $grant))
+            ->assertForbidden();
+    });
+});
