@@ -55,7 +55,9 @@
         <flux:table>
             <flux:table.columns>
                 <flux:table.column>{{ __('page.donor-detail.column-grant-name') }}</flux:table.column>
+                <flux:table.column>{{ __('page.donor-detail.column-value') }}</flux:table.column>
                 <flux:table.column>{{ __('page.donor-detail.column-satker') }}</flux:table.column>
+                <flux:table.column>{{ __('page.donor-detail.column-stage') }}</flux:table.column>
                 <flux:table.column>{{ __('page.donor-detail.column-status') }}</flux:table.column>
                 <flux:table.column align="end">{{ __('page.donor-detail.column-action') }}</flux:table.column>
             </flux:table.columns>
@@ -64,7 +66,17 @@
                 @forelse ($donor->grants as $grant)
                     <flux:table.row :key="$grant->id">
                         <flux:table.cell>{{ $grant->nama_hibah }}</flux:table.cell>
+                        <flux:table.cell>
+                            @if ($grant->nilai_hibah)
+                                {{ $grant->mata_uang }} {{ number_format($grant->nilai_hibah, 0, ',', '.') }}
+                            @else
+                                -
+                            @endif
+                        </flux:table.cell>
                         <flux:table.cell>{{ $grant->orgUnit?->nama_unit }}</flux:table.cell>
+                        <flux:table.cell>
+                            <flux:badge size="sm" color="zinc">{{ $grant->tahapan->label() }}</flux:badge>
+                        </flux:table.cell>
                         <flux:table.cell>
                             <flux:badge size="sm">{{ $grant->statusHistory->last()?->status_sesudah?->label() }}</flux:badge>
                         </flux:table.cell>
@@ -74,7 +86,7 @@
                     </flux:table.row>
                 @empty
                     <flux:table.row>
-                        <flux:table.cell colspan="4" class="text-center">
+                        <flux:table.cell colspan="6" class="text-center">
                             {{ __('page.donor-detail.empty-grants') }}
                         </flux:table.cell>
                     </flux:table.row>
@@ -83,18 +95,4 @@
         </flux:table>
     </div>
 
-    {{-- Section 3: Tags/Categories --}}
-    <div>
-        <flux:heading size="lg" class="mb-4">{{ __('page.donor-detail.section-tags') }}</flux:heading>
-
-        @if ($donor->tags->isNotEmpty())
-            <div class="flex flex-wrap gap-2">
-                @foreach ($donor->tags as $tag)
-                    <flux:badge>{{ $tag->name }}</flux:badge>
-                @endforeach
-            </div>
-        @else
-            <flux:text>{{ __('page.donor-detail.empty-tags') }}</flux:text>
-        @endif
-    </div>
 </div>
