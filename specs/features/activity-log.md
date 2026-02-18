@@ -292,7 +292,7 @@ Uses `WithPagination`.
 
 ### Location
 
-Add a "Riwayat Perubahan" tab on the grant detail page, visible to all authenticated users who can view the grant.
+Add a "Riwayat Perubahan" tab on the grant detail page, visible only to Mabes (headquarters) users.
 
 ### Display
 
@@ -382,7 +382,7 @@ Change history per grant is expected to be small (< 50 entries). Render all entr
 
 ### Access Control
 34. Non-Mabes users cannot access activity log index → redirected
-35. Grant change history tab respects existing grant detail access control
+35. Non-Mabes users do not see the change history tab on grant detail
 
 ### Edge Cases
 36. Logging failure does not abort the user's action (graceful error handling)

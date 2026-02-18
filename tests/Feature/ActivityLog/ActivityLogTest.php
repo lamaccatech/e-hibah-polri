@@ -472,6 +472,20 @@ describe('Grant Change History Tab', function () {
             ->call('switchTab', 'change-history')
             ->assertSee(__('page.grant-detail-change-history.empty-state'));
     });
+
+    it('does not show change history tab for non-Mabes users', function () {
+        $satkerUser = createSatkerUserForActivityLog();
+        $grant = createGrantForActivityLog();
+        $grant->update(['id_satuan_kerja' => $satkerUser->unit->id_user]);
+        $grant->statusHistory()->create([
+            'status_sesudah' => \App\Enums\GrantStatus::PlanningInitialized->value,
+            'keterangan' => 'Test',
+        ]);
+
+        Livewire::actingAs($satkerUser)
+            ->test(\App\Livewire\GrantDetail\Show::class, ['grant' => $grant])
+            ->assertDontSee(__('page.grant-detail-change-history.tab-label'));
+    });
 });
 
 // ==========================================

@@ -6,7 +6,7 @@
             <flux:input wire:model.live.debounce.300ms="search" placeholder="{{ __('page.activity-log.search-placeholder') }}" icon="magnifying-glass" clearable />
         </div>
         <div class="w-48">
-            <flux:select wire:model.live="action" placeholder="{{ __('page.activity-log.filter-action') }}">
+            <flux:select wire:model.live="action" variant="listbox" placeholder="{{ __('page.activity-log.filter-action') }}">
                 <flux:select.option value="">{{ __('page.activity-log.all-actions') }}</flux:select.option>
                 @foreach ($actionOptions as $option)
                     <flux:select.option value="{{ $option->value }}">{{ $option->label() }}</flux:select.option>
@@ -14,10 +14,10 @@
             </flux:select>
         </div>
         <div class="w-44">
-            <flux:input type="date" wire:model.live="dateFrom" label="{{ __('page.activity-log.date-from') }}" />
+            <flux:date-picker wire:model.live="dateFrom" :label="__('page.activity-log.date-from')" locale="id-ID" />
         </div>
         <div class="w-44">
-            <flux:input type="date" wire:model.live="dateTo" label="{{ __('page.activity-log.date-to') }}" />
+            <flux:date-picker wire:model.live="dateTo" :label="__('page.activity-log.date-to')" locale="id-ID" />
         </div>
     </div>
 

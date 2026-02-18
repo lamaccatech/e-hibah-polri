@@ -114,14 +114,16 @@
                 </flux:navbar.item>
             @endif
 
-            {{-- Always visible: Riwayat Perubahan --}}
-            <flux:navbar.item
-                wire:click.prevent="switchTab('change-history')"
-                :current="$activeTab === 'change-history'"
-                class="cursor-pointer"
-            >
-                {{ __('page.grant-detail-change-history.tab-label') }}
-            </flux:navbar.item>
+            {{-- Mabes only: Riwayat Perubahan --}}
+            @if (auth()->user()->unit?->level_unit === \App\Enums\UnitLevel::Mabes)
+                <flux:navbar.item
+                    wire:click.prevent="switchTab('change-history')"
+                    :current="$activeTab === 'change-history'"
+                    class="cursor-pointer"
+                >
+                    {{ __('page.grant-detail-change-history.tab-label') }}
+                </flux:navbar.item>
+            @endif
         </flux:navbar>
     </div>
 

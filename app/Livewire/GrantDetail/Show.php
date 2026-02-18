@@ -132,7 +132,7 @@ class Show extends Component
                 && $agreementRepository->isEditable($this->grant);
         } elseif ($this->activeTab === 'document-history') {
             $data['documentHistory'] = $documentRepository->getDocumentHistory($this->grant);
-        } elseif ($this->activeTab === 'change-history') {
+        } elseif ($this->activeTab === 'change-history' && auth()->user()->unit?->level_unit === UnitLevel::Mabes) {
             $data['changeHistory'] = $this->grant->changes()
                 ->with('user')
                 ->orderByDesc('created_at')
